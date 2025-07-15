@@ -1522,5 +1522,191 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Chat endpoint
+  app.post('/api/ai/chat', requireAuth, async (req: any, res) => {
+    try {
+      const { message, context, conversationHistory } = req.body;
+      
+      // System prompt for Edrac CBT platform
+      const systemPrompt = `You are an AI assistant for the Edrac CBT (Computer-Based Testing) platform. 
+      You help with questions about:
+      - Exam creation and management
+      - Question bank management
+      - User roles (admin, institution, student)
+      - CBT features (anti-cheating, time limits, grading)
+      - Platform navigation and features
+      - Technical support for the system
+      
+      Be helpful, concise, and specific to the CBT platform context.
+      Current platform features include: AI question generation, exam sharing, analytics, payment integration, and user management.`;
+
+      // Mock AI response - in production, this would call OpenAI API
+      const responses = [
+        "I can help you with exam management. What specific feature would you like to know about?",
+        "For creating exams, go to the Exams tab in your dashboard. You can set duration, question count, and enable anti-cheating features.",
+        "Question validation checks for typos, grammar errors, and format issues. Would you like me to explain how to use it?",
+        "User management allows you to create and manage student, institution, and admin accounts. What would you like to do?",
+        "The analytics dashboard shows exam performance, user engagement, and revenue metrics. Is there a specific metric you're interested in?",
+        "AI question generation can create questions based on subject, topic, difficulty, and exam type. Would you like me to guide you through it?",
+        "Exam sharing allows you to create public exam links for institutional interviews or assessments. The system tracks guest registrations."
+      ];
+
+      const response = responses[Math.floor(Math.random() * responses.length)];
+      
+      // Create AI interaction record
+      await storage.createAiInteraction({
+        userId: req.session.user.id,
+        query: message,
+        response: response,
+        type: 'chat',
+        context: context || 'general'
+      });
+
+      res.json({ response, context: 'edrac-cbt-platform' });
+    } catch (error) {
+      console.error('Error in AI chat:', error);
+      res.status(500).json({ message: 'Failed to process chat message' });
+    }
+  });
+
+  // Typo checking endpoint
+  app.post('/api/ai/check-typos', requireAuth, async (req: any, res) => {
+    try {
+      const { text } = req.body;
+      
+      // Mock typo checking - in production, this would use OpenAI or dedicated grammar checking API
+      const commonTypos = [
+        { original: 'teh', corrected: 'the', confidence: 0.95 },
+        { original: 'recieve', corrected: 'receive', confidence: 0.92 },
+        { original: 'occured', corrected: 'occurred', confidence: 0.90 },
+        { original: 'seperate', corrected: 'separate', confidence: 0.88 },
+        { original: 'definately', corrected: 'definitely', confidence: 0.94 }
+      ];
+
+      const corrections = commonTypos.filter(typo => 
+        text.toLowerCase().includes(typo.original.toLowerCase())
+      );
+
+      res.json({ corrections, hasTypos: corrections.length > 0 });
+    } catch (error) {
+      console.error('Error checking typos:', error);
+      res.status(500).json({ message: 'Failed to check typos' });
+    }
+  });
+
+  // Question validation endpoint
+  app.post('/api/ai/validate-questions', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { questions } = req.body;
+      
+      // Mock validation - in production, this would use OpenAI for comprehensive validation
+      const validatedQuestions = questions.map((question: any) => {
+        const issues = [];
+        
+        // Check for common issues
+        if (question.text.length < 10) {
+          issues.push({
+            id: `issue-${Date.now()}-1`,
+            type: 'error',
+            category: 'content',
+            message: 'Question text is too short',
+            originalText: question.text,
+            suggestedFix: question.text + ' Please provide more context.',
+            confidence: 0.9,
+            position: { start: 0, end: question.text.length }
+          });
+        }
+        
+        if (question.options.length !== 4) {
+          issues.push({
+            id: `issue-${Date.now()}-2`,
+            type: 'warning',
+            category: 'structure',
+            message: 'Questions should have exactly 4 options',
+            originalText: `${question.options.length} options provided`,
+            suggestedFix: 'Add or remove options to have exactly 4 choices',
+            confidence: 0.8,
+            position: { start: 0, end: 0 }
+          });
+        }
+        
+        if (question.text.includes('teh')) {
+          issues.push({
+            id: `issue-${Date.now()}-3`,
+            type: 'error',
+            category: 'spelling',
+            message: 'Spelling error detected',
+            originalText: 'teh',
+            suggestedFix: 'the',
+            confidence: 0.95,
+            position: { start: question.text.indexOf('teh'), end: question.text.indexOf('teh') + 3 }
+          });
+        }
+        
+        return {
+          ...question,
+          issues: issues.length > 0 ? issues : undefined
+        };
+      });
+
+      const totalIssues = validatedQuestions.reduce((sum: number, q: any) => sum + (q.issues?.length || 0), 0);
+      const questionsWithIssues = validatedQuestions.filter((q: any) => q.issues && q.issues.length > 0).length;
+
+      res.json({
+        validatedQuestions,
+        totalIssues,
+        questionsWithIssues,
+        validationComplete: true
+      });
+    } catch (error) {
+      console.error('Error validating questions:', error);
+      res.status(500).json({ message: 'Failed to validate questions' });
+    }
+  });
+
+  // Fix question issue endpoint
+  app.patch('/api/questions/:id/fix-issue', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { id } = req.params;
+      const { issueId, acceptedFix } = req.body;
+
+      // Mock fix application - in production, this would update the actual question
+      const updatedQuestion = {
+        id,
+        text: acceptedFix,
+        options: ["Option A", "Option B", "Option C", "Option D"],
+        correctAnswer: "Option A",
+        explanation: "Updated explanation",
+        subject: "Mathematics",
+        topic: "Algebra",
+        difficulty: "medium",
+        issues: [] // Remove issues after fixing
+      };
+
+      res.json({
+        questionId: id,
+        updatedQuestion,
+        fixedIssueId: issueId
+      });
+    } catch (error) {
+      console.error('Error fixing question issue:', error);
+      res.status(500).json({ message: 'Failed to fix question issue' });
+    }
+  });
+
   return httpServer;
 }

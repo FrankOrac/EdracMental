@@ -21,6 +21,8 @@ import AdminSystem from "@/pages/admin/System";
 import QuestionManager from "@/components/admin/QuestionManager";
 import ExamManager from "@/components/admin/ExamManager";
 import ExamShare from "@/components/ExamShare";
+import LiveChat from "@/components/LiveChat";
+import QuestionValidator from "@/components/QuestionValidator";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -51,6 +53,7 @@ function Router() {
           <Route path="/analytics" component={Analytics} />
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/questions" component={QuestionManager} />
+          <Route path="/admin/question-validator" component={QuestionValidator} />
           <Route path="/admin/institutions" component={AdminInstitutions} />
           <Route path="/admin/system" component={AdminSystem} />
         </>
@@ -69,6 +72,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <LiveChat />
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
