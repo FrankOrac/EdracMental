@@ -13,7 +13,7 @@ import {
   Building,
   TrendingUp,
   AlertCircle,
-  Settings,
+  Settings as SettingsIcon,
   Search,
   Filter,
   Download,
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
     {
       title: "System Settings",
       description: "Configure platform settings",
-      icon: Settings,
+      icon: SettingsIcon,
       color: "from-purple-500 to-purple-600",
       action: () => {}
     },

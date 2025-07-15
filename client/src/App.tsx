@@ -11,6 +11,13 @@ import LoginPage from "@/components/auth/LoginPage";
 import SignupPage from "@/components/auth/SignupPage";
 import Home from "@/pages/Home";
 import Exam from "@/pages/Exam";
+import AdminSettings from "@/pages/admin/Settings";
+import AdminSubjects from "@/pages/admin/Subjects";
+import AdminExams from "@/pages/admin/Exams";
+import AdminAnalytics from "@/pages/admin/Analytics";
+import AdminUsers from "@/pages/admin/Users";
+import AdminInstitutions from "@/pages/admin/Institutions";
+import AdminSystem from "@/pages/admin/System";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -35,6 +42,13 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/exam/:examId?" component={Exam} />
+          <Route path="/settings" component={AdminSettings} />
+          <Route path="/subjects" component={AdminSubjects} />
+          <Route path="/exams" component={AdminExams} />
+          <Route path="/analytics" component={AdminAnalytics} />
+          <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/admin/institutions" component={AdminInstitutions} />
+          <Route path="/admin/system" component={AdminSystem} />
         </>
       )}
       <Route component={NotFound} />
