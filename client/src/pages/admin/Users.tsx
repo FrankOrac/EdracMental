@@ -22,7 +22,10 @@ export default function AdminUsers() {
   // Fetch users from API
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["/api/users"],
-    queryFn: () => apiRequest("/api/users"),
+    queryFn: async () => {
+      const response = await apiRequest("/api/users", { method: "GET" });
+      return response.json();
+    },
   });
 
   const deleteUserMutation = useMutation({
@@ -45,12 +48,12 @@ export default function AdminUsers() {
     },
   });
 
-  const filteredUsers = users.filter((user: any) => {
-    const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUsers = Array.isArray(users) ? users.filter((user: any) => {
+    const matchesSearch = user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;
-  });
+  }) : [];
 
   const handleDelete = (user: any) => {
     if (confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}?`)) {

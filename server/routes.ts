@@ -773,22 +773,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/institutions', requireAuth, async (req: any, res) => {
     try {
-      const currentUserId = req.session.user.id;
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
       const currentUser = await storage.getUser(currentUserId);
       
       if (currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const institutionData = req.body;
+      const institutionData = insertInstitutionSchema.parse(req.body);
       const institution = await storage.createInstitution({
         ...institutionData,
+        id: `inst_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         ownerId: currentUserId
       });
       
       res.status(201).json(institution);
     } catch (error) {
       console.error("Error creating institution:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to create institution" });
     }
   });

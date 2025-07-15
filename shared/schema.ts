@@ -329,6 +329,12 @@ export const insertExamSchema = createInsertSchema(exams).pick({
   settings: true,
   scheduledStart: true,
   scheduledEnd: true,
+}).extend({
+  type: z.enum(["practice", "mock", "official", "custom"]),
+  examCategory: z.enum(["jamb", "waec", "neco", "gce", "custom"]),
+  difficulty: z.enum(["easy", "medium", "hard", "mixed"]).default("mixed"),
+  duration: z.number().min(1, "Duration must be at least 1 minute"),
+  totalQuestions: z.number().min(1, "Must have at least 1 question"),
 });
 
 export const insertExamSessionSchema = createInsertSchema(examSessions).pick({
