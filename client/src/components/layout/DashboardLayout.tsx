@@ -41,6 +41,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const baseItems = [
       { icon: Home, label: "Dashboard", href: "/", active: location === "/" },
       { icon: BookOpen, label: "Subjects", href: "/subjects", active: location === "/subjects" },
+      { icon: FileText, label: "Question Bank", href: "/admin/questions", active: location === "/admin/questions" },
       { icon: FileText, label: "Exams", href: "/exams", active: location === "/exams" },
       { icon: BarChart3, label: "Analytics", href: "/analytics", active: location === "/analytics" },
     ];

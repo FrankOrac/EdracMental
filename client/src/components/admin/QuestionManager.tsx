@@ -25,7 +25,10 @@ import {
   Target,
   AlertCircle,
   CheckCircle,
-  X
+  X,
+  Bot,
+  Sparkles,
+  Zap
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -59,10 +62,40 @@ export default function QuestionManager() {
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isAiGeneratorOpen, setIsAiGeneratorOpen] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadResults, setUploadResults] = useState<UploadResult | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Generate questions using AI mutation
+  const generateQuestionsMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/ai/generate-questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data)
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+      toast({
+        title: "Questions Generated!",
+        description: `Successfully generated and saved ${data.saved} questions.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate questions. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Fetch questions
   const { data: questions = [], isLoading } = useQuery({
@@ -241,6 +274,26 @@ export default function QuestionManager() {
             <Download className="h-4 w-4 mr-2" />
             Download Template
           </Button>
+          <Dialog open={isAiGeneratorOpen} onOpenChange={setIsAiGeneratorOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI Generate
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>AI Question Generator</DialogTitle>
+              </DialogHeader>
+              <AiQuestionGenerator 
+                subjects={subjects}
+                topics={topics}
+                onSubmit={(data) => generateQuestionsMutation.mutate(data)}
+                isLoading={generateQuestionsMutation.isPending}
+                onSuccess={() => setIsAiGeneratorOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
@@ -319,9 +372,10 @@ export default function QuestionManager() {
 
       {/* Main Content */}
       <Tabs defaultValue="questions" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="questions">Questions</TabsTrigger>
           <TabsTrigger value="upload">Bulk Upload</TabsTrigger>
+          <TabsTrigger value="ai-generate">AI Generate</TabsTrigger>
         </TabsList>
 
         <TabsContent value="questions" className="space-y-6">
@@ -425,13 +479,14 @@ export default function QuestionManager() {
                         <TableCell>{question.points}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Button size="sm" variant="outline">
+                            <Button size="sm" variant="outline" onClick={() => console.log('Edit question:', question.id)}>
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 
                               size="sm" 
                               variant="destructive"
                               onClick={() => deleteQuestionMutation.mutate(question.id)}
+                              disabled={deleteQuestionMutation.isPending}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -530,6 +585,26 @@ export default function QuestionManager() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="ai-generate" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Bot className="h-5 w-5 mr-2 text-purple-600" />
+                AI Question Generator
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <AiQuestionGenerator 
+                subjects={subjects}
+                topics={topics}
+                onSubmit={(data) => generateQuestionsMutation.mutate(data)}
+                isLoading={generateQuestionsMutation.isPending}
+                onSuccess={() => {}}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -561,7 +636,7 @@ function CreateQuestionForm({ subjects, topics, onSubmit, isLoading }: any) {
     onSubmit({
       ...formData,
       subjectId: parseInt(formData.subjectId),
-      topicId: parseInt(formData.topicId),
+      topicId: formData.topicId ? parseInt(formData.topicId) : undefined,
       points: parseInt(formData.points.toString())
     });
   };
@@ -597,13 +672,14 @@ function CreateQuestionForm({ subjects, topics, onSubmit, isLoading }: any) {
         </div>
 
         <div>
-          <Label htmlFor="topic">Topic</Label>
+          <Label htmlFor="topic">Topic (Optional)</Label>
           <Select value={formData.topicId} onValueChange={(value) => setFormData({ ...formData, topicId: value })}>
             <SelectTrigger>
-              <SelectValue placeholder="Select topic" />
+              <SelectValue placeholder="Select topic (optional)" />
             </SelectTrigger>
             <SelectContent>
-              {topics.map((topic: any) => (
+              <SelectItem value="">No specific topic</SelectItem>
+              {topics.filter((topic: any) => topic.subjectId === parseInt(formData.subjectId)).map((topic: any) => (
                 <SelectItem key={topic.id} value={topic.id.toString()}>
                   {topic.name}
                 </SelectItem>
@@ -678,5 +754,136 @@ function CreateQuestionForm({ subjects, topics, onSubmit, isLoading }: any) {
         </Button>
       </div>
     </form>
+  );
+}
+
+// AI Question Generator Component
+function AiQuestionGenerator({ subjects, topics, onSubmit, isLoading, onSuccess }: any) {
+  const [formData, setFormData] = useState({
+    subject: '',
+    topic: '',
+    difficulty: 'medium',
+    examType: 'jamb',
+    count: 10
+  });
+  const handleGenerate = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+    onSuccess();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-4 rounded-lg">
+        <h3 className="font-medium text-purple-900 dark:text-purple-100 mb-2 flex items-center">
+          <Sparkles className="h-4 w-4 mr-2" />
+          AI-Powered Question Generation
+        </h3>
+        <p className="text-sm text-purple-800 dark:text-purple-200">
+          Generate high-quality questions using AI. Questions are automatically fact-checked and saved to your database.
+        </p>
+      </div>
+
+      <form onSubmit={handleGenerate} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="subject">Subject</Label>
+            <Select value={formData.subject} onValueChange={(value) => setFormData({ ...formData, subject: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select subject" />
+              </SelectTrigger>
+              <SelectContent>
+                {subjects.map((subject: any) => (
+                  <SelectItem key={subject.id} value={subject.id.toString()}>
+                    {subject.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="topic">Topic (Optional)</Label>
+            <Select value={formData.topic} onValueChange={(value) => setFormData({ ...formData, topic: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select topic (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Generate for entire subject</SelectItem>
+                {topics.filter((topic: any) => topic.subjectId === parseInt(formData.subject)).map((topic: any) => (
+                  <SelectItem key={topic.id} value={topic.id.toString()}>
+                    {topic.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="difficulty">Difficulty</Label>
+            <Select value={formData.difficulty} onValueChange={(value) => setFormData({ ...formData, difficulty: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="examType">Exam Type</Label>
+            <Select value={formData.examType} onValueChange={(value) => setFormData({ ...formData, examType: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select exam type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="jamb">JAMB</SelectItem>
+                <SelectItem value="waec">WAEC</SelectItem>
+                <SelectItem value="neco">NECO</SelectItem>
+                <SelectItem value="gce">GCE</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="count">Question Count</Label>
+            <Input
+              type="number"
+              min="1"
+              max="50"
+              value={formData.count}
+              onChange={(e) => setFormData({ ...formData, count: parseInt(e.target.value) })}
+              placeholder="Number of questions"
+            />
+          </div>
+        </div>
+
+        <Button 
+          type="submit" 
+          disabled={isLoading || !formData.subject} 
+          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+        >
+          {isLoading ? (
+            <>
+              <Zap className="h-4 w-4 mr-2 animate-spin" />
+              Generating Questions...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Generate {formData.count} Questions
+            </>
+          )}
+        </Button>
+      </form>
+
+
+    </div>
   );
 }

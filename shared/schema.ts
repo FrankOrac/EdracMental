@@ -86,7 +86,7 @@ export const questions = pgTable("questions", {
   correctAnswer: text("correct_answer").notNull(),
   explanation: text("explanation"),
   difficulty: varchar("difficulty", { enum: ["easy", "medium", "hard"] }).notNull().default("medium"),
-  topicId: integer("topic_id").notNull(),
+  topicId: integer("topic_id"), // Make optional
   subjectId: integer("subject_id").notNull(),
   examType: varchar("exam_type", { enum: ["jamb", "waec", "neco", "gce", "custom"] }).notNull(),
   points: integer("points").notNull().default(1),

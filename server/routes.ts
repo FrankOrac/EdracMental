@@ -1054,6 +1054,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Question Generation
+  app.post('/api/ai/generate-questions', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { subject, topic, difficulty, examType, count } = req.body;
+      
+      // Generate questions using AI
+      const generatedQuestions = await generateQuestions({
+        subject,
+        topic: topic || subject, // Use subject if no topic
+        difficulty,
+        examType,
+        count
+      });
+
+      // Save generated questions to database
+      const savedQuestions = [];
+      for (const question of generatedQuestions) {
+        try {
+          const saved = await storage.createQuestion({
+            text: question.text,
+            type: 'multiple_choice',
+            options: question.options,
+            correctAnswer: question.correctAnswer,
+            explanation: question.explanation,
+            difficulty: question.difficulty,
+            subjectId: parseInt(subject),
+            topicId: topic ? parseInt(topic) : undefined,
+            examType: examType,
+            points: 1,
+            isActive: true,
+            createdBy: currentUserId
+          });
+          savedQuestions.push(saved);
+        } catch (error) {
+          console.error('Error saving generated question:', error);
+        }
+      }
+
+      res.json({ 
+        generated: generatedQuestions.length, 
+        saved: savedQuestions.length, 
+        questions: savedQuestions 
+      });
+    } catch (error) {
+      console.error('Error generating questions:', error);
+      res.status(500).json({ message: 'Failed to generate questions' });
+    }
+  });
+
   app.post('/api/ai/generate-questions', requireAuth, async (req: any, res) => {
     try {
       const params = req.body;
