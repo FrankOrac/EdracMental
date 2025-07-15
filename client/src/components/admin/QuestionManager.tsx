@@ -441,18 +441,22 @@ export default function QuestionManager() {
                 
                 createQuestionMutation.mutate(questionData, {
                   onSuccess: () => {
+                    toast({
+                      title: "Question Added!",
+                      description: `Question ${currentQuestionIndex + 1} of ${questionCount} created successfully.`,
+                    });
+                    
                     if (currentQuestionIndex < questionCount - 1) {
+                      // Continue to next question
                       setCurrentQuestionIndex(prev => prev + 1);
-                      toast({
-                        title: "Question Added!",
-                        description: `Question ${currentQuestionIndex + 1} of ${questionCount} created. Continue with the next one.`,
-                      });
                     } else {
+                      // All questions completed
                       setIsAddDialogOpen(false);
                       setCurrentQuestionIndex(0);
+                      setQuestionCount(1);
                       toast({
-                        title: "Success!",
-                        description: `All ${questionCount} questions have been created successfully.`,
+                        title: "All Done!",
+                        description: `Successfully created all ${questionCount} questions.`,
                       });
                     }
                   },
@@ -775,8 +779,8 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
                   <SelectValue placeholder="Select subject" />
                 </SelectTrigger>
                 <SelectContent>
-                  {subjects.map((subject: any) => (
-                    <SelectItem key={subject.id} value={subject.id.toString()}>
+                  {subjects.filter((subject: any) => subject.name && subject.name.trim()).map((subject: any) => (
+                    <SelectItem key={`subject-${subject.id}`} value={subject.id.toString()}>
                       {subject.name}
                     </SelectItem>
                   ))}
@@ -791,8 +795,8 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
                   <SelectValue placeholder="Select topic" />
                 </SelectTrigger>
                 <SelectContent>
-                  {topics.map((topic: any) => (
-                    <SelectItem key={topic.id} value={topic.id.toString()}>
+                  {topics.filter((topic: any) => topic.name && topic.name.trim()).map((topic: any) => (
+                    <SelectItem key={`topic-${topic.id}`} value={topic.id.toString()}>
                       {topic.name}
                     </SelectItem>
                   ))}
@@ -859,7 +863,7 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
           <SelectContent>
             {formData.options.map((option, index) => 
               option.trim() ? (
-                <SelectItem key={index} value={option}>
+                <SelectItem key={`option-${index}`} value={option}>
                   {String.fromCharCode(65 + index)}: {option}
                 </SelectItem>
               ) : null
