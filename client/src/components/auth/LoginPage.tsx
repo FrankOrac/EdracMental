@@ -100,19 +100,45 @@ export default function LoginPage() {
         return;
       }
 
-      // For demo accounts, redirect to Replit auth
-      const demoEmails = demoAccounts.map(account => account.email);
-      if (demoEmails.includes(formData.email) && formData.password === 'demo123') {
-        window.location.href = "/api/login";
+      // Try demo login first
+      const response = await fetch('/api/auth/demo-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Demo Login Successful",
+          description: "Redirecting to Replit authentication...",
+          variant: "default",
+        });
+        
+        // Small delay to show the toast
+        setTimeout(() => {
+          window.location.href = result.redirectTo;
+        }, 1000);
         return;
       }
 
-      // For other accounts, show a message about using OAuth
-      toast({
-        title: "Use OAuth Login",
-        description: "Please use Replit or Google login for authentication",
-        variant: "default",
-      });
+      // If demo login fails, show appropriate message
+      if (response.status === 401) {
+        toast({
+          title: "Invalid Credentials",
+          description: "Please check your email and password, or use OAuth login",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Login Method",
+          description: "For non-demo accounts, please use Replit or Google login",
+          variant: "default",
+        });
+      }
 
     } catch (error) {
       console.error('Login error:', error);
@@ -213,14 +239,23 @@ export default function LoginPage() {
                   Sign In
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Choose your preferred sign-in method
+                  Choose your preferred sign-in method. OAuth is recommended for security.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* OAuth Options */}
                 <div className="space-y-3">
                   <Button
-                    onClick={() => window.location.href = "/api/login"}
+                    onClick={() => {
+                      toast({
+                        title: "Redirecting to Replit",
+                        description: "You'll be redirected to Replit's secure login page",
+                        variant: "default",
+                      });
+                      setTimeout(() => {
+                        window.location.href = "/api/login";
+                      }, 1000);
+                    }}
                     size="lg"
                     className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                   >
@@ -229,7 +264,16 @@ export default function LoginPage() {
                   </Button>
 
                   <Button
-                    onClick={() => window.location.href = "/api/auth/google"}
+                    onClick={() => {
+                      toast({
+                        title: "Redirecting to Google",
+                        description: "You'll be redirected to Google's secure login page",
+                        variant: "default",
+                      });
+                      setTimeout(() => {
+                        window.location.href = "/api/auth/google";
+                      }, 1000);
+                    }}
                     variant="outline"
                     size="lg"
                     className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"

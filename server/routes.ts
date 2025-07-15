@@ -31,6 +31,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Demo login endpoint
+  app.post('/api/auth/demo-login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      // Demo account validation
+      const demoAccounts = [
+        { email: "student@edrac.com", password: "demo123", role: "student" },
+        { email: "jane.student@edrac.com", password: "demo123", role: "student" },
+        { email: "institution@edrac.com", password: "demo123", role: "institution" },
+        { email: "admin@edrac.com", password: "demo123", role: "admin" }
+      ];
+      
+      const demoAccount = demoAccounts.find(acc => acc.email === email && acc.password === password);
+      
+      if (!demoAccount) {
+        return res.status(401).json({ 
+          message: "Invalid demo credentials. Use one of the demo accounts with password 'demo123'" 
+        });
+      }
+      
+      // For demo accounts, redirect to OAuth flow
+      res.json({ 
+        success: true, 
+        message: "Demo credentials valid. Redirecting to OAuth login...",
+        redirectTo: "/api/login"
+      });
+      
+    } catch (error) {
+      console.error("Demo login error:", error);
+      res.status(500).json({ message: "Demo login failed" });
+    }
+  });
+
   // Subject and topic routes
   app.get('/api/subjects', async (req, res) => {
     try {
