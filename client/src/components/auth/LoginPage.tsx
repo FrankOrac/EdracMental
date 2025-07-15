@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useTheme } from "@/components/ThemeProvider";
 import { Link } from "wouter";
 import {
@@ -10,21 +11,24 @@ import {
   User,
   Building,
   Shield,
-  ArrowRight,
   Sun,
   Moon,
   Home,
-  Eye,
-  EyeOff,
   Mail,
   Lock,
   LogIn,
-  Chrome
+  Chrome,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 export default function LoginPage() {
   const { theme, toggleTheme } = useTheme();
   const [showDemoAccounts, setShowDemoAccounts] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
 
   const demoAccounts = [
     {
@@ -70,128 +74,191 @@ export default function LoginPage() {
   ];
 
   const handleDemoLogin = (email: string) => {
-    // For demo purposes, we'll redirect to the regular login
+    // For demo purposes, redirect to Replit auth
     window.location.href = "/api/login";
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission here
+    console.log('Form submitted:', formData);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 rounded-lg">
-                <BookOpen className="h-6 w-6" />
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Edrac</span>
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleTheme}
-                className="text-gray-600 dark:text-gray-300"
-              >
-                {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-              </Button>
-              <Link href="/">
-                <Button variant="ghost" size="sm" className="text-gray-600 dark:text-gray-300">
-                  <Home className="h-4 w-4 mr-2" />
-                  Back to Home
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      {/* Theme Toggle */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={toggleTheme}
+        className="absolute top-4 right-4 p-2 rounded-lg bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm"
+      >
+        {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </Button>
+
+      {/* Back to Home */}
+      <Link href="/">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute top-4 left-4 p-2 rounded-lg bg-white/20 dark:bg-gray-800/20 backdrop-blur-sm"
+        >
+          <Home className="h-4 w-4 mr-2" />
+          Back to Home
+        </Button>
+      </Link>
 
       {/* Main Content */}
-      <div className="pt-20 pb-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="w-full max-w-4xl">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Welcome to Edrac
             </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Nigeria's leading AI-powered CBT platform for JAMB, WAEC, NECO, and institutional exams
+            <p className="text-gray-600 dark:text-gray-300">
+              Nigeria's leading AI-powered CBT platform
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Main Login Card */}
-            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-0 shadow-xl">
+            <Card className="backdrop-blur-lg bg-white/90 dark:bg-gray-900/90 border-white/20 dark:border-gray-700/20 shadow-2xl">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Sign In to Your Account
+                  Sign In
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
                   Choose your preferred sign-in method
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Replit Auth */}
-                <Button 
-                  onClick={() => window.location.href = "/api/login"}
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-                >
-                  <LogIn className="h-5 w-5 mr-2" />
-                  Continue with Replit
-                </Button>
+                {/* OAuth Options */}
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => window.location.href = "/api/login"}
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                  >
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Continue with Replit
+                  </Button>
 
-                {/* Google Auth */}
-                <Button 
-                  onClick={() => window.location.href = "/api/auth/google"}
-                  variant="outline"
-                  size="lg"
-                  className="w-full border-gray-300 dark:border-gray-600"
-                >
-                  <Chrome className="h-5 w-5 mr-2" />
-                  Continue with Google
-                </Button>
+                  <Button
+                    onClick={() => window.location.href = "/api/auth/google"}
+                    variant="outline"
+                    size="lg"
+                    className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                  >
+                    <Chrome className="mr-2 h-5 w-5" />
+                    Continue with Google
+                  </Button>
+                </div>
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <Separator className="w-full" />
+                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
-                      or for testing
-                    </span>
+                    <span className="bg-white dark:bg-gray-900 px-2 text-gray-500">Or</span>
                   </div>
                 </div>
 
-                {/* Demo Accounts Toggle */}
+                {/* Username/Password Form */}
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email or Username</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="Enter your email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="Enter your password"
+                        value={formData.password}
+                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <input
+                        id="remember"
+                        type="checkbox"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="remember" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                        Remember me
+                      </label>
+                    </div>
+                    <Link href="#" className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                      Forgot password?
+                    </Link>
+                  </div>
+
+                  <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600">
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Sign In
+                  </Button>
+                </form>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white dark:bg-gray-900 px-2 text-gray-500">Demo Access</span>
+                  </div>
+                </div>
+
                 <Button
                   variant="outline"
                   size="lg"
                   onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-                  className="w-full border-dashed border-gray-300 dark:border-gray-600"
+                  className="w-full"
                 >
-                  <Eye className="h-5 w-5 mr-2" />
-                  View Demo Accounts
-                  <ArrowRight className={`h-4 w-4 ml-2 transition-transform ${showDemoAccounts ? 'rotate-90' : ''}`} />
+                  {showDemoAccounts ? <EyeOff className="mr-2 h-5 w-5" /> : <Eye className="mr-2 h-5 w-5" />}
+                  {showDemoAccounts ? "Hide Demo Accounts" : "View Demo Accounts"}
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Demo Accounts Card */}
-            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border-0 shadow-xl">
+            {/* Demo Accounts Panel */}
+            <Card className="backdrop-blur-lg bg-white/90 dark:bg-gray-900/90 border-white/20 dark:border-gray-700/20 shadow-2xl">
               <CardHeader>
                 <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">
                   Demo Accounts
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Test different user roles and features
+                  Try the platform with pre-configured test accounts
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {!showDemoAccounts ? (
                   <div className="text-center py-8">
-                    <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-6">
-                      <EyeOff className="h-8 w-8 mx-auto mb-3 text-gray-400" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <div className="bg-blue-100 dark:bg-blue-900/50 rounded-lg p-6 mb-4">
+                      <User className="h-12 w-12 text-blue-600 dark:text-blue-400 mx-auto mb-3" />
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         Click "View Demo Accounts" to see available test accounts
                       </p>
                     </div>
@@ -214,8 +281,11 @@ export default function LoginPage() {
                                   {account.role}
                                 </Badge>
                               </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">
+                                Email: {account.email}
+                              </p>
                               <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                                {account.email}
+                                Password: demo123
                               </p>
                               <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
                                 {account.description}
@@ -238,48 +308,6 @@ export default function LoginPage() {
                 )}
               </CardContent>
             </Card>
-          </div>
-
-          {/* Features Preview */}
-          <div className="mt-12 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Why Choose Edrac?
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-6">
-                <div className="bg-blue-100 dark:bg-blue-900/50 rounded-lg p-3 w-12 h-12 mx-auto mb-4">
-                  <BookOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  Complete Curriculum
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Full coverage of JAMB, WAEC, NECO, and GCE syllabus
-                </p>
-              </div>
-              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-6">
-                <div className="bg-purple-100 dark:bg-purple-900/50 rounded-lg p-3 w-12 h-12 mx-auto mb-4">
-                  <User className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  24/7 AI Tutor
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Get instant explanations and personalized learning
-                </p>
-              </div>
-              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-lg p-6">
-                <div className="bg-green-100 dark:bg-green-900/50 rounded-lg p-3 w-12 h-12 mx-auto mb-4">
-                  <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
-                  Secure Testing
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Advanced anti-cheating and proctoring features
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Sign up link */}
