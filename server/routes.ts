@@ -2,6 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 // Custom middleware for session-based auth
 const requireAuth = (req: any, res: any, next: any) => {
@@ -63,21 +66,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { email, password } = req.body;
       
-      // Define user accounts with proper user data
+      // Define user accounts with proper user data matching database
       const userAccounts = [
         { 
-          id: "student-demo-1",
+          id: "student-001",
           email: "student@edrac.com", 
           password: "demo123", 
           role: "student",
-          name: "Demo Student",
-          username: "demo_student",
+          name: "Test Student",
+          username: "test_student",
           avatar: null,
           plan: "free",
           isActive: true
         },
         { 
-          id: "student-demo-2",
+          id: "student-002",
           email: "jane.student@edrac.com", 
           password: "demo123", 
           role: "student",
@@ -88,22 +91,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           isActive: true
         },
         { 
-          id: "institution-demo-1",
+          id: "student-003",
+          email: "michael.test@edrac.com", 
+          password: "demo123", 
+          role: "student",
+          name: "Michael Johnson",
+          username: "michael_student",
+          avatar: null,
+          plan: "free",
+          isActive: true
+        },
+        { 
+          id: "institution-001",
           email: "institution@edrac.com", 
           password: "demo123", 
           role: "institution",
-          name: "Demo Institution",
-          username: "demo_institution",
+          name: "Institution Manager",
+          username: "institution_manager",
           avatar: null,
           plan: "premium",
           isActive: true
         },
         { 
-          id: "admin-demo-1",
+          id: "admin-001",
           email: "admin@edrac.com", 
           password: "demo123", 
           role: "admin",
-          name: "System Admin",
+          name: "System Administrator",
           username: "admin",
           avatar: null,
           plan: "admin",
@@ -119,25 +133,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Create or update user in database
-      const user = await storage.upsertUser({
-        id: userAccount.id,
-        email: userAccount.email,
-        name: userAccount.name,
-        username: userAccount.username,
-        avatar: userAccount.avatar,
-        role: userAccount.role,
-        plan: userAccount.plan,
-        isActive: userAccount.isActive
-      });
+      // Find user by email in database (since users were created with different IDs)
+      let user;
+      try {
+        const allUsers = await db.select().from(users).where(eq(users.email, userAccount.email));
+        user = allUsers[0];
+        
+        // If user doesn't exist, create them
+        if (!user) {
+          user = await storage.upsertUser({
+            id: userAccount.id,
+            email: userAccount.email,
+            firstName: userAccount.name.split(' ')[0],
+            lastName: userAccount.name.split(' ').slice(1).join(' ') || 'User',
+            role: userAccount.role,
+            subscriptionPlan: userAccount.plan === 'admin' ? 'premium' : userAccount.plan
+          });
+        }
+      } catch (error) {
+        console.error('Error finding user:', error);
+        return res.status(500).json({ message: "Database error" });
+      }
       
       // Create session
       (req as any).session.user = {
         id: user.id,
         email: user.email,
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
-        plan: user.plan
+        subscriptionPlan: user.subscriptionPlan
       };
       
       res.json({ 
@@ -146,9 +171,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: {
           id: user.id,
           email: user.email,
-          name: user.name,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role,
-          plan: user.plan
+          subscriptionPlan: user.subscriptionPlan
         }
       });
       
