@@ -170,7 +170,7 @@ export default function ExamShare() {
                 </div>
                 <div className="flex items-center">
                   <Badge variant="secondary">
-                    {exam?.subjects.join(", ")}
+                    {exam?.subjects && Array.isArray(exam.subjects) ? exam.subjects.join(", ") : "No subjects"}
                   </Badge>
                 </div>
               </div>
