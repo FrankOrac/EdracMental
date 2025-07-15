@@ -310,11 +310,11 @@ export default function UserManagement() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-medium">
-                      {user.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      {user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div>
                       <h4 className="font-medium text-lg group-hover:text-blue-600 transition-colors">
-                        {user.fullName}
+                        {user.fullName || user.email || 'Unknown User'}
                       </h4>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
                         {user.email}
@@ -426,10 +426,10 @@ export default function UserManagement() {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="h-16 w-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                  {selectedUser.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  {selectedUser.fullName ? selectedUser.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : selectedUser.email?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">{selectedUser.fullName}</h3>
+                  <h3 className="text-xl font-semibold">{selectedUser.fullName || selectedUser.email || 'Unknown User'}</h3>
                   <p className="text-slate-600 dark:text-slate-300">{selectedUser.email}</p>
                   <Badge className={getRoleBadgeColor(selectedUser.role)}>
                     {selectedUser.role}
