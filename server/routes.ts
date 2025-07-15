@@ -353,6 +353,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/questions/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
+      
+      if (!currentUserId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const questionId = parseInt(req.params.id);
+      const questionData = req.body;
+
+      const updatedQuestion = await storage.updateQuestion(questionId, questionData);
+      res.json(updatedQuestion);
+    } catch (error) {
+      console.error('Error updating question:', error);
+      res.status(500).json({ message: 'Failed to update question' });
+    }
+  });
+
   // Exam routes
   app.post('/api/exams', requireAuth, async (req: any, res) => {
     try {

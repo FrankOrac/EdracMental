@@ -53,7 +53,10 @@ export default function ExamManager() {
 
 function ExamManagerContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateOptionsOpen, setIsCreateOptionsOpen] = useState(false);
+  const [isSelectExamOpen, setIsSelectExamOpen] = useState(false);
   const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
+  const [selectedExamToCopy, setSelectedExamToCopy] = useState<Exam | null>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -153,13 +156,48 @@ function ExamManagerContent() {
             Create, manage, and share exams for your institution
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={isCreateOptionsOpen} onOpenChange={setIsCreateOptionsOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
               <Plus className="h-4 w-4 mr-2" />
               Create Exam
             </Button>
           </DialogTrigger>
+          <DialogContent className="max-w-md" aria-describedby="create-exam-options-description">
+            <DialogHeader>
+              <DialogTitle>Create Exam</DialogTitle>
+              <p id="create-exam-options-description" className="text-sm text-gray-600 dark:text-gray-300">
+                Choose how you want to create your exam.
+              </p>
+            </DialogHeader>
+            <div className="space-y-3">
+              <Button
+                onClick={() => {
+                  setIsCreateOptionsOpen(false);
+                  setIsCreateDialogOpen(true);
+                }}
+                className="w-full justify-start"
+                variant="outline"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Exam
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsCreateOptionsOpen(false);
+                  setIsSelectExamOpen(true);
+                }}
+                className="w-full justify-start"
+                variant="outline"
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Existing Exam
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="create-exam-description">
             <DialogHeader>
               <DialogTitle>Create New Exam</DialogTitle>
@@ -169,9 +207,43 @@ function ExamManagerContent() {
             </DialogHeader>
             <CreateExamForm 
               subjects={subjects}
-              onSubmit={(data) => createExamMutation.mutate(data)}
+              examToCopy={selectedExamToCopy}
+              onSubmit={(data) => {
+                createExamMutation.mutate(data);
+                setSelectedExamToCopy(null);
+              }}
               isLoading={createExamMutation.isPending}
             />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isSelectExamOpen} onOpenChange={setIsSelectExamOpen}>
+          <DialogContent className="max-w-md" aria-describedby="select-exam-description">
+            <DialogHeader>
+              <DialogTitle>Select Exam to Copy</DialogTitle>
+              <p id="select-exam-description" className="text-sm text-gray-600 dark:text-gray-300">
+                Choose an existing exam to copy and modify.
+              </p>
+            </DialogHeader>
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {exams.map((exam: Exam) => (
+                <Button
+                  key={exam.id}
+                  onClick={() => {
+                    setSelectedExamToCopy(exam);
+                    setIsSelectExamOpen(false);
+                    setIsCreateDialogOpen(true);
+                  }}
+                  className="w-full justify-start p-3 h-auto"
+                  variant="outline"
+                >
+                  <div className="text-left">
+                    <p className="font-medium">{exam.title}</p>
+                    <p className="text-xs text-gray-500">{exam.duration} mins • {exam.totalQuestions} questions</p>
+                  </div>
+                </Button>
+              ))}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
@@ -361,18 +433,18 @@ function ExamManagerContent() {
   );
 }
 
-function CreateExamForm({ subjects, onSubmit, isLoading }: any) {
+function CreateExamForm({ subjects, onSubmit, isLoading, examToCopy }: any) {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    duration: 60,
-    totalQuestions: 20,
-    subjects: [],
-    difficulty: 'medium',
-    examCategory: 'jamb',
-    instructions: '',
-    isPublic: true,
-    isActive: true,
+    title: examToCopy?.title ? `${examToCopy.title} (Copy)` : '',
+    description: examToCopy?.description || '',
+    duration: examToCopy?.duration || 60,
+    totalQuestions: examToCopy?.totalQuestions || 20,
+    subjects: examToCopy?.subjects || [],
+    difficulty: examToCopy?.difficulty || 'medium',
+    examCategory: examToCopy?.examCategory || 'jamb',
+    instructions: examToCopy?.instructions || '',
+    isPublic: examToCopy?.isPublic ?? true,
+    isActive: examToCopy?.isActive ?? true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {

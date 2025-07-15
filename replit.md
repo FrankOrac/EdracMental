@@ -205,6 +205,18 @@ Preferred communication style: Simple, everyday language.
 - ✅ Added API endpoints for shared exam access and guest registration
 - ✅ Implemented proper error handling for exam link sharing
 
+## July 15, 2025 - Enhanced UX and AI Features Implementation
+- ✅ Enhanced AI question generator with topic selection and custom topic input
+- ✅ Added intuitive UX flow for "Add Questions" with options menu (bulk upload vs online creation)
+- ✅ Implemented similar UX pattern for exam creation (create new vs copy existing)
+- ✅ Fixed question edit functionality with proper update mutation and API endpoint
+- ✅ Enhanced bulk upload to accept both CSV and Excel formats (.xlsx)
+- ✅ Added comprehensive EditQuestionForm component with all form fields
+- ✅ Improved AI generator with helpful tips and better topic selection
+- ✅ Added exam copying functionality for easier exam template reuse
+- ✅ Enhanced download template to Excel format for better user familiarity
+- ✅ All dialogs now have proper accessibility descriptions and scrollable content
+
 ## Current Status
 The Edrac CBT platform is now a comprehensive, enterprise-grade educational technology solution with advanced features:
 

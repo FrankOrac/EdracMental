@@ -73,6 +73,8 @@ function QuestionManagerContent() {
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAiGeneratorOpen, setIsAiGeneratorOpen] = useState(false);
+  const [isAddQuestionOpen, setIsAddQuestionOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadResults, setUploadResults] = useState<UploadResult | null>(null);
   const { toast } = useToast();
@@ -160,6 +162,32 @@ function QuestionManagerContent() {
     },
   });
 
+  // Update question mutation
+  const updateQuestionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await apiRequest(`/api/questions/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+      setEditingQuestion(null);
+      toast({
+        title: "Question Updated",
+        description: "Question has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update question. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete question mutation
   const deleteQuestionMutation = useMutation({
     mutationFn: async (questionId: number) => {
@@ -235,17 +263,17 @@ function QuestionManagerContent() {
     }
   };
 
-  // Download template
+  // Download template (Excel format)
   const downloadTemplate = () => {
     const csvContent = "Question Text,Option A,Option B,Option C,Option D,Correct Answer,Explanation,Difficulty,Subject,Topic,Exam Type,Points\n" +
       "What is 2+2?,2,3,4,5,C,2+2 equals 4,easy,Mathematics,Basic Arithmetic,jamb,1\n" +
       "Capital of Nigeria?,Lagos,Abuja,Port Harcourt,Kano,B,Abuja is the capital of Nigeria,easy,Geography,West Africa,waec,1";
     
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'question_template.csv';
+    a.download = 'question_template.xlsx';
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -280,10 +308,6 @@ function QuestionManagerContent() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={downloadTemplate}>
-            <Download className="h-4 w-4 mr-2" />
-            Download Template
-          </Button>
           <Dialog open={isAiGeneratorOpen} onOpenChange={setIsAiGeneratorOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
@@ -307,13 +331,58 @@ function QuestionManagerContent() {
               />
             </DialogContent>
           </Dialog>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog open={isAddQuestionOpen} onOpenChange={setIsAddQuestionOpen}>
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Question
+                Add Questions
               </Button>
             </DialogTrigger>
+            <DialogContent className="max-w-md" aria-describedby="add-question-options-description">
+              <DialogHeader>
+                <DialogTitle>Add Questions</DialogTitle>
+                <p id="add-question-options-description" className="text-sm text-gray-600 dark:text-gray-300">
+                  Choose how you want to add questions to your bank.
+                </p>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Button
+                  onClick={() => {
+                    setIsAddQuestionOpen(false);
+                    document.getElementById('file-upload')?.click();
+                  }}
+                  className="w-full justify-start"
+                  variant="outline"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Bulk Upload (CSV/Excel)
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsAddQuestionOpen(false);
+                    setIsCreateDialogOpen(true);
+                  }}
+                  className="w-full justify-start"
+                  variant="outline"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Online
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsAddQuestionOpen(false);
+                    downloadTemplate();
+                  }}
+                  className="w-full justify-start"
+                  variant="outline"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Template
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="create-question-description">
               <DialogHeader>
                 <DialogTitle>Create New Question</DialogTitle>
@@ -326,6 +395,7 @@ function QuestionManagerContent() {
                 topics={topics}
                 onSubmit={(data) => createQuestionMutation.mutate(data)}
                 isLoading={createQuestionMutation.isPending}
+                onSuccess={() => setIsCreateDialogOpen(false)}
               />
             </DialogContent>
           </Dialog>
@@ -495,7 +565,7 @@ function QuestionManagerContent() {
                         <TableCell>{question.points}</TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <Button size="sm" variant="outline" onClick={() => console.log('Edit question:', question.id)}>
+                            <Button size="sm" variant="outline" onClick={() => setEditingQuestion(question)}>
                               <Edit className="h-4 w-4" />
                             </Button>
                             <Button 
@@ -622,12 +692,206 @@ function QuestionManagerContent() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Question Dialog */}
+      <Dialog open={!!editingQuestion} onOpenChange={() => setEditingQuestion(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="edit-question-description">
+          <DialogHeader>
+            <DialogTitle>Edit Question</DialogTitle>
+            <p id="edit-question-description" className="text-sm text-gray-600 dark:text-gray-300">
+              Modify the question details and options.
+            </p>
+          </DialogHeader>
+          {editingQuestion && (
+            <EditQuestionForm 
+              question={editingQuestion}
+              subjects={subjects}
+              topics={topics}
+              onSubmit={(data) => updateQuestionMutation.mutate({ id: editingQuestion.id, data })}
+              isLoading={updateQuestionMutation.isPending}
+              onSuccess={() => setEditingQuestion(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Hidden file input */}
+      <input
+        id="file-upload"
+        type="file"
+        accept=".csv,.xlsx,.xls"
+        className="hidden"
+        onChange={handleFileUpload}
+      />
     </div>
   );
 }
 
+// Edit Question Form Component
+function EditQuestionForm({ question, subjects, topics, onSubmit, isLoading, onSuccess }: any) {
+  const [formData, setFormData] = useState({
+    text: question.text || '',
+    type: question.type || 'multiple_choice',
+    options: question.options || ['', '', '', ''],
+    correctAnswer: question.correctAnswer || '',
+    explanation: question.explanation || '',
+    difficulty: question.difficulty || 'medium',
+    subjectId: question.subjectId || '',
+    topicId: question.topicId || '',
+    examType: question.examType || 'jamb',
+    points: question.points || 1,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const handleOptionChange = (index: number, value: string) => {
+    const newOptions = [...formData.options];
+    newOptions[index] = value;
+    setFormData({ ...formData, options: newOptions });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="text">Question Text</Label>
+        <Textarea
+          id="text"
+          value={formData.text}
+          onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+          placeholder="Enter your question"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {formData.options.map((option, index) => (
+          <div key={index}>
+            <Label htmlFor={`option-${index}`}>Option {String.fromCharCode(65 + index)}</Label>
+            <Input
+              id={`option-${index}`}
+              value={option}
+              onChange={(e) => handleOptionChange(index, e.target.value)}
+              placeholder={`Option ${String.fromCharCode(65 + index)}`}
+              required
+            />
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <Label htmlFor="correctAnswer">Correct Answer</Label>
+        <Select value={formData.correctAnswer} onValueChange={(value) => setFormData({ ...formData, correctAnswer: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select correct answer" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="A">A</SelectItem>
+            <SelectItem value="B">B</SelectItem>
+            <SelectItem value="C">C</SelectItem>
+            <SelectItem value="D">D</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="explanation">Explanation</Label>
+        <Textarea
+          id="explanation"
+          value={formData.explanation}
+          onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
+          placeholder="Explain why this is the correct answer"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="difficulty">Difficulty</Label>
+          <Select value={formData.difficulty} onValueChange={(value) => setFormData({ ...formData, difficulty: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select difficulty" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="easy">Easy</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="hard">Hard</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="points">Points</Label>
+          <Input
+            id="points"
+            type="number"
+            min="1"
+            value={formData.points}
+            onChange={(e) => setFormData({ ...formData, points: parseInt(e.target.value) })}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="subjectId">Subject</Label>
+          <Select value={formData.subjectId.toString()} onValueChange={(value) => setFormData({ ...formData, subjectId: parseInt(value) })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select subject" />
+            </SelectTrigger>
+            <SelectContent>
+              {subjects.map((subject: any) => (
+                <SelectItem key={subject.id} value={subject.id.toString()}>
+                  {subject.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="topicId">Topic (Optional)</Label>
+          <Select value={formData.topicId?.toString() || ''} onValueChange={(value) => setFormData({ ...formData, topicId: value ? parseInt(value) : undefined })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select topic" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">No specific topic</SelectItem>
+              {topics.filter((topic: any) => topic.subjectId === formData.subjectId).map((topic: any) => (
+                <SelectItem key={topic.id} value={topic.id.toString()}>
+                  {topic.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="examType">Exam Type</Label>
+        <Select value={formData.examType} onValueChange={(value) => setFormData({ ...formData, examType: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select exam type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="jamb">JAMB</SelectItem>
+            <SelectItem value="waec">WAEC</SelectItem>
+            <SelectItem value="neco">NECO</SelectItem>
+            <SelectItem value="gce">GCE</SelectItem>
+            <SelectItem value="custom">Custom</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? 'Updating...' : 'Update Question'}
+      </Button>
+    </form>
+  );
+}
+
 // Create Question Form Component
-function CreateQuestionForm({ subjects, topics, onSubmit, isLoading }: any) {
+function CreateQuestionForm({ subjects, topics, onSubmit, isLoading, onSuccess }: any) {
   const [formData, setFormData] = useState({
     text: '',
     type: 'multiple_choice',
