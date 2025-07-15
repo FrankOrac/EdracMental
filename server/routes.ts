@@ -487,9 +487,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI tutor routes
-  app.post('/api/ai/explain', requireAuth, async (req: any, res) => {
+  app.post('/api/ai/explain', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub;
       const { questionText, correctAnswer, studentAnswer } = req.body;
 
       const explanation = await explainQuestion(questionText, correctAnswer, studentAnswer);
@@ -509,9 +509,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai/tutor', requireAuth, async (req: any, res) => {
+  app.post('/api/ai/tutor', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.claims?.sub;
       const { question, context } = req.body;
 
       const response = await provideTutoring(question, context);
