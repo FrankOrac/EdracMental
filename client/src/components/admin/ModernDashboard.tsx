@@ -12,6 +12,7 @@ import {
   Activity, Target, Clock, Award, ChevronRight, Sparkles
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "wouter";
 
 const COLORS = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -257,24 +258,25 @@ export default function ModernDashboard() {
             <CardContent>
               <div className="space-y-3">
                 {[
-                  { title: "Create New Exam", desc: "Set up a new examination", color: "from-blue-500 to-blue-600" },
-                  { title: "Manage Users", desc: "View and edit user accounts", color: "from-green-500 to-green-600" },
-                  { title: "System Settings", desc: "Configure platform settings", color: "from-purple-500 to-purple-600" },
-                  { title: "Generate Report", desc: "Create analytics report", color: "from-orange-500 to-orange-600" }
+                  { title: "Manage Questions", desc: "Add and organize questions", color: "from-blue-500 to-blue-600", href: "/admin/questions" },
+                  { title: "Create New Exam", desc: "Set up a new examination", color: "from-green-500 to-green-600", href: "/admin/exams" },
+                  { title: "Manage Users", desc: "View and edit user accounts", color: "from-purple-500 to-purple-600", href: "/admin/users" },
+                  { title: "System Settings", desc: "Configure platform settings", color: "from-orange-500 to-orange-600", href: "/admin/settings" }
                 ].map((action, index) => (
-                  <Button 
-                    key={action.title}
-                    variant="ghost" 
-                    className="w-full justify-start h-auto p-4 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-200 dark:hover:from-slate-700 dark:hover:to-slate-600"
-                  >
-                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${action.color} flex items-center justify-center text-white mr-3`}>
-                      <ChevronRight className="h-4 w-4" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium text-slate-900 dark:text-slate-100">{action.title}</div>
-                      <div className="text-xs text-slate-600 dark:text-slate-400">{action.desc}</div>
-                    </div>
-                  </Button>
+                  <Link key={action.title} href={action.href}>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start h-auto p-4 hover:bg-gradient-to-r hover:from-slate-100 hover:to-slate-200 dark:hover:from-slate-700 dark:hover:to-slate-600"
+                    >
+                      <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${action.color} flex items-center justify-center text-white mr-3`}>
+                        <ChevronRight className="h-4 w-4" />
+                      </div>
+                      <div className="text-left">
+                        <div className="font-medium text-slate-900 dark:text-slate-100">{action.title}</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-400">{action.desc}</div>
+                      </div>
+                    </Button>
+                  </Link>
                 ))}
               </div>
             </CardContent>

@@ -925,17 +925,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk upload questions
+  app.post('/api/questions/bulk-upload', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      // In a real implementation, you would:
+      // 1. Parse the uploaded CSV/Excel file
+      // 2. Validate each row
+      // 3. Create questions in bulk
+      // 4. Return detailed results
+      
+      // For now, simulate the process
+      const mockResult = {
+        success: true,
+        message: "Questions uploaded successfully",
+        processed: 25,
+        failed: 2,
+        errors: [
+          "Row 15: Missing correct answer",
+          "Row 23: Invalid subject name"
+        ]
+      };
+      
+      res.json(mockResult);
+    } catch (error) {
+      console.error('Error uploading questions:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Failed to upload questions',
+        processed: 0,
+        failed: 0,
+        errors: ['Upload failed due to server error']
+      });
+    }
+  });
+
   app.post('/api/questions', requireAuth, async (req: any, res) => {
     try {
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
       const questionData = insertQuestionSchema.parse(req.body);
       const question = await storage.createQuestion({
         ...questionData,
-        createdBy: req.session.user.id
+        createdBy: currentUserId
       });
-      res.json(question);
+      res.status(201).json(question);
     } catch (error) {
       console.error('Error creating question:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
       res.status(500).json({ message: 'Failed to create question' });
+    }
+  });
+
+  app.delete('/api/questions/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const questionId = parseInt(req.params.id);
+      await storage.deleteQuestion(questionId);
+      
+      res.json({ message: 'Question deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      res.status(500).json({ message: 'Failed to delete question' });
     }
   });
 

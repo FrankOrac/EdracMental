@@ -18,6 +18,7 @@ import AdminAnalytics from "@/pages/admin/Analytics";
 import AdminUsers from "@/pages/admin/Users";
 import AdminInstitutions from "@/pages/admin/Institutions";
 import AdminSystem from "@/pages/admin/System";
+import QuestionManager from "@/components/admin/QuestionManager";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -47,6 +48,7 @@ function Router() {
           <Route path="/exams" component={AdminExams} />
           <Route path="/analytics" component={AdminAnalytics} />
           <Route path="/admin/users" component={AdminUsers} />
+          <Route path="/admin/questions" component={QuestionManager} />
           <Route path="/admin/institutions" component={AdminInstitutions} />
           <Route path="/admin/system" component={AdminSystem} />
         </>
