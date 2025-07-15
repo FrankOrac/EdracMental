@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,9 @@ import {
   X,
   Bot,
   Sparkles,
-  Zap
+  Zap,
+  ArrowLeft,
+  Brain
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -60,16 +63,159 @@ interface UploadResult {
 }
 
 export default function QuestionManager() {
+  const [selectedSubject, setSelectedSubject] = useState<any>(null);
+  const [selectedExam, setSelectedExam] = useState<any>(null);
+  const [step, setStep] = useState<'select' | 'manage'>('select');
+
+  // Fetch subjects for selection
+  const { data: subjects = [] } = useQuery({
+    queryKey: ["/api/subjects"],
+    queryFn: async () => {
+      const response = await fetch('/api/subjects', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      return response.json();
+    },
+  });
+
+  // Fetch exams for selection
+  const { data: exams = [] } = useQuery({
+    queryKey: ["/api/exams"],
+    queryFn: async () => {
+      const response = await fetch('/api/exams', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      return response.json();
+    },
+  });
+
+  if (step === 'select') {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Question Bank Management
+            </h1>
+            <p className="text-slate-600 dark:text-slate-300 mt-2">
+              First, select a subject or exam to manage questions for
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Subject Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  Select Subject
+                </CardTitle>
+                <CardDescription>
+                  Choose a subject to manage its question bank
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {subjects.map((subject: any) => (
+                    <Button
+                      key={subject.id}
+                      onClick={() => {
+                        setSelectedSubject(subject);
+                        setStep('manage');
+                      }}
+                      className="w-full justify-start h-auto p-4"
+                      variant="outline"
+                    >
+                      <div className="text-left">
+                        <p className="font-medium">{subject.name}</p>
+                        <p className="text-xs text-gray-500">{subject.code}</p>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Exam Selection */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Select Exam
+                </CardTitle>
+                <CardDescription>
+                  Choose an exam to manage its questions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {exams.map((exam: any) => (
+                    <Button
+                      key={exam.id}
+                      onClick={() => {
+                        setSelectedExam(exam);
+                        setStep('manage');
+                      }}
+                      className="w-full justify-start h-auto p-4"
+                      variant="outline"
+                    >
+                      <div className="text-left">
+                        <p className="font-medium">{exam.title}</p>
+                        <p className="text-xs text-gray-500">
+                          {exam.duration} mins • {exam.totalQuestions} questions
+                        </p>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
-      <QuestionManagerContent />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setStep('select');
+                setSelectedSubject(null);
+                setSelectedExam(null);
+              }}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Selection
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">
+                {selectedSubject ? selectedSubject.name : selectedExam?.title} Questions
+              </h1>
+              <p className="text-gray-600">
+                Managing questions for {selectedSubject ? 'subject' : 'exam'}
+              </p>
+            </div>
+          </div>
+        </div>
+        <QuestionManagerContent 
+          selectedSubject={selectedSubject}
+          selectedExam={selectedExam}
+        />
+      </div>
     </DashboardLayout>
   );
 }
 
-function QuestionManagerContent() {
+function QuestionManagerContent({ selectedSubject, selectedExam }: any) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("all");
+  const [filterSubject, setFilterSubject] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isAiGeneratorOpen, setIsAiGeneratorOpen] = useState(false);
@@ -91,19 +237,25 @@ function QuestionManagerContent() {
         credentials: 'include',
         body: JSON.stringify(data)
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate questions');
+      }
+      
       return response.json();
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
       toast({
         title: "Questions Generated!",
-        description: `Successfully generated ${data.questions?.length || 0} questions.`,
+        description: `Successfully generated ${data.count || 0} questions.`,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Generation error:', error);
       toast({
         title: "Generation Failed",
-        description: "Failed to generate questions. Please try again.",
+        description: "Failed to generate questions. Please check your OpenAI API key.",
         variant: "destructive",
       });
     },
@@ -281,9 +433,11 @@ function QuestionManagerContent() {
   // Filter questions
   const filteredQuestions = questions.filter((question: Question) => {
     const matchesSearch = question.text.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = selectedSubject === "all" || question.subjectId.toString() === selectedSubject;
+    const matchesSubject = filterSubject === "all" || question.subjectId.toString() === filterSubject;
     const matchesDifficulty = selectedDifficulty === "all" || question.difficulty === selectedDifficulty;
-    return matchesSearch && matchesSubject && matchesDifficulty;
+    const matchesSelectedSubject = selectedSubject ? question.subjectId === selectedSubject.id : true;
+    const matchesSelectedExam = selectedExam ? question.examId === selectedExam.id : true;
+    return matchesSearch && matchesSubject && matchesDifficulty && matchesSelectedSubject && matchesSelectedExam;
   });
 
   const getDifficultyColor = (difficulty: string) => {
@@ -487,7 +641,7 @@ function QuestionManagerContent() {
                 </div>
                 <div>
                   <Label htmlFor="subject">Subject</Label>
-                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                  <Select value={filterSubject} onValueChange={setFilterSubject}>
                     <SelectTrigger>
                       <SelectValue placeholder="All subjects" />
                     </SelectTrigger>
@@ -1042,13 +1196,33 @@ function AiQuestionGenerator({ subjects, topics, onSubmit, isLoading, onSuccess 
   const [formData, setFormData] = useState({
     subject: '',
     topic: '',
+    customTopic: '',
+    useCustomTopic: false,
     difficulty: 'medium',
     examType: 'jamb',
     count: 10
   });
+  
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Determine topic value
+    let topicValue = '';
+    if (formData.useCustomTopic) {
+      topicValue = formData.customTopic || 'General';
+    } else {
+      topicValue = formData.topic || 'General';
+    }
+
+    const submitData = {
+      subject: formData.subject,
+      topic: topicValue,
+      difficulty: formData.difficulty,
+      examType: formData.examType,
+      count: formData.count
+    };
+
+    onSubmit(submitData);
     onSuccess();
   };
 
@@ -1083,20 +1257,55 @@ function AiQuestionGenerator({ subjects, topics, onSubmit, isLoading, onSuccess 
           </div>
 
           <div>
-            <Label htmlFor="topic">Topic (Optional)</Label>
-            <Select value={formData.topic} onValueChange={(value) => setFormData({ ...formData, topic: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select topic (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Generate for entire subject</SelectItem>
-                {topics.filter((topic: any) => topic.subjectId === parseInt(formData.subject)).map((topic: any) => (
-                  <SelectItem key={topic.id} value={topic.id.toString()}>
-                    {topic.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="topic">Topic</Label>
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="system-topic"
+                  name="topicType"
+                  checked={!formData.useCustomTopic}
+                  onChange={() => setFormData({ ...formData, useCustomTopic: false })}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <Label htmlFor="system-topic" className="text-sm">Select from system</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="custom-topic"
+                  name="topicType"
+                  checked={formData.useCustomTopic}
+                  onChange={() => setFormData({ ...formData, useCustomTopic: true })}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <Label htmlFor="custom-topic" className="text-sm">Enter custom topic</Label>
+              </div>
+              
+              {formData.useCustomTopic ? (
+                <Input
+                  type="text"
+                  value={formData.customTopic}
+                  onChange={(e) => setFormData({ ...formData, customTopic: e.target.value })}
+                  placeholder="Enter custom topic (e.g., 'Quadratic Equations')"
+                  className="mt-1"
+                />
+              ) : (
+                <Select value={formData.topic} onValueChange={(value) => setFormData({ ...formData, topic: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select topic (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Generate for entire subject</SelectItem>
+                    {topics.filter((topic: any) => topic.subjectId === parseInt(formData.subject)).map((topic: any) => (
+                      <SelectItem key={topic.id} value={topic.id.toString()}>
+                        {topic.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1144,14 +1353,24 @@ function AiQuestionGenerator({ subjects, topics, onSubmit, isLoading, onSuccess 
           </div>
         </div>
 
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+          <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Tips for Better Generation:</h4>
+          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+            <li>• Specific topics generate more focused questions</li>
+            <li>• Start with smaller counts (5-10) for testing</li>
+            <li>• Custom topics allow for very specific content</li>
+            <li>• Generated questions are automatically saved</li>
+          </ul>
+        </div>
+
         <Button 
           type="submit" 
-          disabled={isLoading || !formData.subject} 
+          disabled={isLoading || !formData.subject || (!formData.topic && !formData.useCustomTopic) || (formData.useCustomTopic && !formData.customTopic)} 
           className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
         >
           {isLoading ? (
             <>
-              <Zap className="h-4 w-4 mr-2 animate-spin" />
+              <Brain className="h-4 w-4 mr-2 animate-spin" />
               Generating Questions...
             </>
           ) : (

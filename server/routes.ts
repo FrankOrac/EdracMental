@@ -319,13 +319,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/questions/generate', isAuthenticated, async (req, res) => {
+  app.post('/api/questions/generate', requireAuth, async (req: any, res) => {
     try {
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
+      
+      if (!currentUserId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
       const { subject, topic, difficulty, examType, count } = req.body;
-      const questions = await generateQuestions({ subject, topic, difficulty, examType, count });
-      res.json({ questions });
+      
+      // Call OpenAI service to generate questions
+      const generatedQuestions = await generateQuestions({
+        subject,
+        topic,
+        difficulty,
+        examType,
+        count
+      });
+
+      // Save questions to database
+      const savedQuestions = [];
+      for (const question of generatedQuestions) {
+        const savedQuestion = await storage.createQuestion({
+          ...question,
+          subjectId: parseInt(subject),
+          topicId: topic && topic !== 'none' ? parseInt(topic) : undefined,
+          examType,
+          createdBy: currentUserId
+        });
+        savedQuestions.push(savedQuestion);
+      }
+
+      res.json({
+        success: true,
+        questions: savedQuestions,
+        count: savedQuestions.length
+      });
     } catch (error) {
-      console.error("Error generating questions:", error);
+      console.error('Error generating questions:', error);
       res.status(500).json({ message: "Failed to generate questions" });
     }
   });
