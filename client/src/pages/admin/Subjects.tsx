@@ -1,21 +1,44 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { SubjectDialog } from "@/components/admin/SubjectDialog";
 import { BookOpen, Plus, Search, Edit, Trash2, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminSubjects() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: subjects, isLoading } = useQuery({
     queryKey: ["/api/subjects"],
     retry: false,
+  });
+
+  const deleteSubjectMutation = useMutation({
+    mutationFn: async (subjectId: string) => {
+      return apiRequest(`/api/subjects/${subjectId}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subjects"] });
+      toast({
+        title: "Subject Deleted",
+        description: "Subject has been removed successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete subject. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const filteredSubjects = subjects?.filter((subject: any) =>
@@ -23,20 +46,10 @@ export default function AdminSubjects() {
     subject.code.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const handleEdit = (subject: any) => {
-    toast({
-      title: "Edit Subject",
-      description: `Editing ${subject.name}`,
-      variant: "default",
-    });
-  };
-
   const handleDelete = (subject: any) => {
-    toast({
-      title: "Delete Subject",
-      description: `${subject.name} will be removed`,
-      variant: "destructive",
-    });
+    if (confirm(`Are you sure you want to delete ${subject.name}?`)) {
+      deleteSubjectMutation.mutate(subject.id);
+    }
   };
 
   if (isLoading) {
@@ -57,10 +70,7 @@ export default function AdminSubjects() {
             <h1 className="text-3xl font-bold">Subject Management</h1>
             <p className="text-muted-foreground">Manage exam subjects and topics</p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Subject
-          </Button>
+          <SubjectDialog mode="add" />
         </div>
 
         <Card>
@@ -111,9 +121,7 @@ export default function AdminSubjects() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => handleEdit(subject)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <SubjectDialog mode="edit" subject={subject} />
                         <Button size="sm" variant="ghost">
                           <Eye className="h-4 w-4" />
                         </Button>

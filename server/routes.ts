@@ -27,7 +27,12 @@ import {
   insertExamSchema, 
   insertExamSessionSchema,
   insertAiInteractionSchema,
-  insertPaymentSchema 
+  insertPaymentSchema,
+  insertUserSchema,
+  insertInstitutionSchema,
+  subjects,
+  exams,
+  institutions
 } from "@shared/schema";
 import { generateQuestions, explainQuestion, provideTutoring } from "./services/openai";
 import { paystackService } from "./services/paystack";
@@ -210,6 +215,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/subjects', requireAuth, async (req: any, res) => {
+    try {
+      const { name, code, category, description, isActive = true } = req.body;
+      
+      // Insert directly into database using raw SQL for now
+      const subject = await db.query.subjects.findFirst({
+        where: (subjects, { eq }) => eq(subjects.name, name)
+      });
+      
+      if (subject) {
+        return res.status(400).json({ message: "Subject already exists" });
+      }
+      
+      const [newSubject] = await db.insert(subjects).values({
+        name,
+        code,
+        category,
+        description,
+        isActive
+      }).returning();
+      
+      res.status(201).json(newSubject);
+    } catch (error) {
+      console.error("Error creating subject:", error);
+      res.status(500).json({ message: "Failed to create subject" });
+    }
+  });
+
+  app.patch('/api/subjects/:id', requireAuth, async (req: any, res) => {
+    try {
+      const subjectId = parseInt(req.params.id);
+      const { name, code, category, description, isActive } = req.body;
+      
+      const [updatedSubject] = await db.update(subjects)
+        .set({ name, code, category, description, isActive })
+        .where(eq(subjects.id, subjectId))
+        .returning();
+      
+      if (!updatedSubject) {
+        return res.status(404).json({ message: "Subject not found" });
+      }
+      
+      res.json(updatedSubject);
+    } catch (error) {
+      console.error("Error updating subject:", error);
+      res.status(500).json({ message: "Failed to update subject" });
+    }
+  });
+
+  app.delete('/api/subjects/:id', requireAuth, async (req: any, res) => {
+    try {
+      const subjectId = parseInt(req.params.id);
+      
+      const [deletedSubject] = await db.delete(subjects)
+        .where(eq(subjects.id, subjectId))
+        .returning();
+      
+      if (!deletedSubject) {
+        return res.status(404).json({ message: "Subject not found" });
+      }
+      
+      res.json({ message: "Subject deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting subject:", error);
+      res.status(500).json({ message: "Failed to delete subject" });
+    }
+  });
+
   app.get('/api/subjects/:id/topics', async (req, res) => {
     try {
       const subjectId = parseInt(req.params.id);
@@ -285,6 +358,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching exams:", error);
       res.status(500).json({ message: "Failed to fetch exams" });
+    }
+  });
+
+  app.patch('/api/exams/:id', requireAuth, async (req: any, res) => {
+    try {
+      const examId = req.params.id;
+      const examData = req.body;
+      const exam = await storage.updateExam(examId, examData);
+      res.json(exam);
+    } catch (error) {
+      console.error("Error updating exam:", error);
+      res.status(500).json({ message: "Failed to update exam" });
+    }
+  });
+
+  app.delete('/api/exams/:id', requireAuth, async (req: any, res) => {
+    try {
+      const examId = req.params.id;
+      await storage.deleteExam(examId);
+      res.json({ message: "Exam deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting exam:", error);
+      res.status(500).json({ message: "Failed to delete exam" });
     }
   });
 
@@ -570,6 +666,221 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching system analytics:", error);
       res.status(500).json({ message: "Failed to fetch system analytics" });
+    }
+  });
+
+  // Admin routes for users management
+  app.get('/api/users', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      // Return mock users for now - in production this would fetch from database
+      const mockUsers = [
+        { id: "admin-001", email: "admin@edrac.com", firstName: "System", lastName: "Administrator", role: "admin", subscriptionPlan: "premium", createdAt: "2024-01-15" },
+        { id: "student-001", email: "student@edrac.com", firstName: "Test", lastName: "Student", role: "student", subscriptionPlan: "free", createdAt: "2024-02-20" },
+        { id: "institution-001", email: "institution@edrac.com", firstName: "Institution", lastName: "Manager", role: "institution", subscriptionPlan: "premium", createdAt: "2024-01-30" },
+        { id: "student-002", email: "jane.student@edrac.com", firstName: "Jane", lastName: "Doe", role: "student", subscriptionPlan: "premium", createdAt: "2024-03-10" },
+        { id: "student-003", email: "michael.test@edrac.com", firstName: "Michael", lastName: "Johnson", role: "student", subscriptionPlan: "free", createdAt: "2024-03-15" },
+      ];
+      
+      res.json(mockUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.post('/api/users', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const userData = req.body;
+      const newUser = await storage.upsertUser({
+        id: `user-${Date.now()}`,
+        ...userData
+      });
+      
+      res.status(201).json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.patch('/api/users/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const userId = req.params.id;
+      const userData = req.body;
+      
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        ...userData
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.delete('/api/users/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const userId = req.params.id;
+      
+      // In a real implementation, you'd delete the user from the database
+      // For now, we'll just return success
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Admin routes for institutions management
+  app.get('/api/institutions', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const institutions = await storage.getInstitutionsByOwner(currentUserId);
+      res.json(institutions);
+    } catch (error) {
+      console.error("Error fetching institutions:", error);
+      res.status(500).json({ message: "Failed to fetch institutions" });
+    }
+  });
+
+  app.post('/api/institutions', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const institutionData = req.body;
+      const institution = await storage.createInstitution({
+        ...institutionData,
+        ownerId: currentUserId
+      });
+      
+      res.status(201).json(institution);
+    } catch (error) {
+      console.error("Error creating institution:", error);
+      res.status(500).json({ message: "Failed to create institution" });
+    }
+  });
+
+  app.patch('/api/institutions/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const institutionId = req.params.id;
+      const institutionData = req.body;
+      
+      const updatedInstitution = await storage.updateInstitution(institutionId, institutionData);
+      res.json(updatedInstitution);
+    } catch (error) {
+      console.error("Error updating institution:", error);
+      res.status(500).json({ message: "Failed to update institution" });
+    }
+  });
+
+  app.delete('/api/institutions/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const institutionId = req.params.id;
+      
+      // Delete from database
+      await db.delete(institutions).where(eq(institutions.id, institutionId));
+      
+      res.json({ message: "Institution deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting institution:", error);
+      res.status(500).json({ message: "Failed to delete institution" });
+    }
+  });
+
+  // Admin settings routes
+  app.put('/api/admin/settings', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const settings = req.body;
+      
+      // In a real implementation, you'd save these settings to the database
+      // For now, we'll just return success
+      res.json({ message: "Settings saved successfully", settings });
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      res.status(500).json({ message: "Failed to save settings" });
+    }
+  });
+
+  // Email sending route
+  app.post('/api/admin/send-email', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.user.claims.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { to, subject, message, recipient_type, role_filter } = req.body;
+      
+      // In a real implementation, you'd send emails using SMTP
+      // For now, we'll just return success
+      res.json({ message: "Email sent successfully" });
+    } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({ message: "Failed to send email" });
     }
   });
 

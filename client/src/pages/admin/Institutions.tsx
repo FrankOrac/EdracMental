@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,13 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { InstitutionDialog } from "@/components/admin/InstitutionDialog";
 import { Building, Plus, Search, Edit, Trash2, Eye, Filter, MapPin } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminInstitutions() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
+  const queryClient = useQueryClient();
 
   // Mock institution data
   const mockInstitutions = [
@@ -48,6 +52,26 @@ export default function AdminInstitutions() {
     }
   ];
 
+  const deleteInstitutionMutation = useMutation({
+    mutationFn: async (institutionId: string) => {
+      return apiRequest(`/api/institutions/${institutionId}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/institutions"] });
+      toast({
+        title: "Institution Deleted",
+        description: "Institution has been removed successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete institution. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const filteredInstitutions = mockInstitutions.filter(institution => {
     const matchesSearch = institution.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          institution.contactEmail.toLowerCase().includes(searchTerm.toLowerCase());
@@ -55,20 +79,10 @@ export default function AdminInstitutions() {
     return matchesSearch && matchesType;
   });
 
-  const handleEdit = (institution: any) => {
-    toast({
-      title: "Edit Institution",
-      description: `Editing ${institution.name}`,
-      variant: "default",
-    });
-  };
-
   const handleDelete = (institution: any) => {
-    toast({
-      title: "Delete Institution",
-      description: `${institution.name} will be removed`,
-      variant: "destructive",
-    });
+    if (confirm(`Are you sure you want to delete ${institution.name}?`)) {
+      deleteInstitutionMutation.mutate(institution.id);
+    }
   };
 
   const getTypeBadgeVariant = (type: string) => {
@@ -97,10 +111,7 @@ export default function AdminInstitutions() {
             <h1 className="text-3xl font-bold">Institution Management</h1>
             <p className="text-muted-foreground">Manage institutional accounts and settings</p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Institution
-          </Button>
+          <InstitutionDialog mode="add" />
         </div>
 
         <Card>
@@ -179,9 +190,7 @@ export default function AdminInstitutions() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => handleEdit(institution)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <InstitutionDialog mode="edit" institution={institution} />
                         <Button size="sm" variant="ghost">
                           <Eye className="h-4 w-4" />
                         </Button>

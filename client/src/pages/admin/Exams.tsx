@@ -1,21 +1,44 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { ExamDialog } from "@/components/admin/ExamDialog";
 import { FileText, Plus, Search, Edit, Trash2, Eye, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminExams() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: exams, isLoading } = useQuery({
     queryKey: ["/api/exams"],
     retry: false,
+  });
+
+  const deleteExamMutation = useMutation({
+    mutationFn: async (examId: string) => {
+      return apiRequest(`/api/exams/${examId}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/exams"] });
+      toast({
+        title: "Exam Deleted",
+        description: "Exam has been removed successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete exam. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const filteredExams = exams?.filter((exam: any) =>
@@ -23,20 +46,10 @@ export default function AdminExams() {
     exam.examCategory.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const handleEdit = (exam: any) => {
-    toast({
-      title: "Edit Exam",
-      description: `Editing ${exam.title}`,
-      variant: "default",
-    });
-  };
-
   const handleDelete = (exam: any) => {
-    toast({
-      title: "Delete Exam",
-      description: `${exam.title} will be removed`,
-      variant: "destructive",
-    });
+    if (confirm(`Are you sure you want to delete ${exam.title}?`)) {
+      deleteExamMutation.mutate(exam.id);
+    }
   };
 
   if (isLoading) {
@@ -57,10 +70,7 @@ export default function AdminExams() {
             <h1 className="text-3xl font-bold">Exam Management</h1>
             <p className="text-muted-foreground">Create and manage exams</p>
           </div>
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Exam
-          </Button>
+          <ExamDialog mode="add" />
         </div>
 
         <Card>
@@ -116,9 +126,7 @@ export default function AdminExams() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => handleEdit(exam)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <ExamDialog mode="edit" exam={exam} />
                         <Button size="sm" variant="ghost">
                           <Eye className="h-4 w-4" />
                         </Button>
