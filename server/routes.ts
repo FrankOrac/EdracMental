@@ -2,6 +2,22 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+
+// Custom middleware for session-based auth
+const requireAuth = (req: any, res: any, next: any) => {
+  // Check session-based auth first
+  if (req.session && req.session.user) {
+    req.user = { claims: { sub: req.session.user.id } };
+    return next();
+  }
+  
+  // Fall back to OAuth auth if available
+  if (req.user && req.user.claims) {
+    return next();
+  }
+  
+  res.status(401).json({ message: "Unauthorized" });
+};
 import { setupGoogleAuth } from "./googleAuth";
 import { 
   insertQuestionSchema, 
@@ -20,49 +36,138 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupGoogleAuth(app);
 
   // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+  app.get('/api/auth/user', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
+      // Check session-based auth first
+      if (req.session && req.session.user) {
+        const user = await storage.getUser(req.session.user.id);
+        return res.json(user);
+      }
+      
+      // Fall back to OAuth auth if available
+      if (req.user && req.user.claims) {
+        const userId = req.user.claims.sub;
+        const user = await storage.getUser(userId);
+        return res.json(user);
+      }
+      
+      res.status(401).json({ message: "Unauthorized" });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // Demo login endpoint
-  app.post('/api/auth/demo-login', async (req, res) => {
+  // Server-side login endpoint
+  app.post('/api/auth/login', async (req, res) => {
     try {
       const { email, password } = req.body;
       
-      // Demo account validation
-      const demoAccounts = [
-        { email: "student@edrac.com", password: "demo123", role: "student" },
-        { email: "jane.student@edrac.com", password: "demo123", role: "student" },
-        { email: "institution@edrac.com", password: "demo123", role: "institution" },
-        { email: "admin@edrac.com", password: "demo123", role: "admin" }
+      // Define user accounts with proper user data
+      const userAccounts = [
+        { 
+          id: "student-demo-1",
+          email: "student@edrac.com", 
+          password: "demo123", 
+          role: "student",
+          name: "Demo Student",
+          username: "demo_student",
+          avatar: null,
+          plan: "free",
+          isActive: true
+        },
+        { 
+          id: "student-demo-2",
+          email: "jane.student@edrac.com", 
+          password: "demo123", 
+          role: "student",
+          name: "Jane Doe",
+          username: "jane_student",
+          avatar: null,
+          plan: "premium",
+          isActive: true
+        },
+        { 
+          id: "institution-demo-1",
+          email: "institution@edrac.com", 
+          password: "demo123", 
+          role: "institution",
+          name: "Demo Institution",
+          username: "demo_institution",
+          avatar: null,
+          plan: "premium",
+          isActive: true
+        },
+        { 
+          id: "admin-demo-1",
+          email: "admin@edrac.com", 
+          password: "demo123", 
+          role: "admin",
+          name: "System Admin",
+          username: "admin",
+          avatar: null,
+          plan: "admin",
+          isActive: true
+        }
       ];
       
-      const demoAccount = demoAccounts.find(acc => acc.email === email && acc.password === password);
+      const userAccount = userAccounts.find(acc => acc.email === email && acc.password === password);
       
-      if (!demoAccount) {
+      if (!userAccount) {
         return res.status(401).json({ 
-          message: "Invalid demo credentials. Use one of the demo accounts with password 'demo123'" 
+          message: "Invalid credentials" 
         });
       }
       
-      // For demo accounts, redirect to OAuth flow
+      // Create or update user in database
+      const user = await storage.upsertUser({
+        id: userAccount.id,
+        email: userAccount.email,
+        name: userAccount.name,
+        username: userAccount.username,
+        avatar: userAccount.avatar,
+        role: userAccount.role,
+        plan: userAccount.plan,
+        isActive: userAccount.isActive
+      });
+      
+      // Create session
+      (req as any).session.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        plan: user.plan
+      };
+      
       res.json({ 
         success: true, 
-        message: "Demo credentials valid. Redirecting to OAuth login...",
-        redirectTo: "/api/login"
+        message: "Login successful",
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          plan: user.plan
+        }
       });
       
     } catch (error) {
-      console.error("Demo login error:", error);
-      res.status(500).json({ message: "Demo login failed" });
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Login failed" });
     }
+  });
+
+  // Logout endpoint
+  app.post('/api/auth/logout', (req: any, res) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        console.error('Session destruction error:', err);
+        return res.status(500).json({ message: "Logout failed" });
+      }
+      res.clearCookie('connect.sid');
+      res.json({ message: "Logged out successfully" });
+    });
   });
 
   // Subject and topic routes
@@ -91,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Question routes
-  app.post('/api/questions', isAuthenticated, async (req: any, res) => {
+  app.post('/api/questions', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const questionData = insertQuestionSchema.parse(req.body);
@@ -135,7 +240,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Exam routes
-  app.post('/api/exams', isAuthenticated, async (req: any, res) => {
+  app.post('/api/exams', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const examData = insertExamSchema.parse(req.body);
@@ -193,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Exam session routes
-  app.post('/api/exam-sessions', isAuthenticated, async (req: any, res) => {
+  app.post('/api/exam-sessions', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const sessionData = insertExamSessionSchema.parse(req.body);
@@ -217,7 +322,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/exam-sessions/active', isAuthenticated, async (req: any, res) => {
+  app.get('/api/exam-sessions/active', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const session = await storage.getUserActiveSession(userId);
@@ -228,7 +333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/exam-sessions/:id', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/exam-sessions/:id', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const sessionId = req.params.id;
@@ -248,7 +353,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/exam-sessions/user/:userId', isAuthenticated, async (req: any, res) => {
+  app.get('/api/exam-sessions/user/:userId', requireAuth, async (req: any, res) => {
     try {
       const requestingUserId = req.user.claims.sub;
       const targetUserId = req.params.userId;
@@ -268,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI tutor routes
-  app.post('/api/ai/explain', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/explain', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { questionText, correctAnswer, studentAnswer } = req.body;
@@ -290,7 +395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai/tutor', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/tutor', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
       const { question, context } = req.body;

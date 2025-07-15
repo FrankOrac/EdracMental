@@ -100,43 +100,44 @@ export default function LoginPage() {
         return;
       }
 
-      // Try demo login first
-      const response = await fetch('/api/auth/demo-login', {
+      // Try server-side login
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        credentials: 'include' // Important for session cookies
       });
 
       const result = await response.json();
 
       if (response.ok) {
         toast({
-          title: "Demo Login Successful",
-          description: "Redirecting to Replit authentication...",
+          title: "Login Successful",
+          description: `Welcome back, ${result.user.name}!`,
           variant: "default",
         });
         
-        // Small delay to show the toast
+        // Small delay to show the toast, then redirect to dashboard
         setTimeout(() => {
-          window.location.href = result.redirectTo;
+          window.location.href = "/";
         }, 1000);
         return;
       }
 
-      // If demo login fails, show appropriate message
+      // If login fails, show appropriate message
       if (response.status === 401) {
         toast({
           title: "Invalid Credentials",
-          description: "Please check your email and password, or use OAuth login",
+          description: "Please check your email and password",
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Login Method",
-          description: "For non-demo accounts, please use Replit or Google login",
-          variant: "default",
+          title: "Login Failed",
+          description: "Please try again",
+          variant: "destructive",
         });
       }
 
@@ -239,58 +240,10 @@ export default function LoginPage() {
                   Sign In
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-300">
-                  Choose your preferred sign-in method. OAuth is recommended for security.
+                  Enter your credentials to access your account
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* OAuth Options */}
-                <div className="space-y-3">
-                  <Button
-                    onClick={() => {
-                      toast({
-                        title: "Redirecting to Replit",
-                        description: "You'll be redirected to Replit's secure login page",
-                        variant: "default",
-                      });
-                      setTimeout(() => {
-                        window.location.href = "/api/login";
-                      }, 1000);
-                    }}
-                    size="lg"
-                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                  >
-                    <LogIn className="mr-2 h-5 w-5" />
-                    Continue with Replit
-                  </Button>
-
-                  <Button
-                    onClick={() => {
-                      toast({
-                        title: "Redirecting to Google",
-                        description: "You'll be redirected to Google's secure login page",
-                        variant: "default",
-                      });
-                      setTimeout(() => {
-                        window.location.href = "/api/auth/google";
-                      }, 1000);
-                    }}
-                    variant="outline"
-                    size="lg"
-                    className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-                  >
-                    <Chrome className="mr-2 h-5 w-5" />
-                    Continue with Google
-                  </Button>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white dark:bg-gray-900 px-2 text-gray-500">Or</span>
-                  </div>
-                </div>
 
                 {/* Username/Password Form */}
                 <form onSubmit={handleFormSubmit} className="space-y-4">
@@ -405,6 +358,56 @@ export default function LoginPage() {
                     {isLoading ? 'Signing In...' : 'Sign In'}
                   </Button>
                 </form>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white dark:bg-gray-900 px-2 text-gray-500">Or use OAuth (Optional)</span>
+                  </div>
+                </div>
+
+                {/* OAuth Options */}
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => {
+                      toast({
+                        title: "Redirecting to Replit",
+                        description: "You'll be redirected to Replit's secure login page",
+                        variant: "default",
+                      });
+                      setTimeout(() => {
+                        window.location.href = "/api/login";
+                      }, 1000);
+                    }}
+                    variant="outline"
+                    size="lg"
+                    className="w-full"
+                  >
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Continue with Replit
+                  </Button>
+
+                  <Button
+                    onClick={() => {
+                      toast({
+                        title: "Redirecting to Google",
+                        description: "You'll be redirected to Google's secure login page",
+                        variant: "default",
+                      });
+                      setTimeout(() => {
+                        window.location.href = "/api/auth/google";
+                      }, 1000);
+                    }}
+                    variant="outline"
+                    size="lg"
+                    className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
+                  >
+                    <Chrome className="mr-2 h-5 w-5" />
+                    Continue with Google
+                  </Button>
+                </div>
 
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
