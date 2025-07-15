@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/components/Landing";
 import LoginPage from "@/components/auth/LoginPage";
+import SignupPage from "@/components/auth/SignupPage";
 import Home from "@/pages/Home";
 import Exam from "@/pages/Exam";
 
@@ -28,6 +29,7 @@ function Router() {
         <>
           <Route path="/" component={Landing} />
           <Route path="/login" component={LoginPage} />
+          <Route path="/signup" component={SignupPage} />
         </>
       ) : (
         <>

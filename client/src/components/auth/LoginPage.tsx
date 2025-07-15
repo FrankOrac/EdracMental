@@ -281,6 +281,16 @@ export default function LoginPage() {
               </div>
             </div>
           </div>
+
+          {/* Sign up link */}
+          <div className="text-center pt-8">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Don't have an account?{" "}
+              <Link href="/signup" className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
+                Sign up for free
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

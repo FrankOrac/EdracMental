@@ -164,21 +164,22 @@ export default function Landing() {
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.location.href = "/api/auth/google"}
-                className="hidden md:inline-flex border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-              >
-                Google Login
-              </Button>
-              
               <Link href="/login">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden md:inline-flex text-gray-700 dark:text-gray-300"
+                >
+                  Login
+                </Button>
+              </Link>
+              
+              <Link href="/signup">
                 <Button
                   size="sm"
                   className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 >
-                  Sign In
+                  Sign Up
                 </Button>
               </Link>
 
@@ -201,7 +202,10 @@ export default function Landing() {
                 <button onClick={() => scrollToSection("pricing")} className="text-left text-gray-700 dark:text-gray-300">Pricing</button>
                 <button onClick={() => scrollToSection("about")} className="text-left text-gray-700 dark:text-gray-300">About</button>
                 <Link href="/login">
-                  <Button className="w-full">Get Started</Button>
+                  <Button variant="ghost" className="w-full justify-start">Login</Button>
+                </Link>
+                <Link href="/signup">
+                  <Button className="w-full">Sign Up</Button>
                 </Link>
               </div>
             </div>
@@ -233,7 +237,7 @@ export default function Landing() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-              <Link href="/login">
+              <Link href="/signup">
                 <Button 
                   size="lg"
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
