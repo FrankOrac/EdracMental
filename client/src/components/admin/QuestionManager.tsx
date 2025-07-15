@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
+import DashboardLayout from "../layout/DashboardLayout";
+
 import { 
   Upload, 
   Plus, 
@@ -58,6 +60,14 @@ interface UploadResult {
 }
 
 export default function QuestionManager() {
+  return (
+    <DashboardLayout>
+      <QuestionManagerContent />
+    </DashboardLayout>
+  );
+}
+
+function QuestionManagerContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
@@ -71,7 +81,7 @@ export default function QuestionManager() {
   // Generate questions using AI mutation
   const generateQuestionsMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/ai/generate-questions', {
+      const response = await fetch('/api/questions/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +95,7 @@ export default function QuestionManager() {
       queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
       toast({
         title: "Questions Generated!",
-        description: `Successfully generated and saved ${data.saved} questions.`,
+        description: `Successfully generated ${data.questions?.length || 0} questions.`,
       });
     },
     onError: () => {
@@ -281,9 +291,12 @@ export default function QuestionManager() {
                 AI Generate
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="ai-generator-description">
               <DialogHeader>
                 <DialogTitle>AI Question Generator</DialogTitle>
+                <p id="ai-generator-description" className="text-sm text-gray-600 dark:text-gray-300">
+                  Generate questions automatically using AI for any subject and topic.
+                </p>
               </DialogHeader>
               <AiQuestionGenerator 
                 subjects={subjects}
@@ -301,9 +314,12 @@ export default function QuestionManager() {
                 Add Question
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="create-question-description">
               <DialogHeader>
                 <DialogTitle>Create New Question</DialogTitle>
+                <p id="create-question-description" className="text-sm text-gray-600 dark:text-gray-300">
+                  Create a new question manually with options and explanations.
+                </p>
               </DialogHeader>
               <CreateQuestionForm 
                 subjects={subjects}

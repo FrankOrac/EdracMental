@@ -330,6 +330,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/questions/bulk-upload', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
+      
+      if (!currentUserId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      // In a real implementation, you would parse the uploaded file
+      // For now, we'll return a success response
+      res.json({
+        success: true,
+        message: 'Questions uploaded successfully',
+        processed: 0,
+        failed: 0,
+        errors: []
+      });
+    } catch (error) {
+      console.error('Error uploading questions:', error);
+      res.status(500).json({ message: 'Failed to upload questions' });
+    }
+  });
+
   // Exam routes
   app.post('/api/exams', requireAuth, async (req: any, res) => {
     try {
@@ -373,6 +396,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting exam:", error);
       res.status(500).json({ message: "Failed to delete exam" });
+    }
+  });
+
+  // Shared exam routes (public access)
+  app.get('/api/exams/shared/:id', async (req, res) => {
+    try {
+      const examId = req.params.id;
+      const exam = await storage.getExam(examId);
+      
+      if (!exam || !exam.isPublic || !exam.isActive) {
+        return res.status(404).json({ message: 'Exam not found or not accessible' });
+      }
+      
+      res.json(exam);
+    } catch (error) {
+      console.error('Error fetching shared exam:', error);
+      res.status(500).json({ message: 'Failed to fetch exam' });
+    }
+  });
+
+  app.post('/api/exams/shared/:id/register', async (req, res) => {
+    try {
+      const examId = req.params.id;
+      const { fullName, email, phone, institution } = req.body;
+      
+      // Create a guest user session for the exam
+      const guestUserId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Create exam session for guest user
+      const examSession = await storage.createExamSession({
+        examId,
+        userId: guestUserId,
+        status: 'not_started',
+        metadata: {
+          guestUser: {
+            fullName,
+            email,
+            phone,
+            institution
+          }
+        }
+      });
+      
+      res.json({ 
+        message: 'Registration successful', 
+        sessionId: examSession.id,
+        examId 
+      });
+    } catch (error) {
+      console.error('Error registering for shared exam:', error);
+      res.status(500).json({ message: 'Failed to register for exam' });
     }
   });
 

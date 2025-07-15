@@ -1,266 +1,217 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { useTheme } from "@/components/ThemeProvider";
-import { useAuth } from "@/hooks/useAuth";
-import { Link, useLocation } from "wouter";
-import {
-  Home,
-  BookOpen,
-  FileText,
-  BarChart3,
-  Settings,
+import React from 'react';
+import { Link, useLocation } from 'wouter';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useTheme } from '@/components/ThemeProvider';
+import { 
+  Home, 
+  FileText, 
+  Users, 
+  Settings, 
+  BarChart3, 
+  BookOpen, 
+  Calendar, 
+  MessageSquare,
+  User,
   LogOut,
   Menu,
   X,
   Sun,
   Moon,
-  Bell,
-  User,
+  Database,
   Building,
   Shield,
-  Users,
-  ChevronDown,
-  Heart
-} from "lucide-react";
+  HelpCircle,
+  Brain,
+  Zap
+} from 'lucide-react';
+import { useState } from 'react';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const [location] = useLocation();
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const getNavItems = () => {
-    const baseItems = [
-      { icon: Home, label: "Dashboard", href: "/", active: location === "/" },
-      { icon: BookOpen, label: "Subjects", href: "/subjects", active: location === "/subjects" },
-      { icon: FileText, label: "Question Bank", href: "/admin/questions", active: location === "/admin/questions" },
-      { icon: FileText, label: "Exams", href: "/exams", active: location === "/exams" },
-      { icon: BarChart3, label: "Analytics", href: "/analytics", active: location === "/analytics" },
-    ];
+  const navigationItems = [
+    { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/subjects', label: 'Subjects', icon: BookOpen },
+    { path: '/admin/questions', label: 'Question Bank', icon: Database },
+    { path: '/exams', label: 'Exams', icon: FileText },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/admin/users', label: 'Users', icon: Users },
+    { path: '/admin/institutions', label: 'Institutions', icon: Building },
+    { path: '/admin/system', label: 'System', icon: Shield },
+    { path: '/settings', label: 'Settings', icon: Settings },
+  ];
 
-    if (user?.role === "admin") {
-      baseItems.push(
-        { icon: Users, label: "Users", href: "/admin/users", active: location === "/admin/users" },
-        { icon: Building, label: "Institutions", href: "/admin/institutions", active: location === "/admin/institutions" },
-        { icon: Shield, label: "System", href: "/admin/system", active: location === "/admin/system" }
-      );
-    }
-
-    if (user?.role === "institution") {
-      baseItems.push(
-        { icon: Users, label: "Students", href: "/institution/students", active: location === "/institution/students" },
-        { icon: FileText, label: "Manage Exams", href: "/institution/exams", active: location === "/institution/exams" }
-      );
-    }
-
-    baseItems.push({ icon: Settings, label: "Settings", href: "/settings", active: location === "/settings" });
-
-    return baseItems;
+  const handleLogout = async () => {
+    await logout();
   };
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <Shield className="h-4 w-4" />;
-      case "institution":
-        return <Building className="h-4 w-4" />;
-      default:
-        return <User className="h-4 w-4" />;
-    }
-  };
-
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case "admin":
-        return <Badge variant="destructive">Admin</Badge>;
-      case "institution":
-        return <Badge variant="secondary">Institution</Badge>;
-      default:
-        return <Badge variant="default">Student</Badge>;
-    }
-  };
-
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
-  };
-
-  const navItems = getNavItems();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Top Navigation */}
-      <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Left side */}
-            <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="lg:hidden"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-              <Link href="/" className="flex items-center space-x-2 ml-4 lg:ml-0">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2 rounded-lg">
-                  <BookOpen className="h-6 w-6" />
-                </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">Edrac</span>
-              </Link>
+      {/* Mobile menu button */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="bg-white dark:bg-gray-800"
+        >
+          {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Sidebar */}
+      <div className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+        <div className="flex flex-col h-full">
+          {/* Logo/Header */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Brain className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Edrac</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">CBT Platform</p>
+              </div>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="p-2"
+            >
+              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </Button>
+          </div>
 
-            {/* Right side */}
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleTheme}
-                className="text-gray-500 dark:text-gray-400"
-              >
-                {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-              </Button>
-
-              <Button variant="ghost" size="sm" className="text-gray-500 dark:text-gray-400">
-                <Bell className="h-5 w-5" />
-              </Button>
-
-              <div className="flex items-center space-x-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.profileImageUrl || ""} />
-                  <AvatarFallback className="bg-blue-500 text-white">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden sm:block">
-                  <div className="flex items-center space-x-2">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {user?.firstName} {user?.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
-                    </div>
-                    {getRoleBadge(user?.role || "student")}
-                  </div>
+          {/* User info */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {user?.fullName || user?.email || 'User'}
+                </p>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {user?.role || 'User'}
+                  </Badge>
                 </div>
               </div>
-
-              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-red-500 hover:text-red-700">
-                <LogOut className="h-5 w-5" />
-              </Button>
             </div>
           </div>
-        </div>
-      </nav>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <div className={`${sidebarOpen ? "block" : "hidden"} lg:block fixed lg:relative inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 mt-16 lg:mt-0`}>
-          <div className="h-full flex flex-col">
-            {/* Mobile close button */}
-            <div className="lg:hidden flex justify-end p-4">
-              <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)}>
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-2">
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href}>
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-1">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location === item.path;
+              
+              return (
+                <Link key={item.path} href={item.path}>
                   <Button
-                    variant={item.active ? "default" : "ghost"}
-                    className={`w-full justify-start ${
-                      item.active 
-                        ? "bg-blue-500 text-white" 
-                        : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    }`}
+                    variant={isActive ? "default" : "ghost"}
+                    className={`w-full justify-start ${isActive ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}
                     onClick={() => setSidebarOpen(false)}
                   >
-                    <item.icon className="h-5 w-5 mr-3" />
+                    <Icon className="h-4 w-4 mr-3" />
                     {item.label}
                   </Button>
                 </Link>
-              ))}
-            </nav>
+              );
+            })}
+          </nav>
 
-            {/* User info panel */}
-            <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-              <Card className="p-4">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.profileImageUrl || ""} />
-                    <AvatarFallback className="bg-blue-500 text-white">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {user?.firstName} {user?.lastName}
-                    </p>
-                    <div className="flex items-center space-x-1 mt-1">
-                      {getRoleIcon(user?.role || "student")}
-                      <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                        {user?.role || "student"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">Plan</span>
-                    <Badge variant={user?.plan === "premium" ? "default" : "secondary"}>
-                      {user?.plan || "free"}
-                    </Badge>
-                  </div>
-                </div>
-              </Card>
-            </div>
+          {/* Footer */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <Button
+              variant="ghost"
+              onClick={handleLogout}
+              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+            >
+              <LogOut className="h-4 w-4 mr-3" />
+              Logout
+            </Button>
           </div>
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 lg:ml-0">
-          <main className="min-h-screen p-6">
-            {children}
-          </main>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 sm:mb-0">
-              <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-1 rounded">
-                <BookOpen className="h-4 w-4" />
+      {/* Main content */}
+      <div className="lg:ml-64">
+        {/* Top bar */}
+        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center">
+                <div className="lg:hidden mr-4">
+                  {/* Space for mobile menu button */}
+                </div>
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    {navigationItems.find(item => item.path === location)?.label || 'Dashboard'}
+                  </h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Welcome back, {user?.fullName || user?.email}
+                  </p>
+                </div>
               </div>
-              <span className="text-sm font-medium text-gray-900 dark:text-white">Edrac CBT Platform</span>
-            </div>
-            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-              <span>© 2025 Edrac. All rights reserved.</span>
-              <div className="flex items-center space-x-1">
-                <span>Made with</span>
-                <Heart className="h-3 w-3 text-red-500 fill-current" />
-                <span>for Nigerian students</span>
+              
+              <div className="flex items-center space-x-4">
+                <Button variant="ghost" size="sm">
+                  <HelpCircle className="h-4 w-4 mr-2" />
+                  Help
+                </Button>
+                <Button variant="ghost" size="sm">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Support
+                </Button>
               </div>
             </div>
           </div>
-        </div>
-      </footer>
+        </header>
 
-      {/* Mobile sidebar overlay */}
+        {/* Page content */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {children}
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center space-x-4">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  © 2025 Edrac. All rights reserved.
+                </p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Badge variant="outline" className="text-xs">
+                  <Zap className="h-3 w-3 mr-1" />
+                  AI Powered
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  v1.0.0
+                </Badge>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+
+      {/* Mobile overlay */}
       {sidebarOpen && (
         <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

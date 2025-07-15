@@ -19,6 +19,8 @@ import AdminUsers from "@/pages/admin/Users";
 import AdminInstitutions from "@/pages/admin/Institutions";
 import AdminSystem from "@/pages/admin/System";
 import QuestionManager from "@/components/admin/QuestionManager";
+import ExamManager from "@/components/admin/ExamManager";
+import ExamShare from "@/components/ExamShare";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -45,7 +47,7 @@ function Router() {
           <Route path="/exam/:examId?" component={Exam} />
           <Route path="/settings" component={AdminSettings} />
           <Route path="/subjects" component={AdminSubjects} />
-          <Route path="/exams" component={AdminExams} />
+          <Route path="/exams" component={ExamManager} />
           <Route path="/analytics" component={AdminAnalytics} />
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/questions" component={QuestionManager} />
@@ -53,6 +55,8 @@ function Router() {
           <Route path="/admin/system" component={AdminSystem} />
         </>
       )}
+      {/* Public exam sharing routes */}
+      <Route path="/share/exam/:examId" component={ExamShare} />
       <Route component={NotFound} />
     </Switch>
   );
