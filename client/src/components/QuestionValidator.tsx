@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 interface ValidationIssue {
   id: string;
@@ -175,57 +176,58 @@ export default function QuestionValidator() {
   const totalIssues = questions.reduce((sum, q) => sum + (q.issues?.length || 0), 0);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card className="border-0 shadow-xl">
-        <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5" />
-            Question Validator & Typo Checker
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                  {questions.length}
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <Card className="border-0 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Question Validator & Typo Checker
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                    {questions.length}
+                  </div>
+                  <div className="text-sm text-slate-500">Total Questions</div>
                 </div>
-                <div className="text-sm text-slate-500">Total Questions</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {questionsWithIssues.length}
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {questionsWithIssues.length}
+                  </div>
+                  <div className="text-sm text-slate-500">With Issues</div>
                 </div>
-                <div className="text-sm text-slate-500">With Issues</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">
-                  {totalIssues}
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-red-600">
+                    {totalIssues}
+                  </div>
+                  <div className="text-sm text-slate-500">Total Issues</div>
                 </div>
-                <div className="text-sm text-slate-500">Total Issues</div>
               </div>
+              <Button
+                onClick={handleValidateAll}
+                disabled={isValidating || questions.length === 0}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              >
+                {isValidating ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Validating...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4 mr-2" />
+                    Validate All Questions
+                  </>
+                )}
+              </Button>
             </div>
-            <Button
-              onClick={handleValidateAll}
-              disabled={isValidating || questions.length === 0}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-            >
-              {isValidating ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Validating...
-                </>
-              ) : (
-                <>
-                  <Zap className="h-4 w-4 mr-2" />
-                  Validate All Questions
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Questions List */}
@@ -420,7 +422,8 @@ export default function QuestionValidator() {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

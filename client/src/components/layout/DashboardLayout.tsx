@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
+import { useTheme } from "@/components/ThemeProvider";
 import { 
   Menu, 
   Home, 
@@ -17,7 +18,9 @@ import {
   Bell,
   Search,
   MessageCircle,
-  CheckCircle2
+  CheckCircle2,
+  Sun,
+  Moon
 } from "lucide-react";
 
 const sidebarItems = [
@@ -35,6 +38,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const [location] = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (path: string) => location === path;
 
@@ -50,8 +54,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <nav className="flex-1 p-4 space-y-2">
         {sidebarItems.map((item) => (
           <Link key={item.path} href={item.path}>
-            <a
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+            <div
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer ${
                 isActive(item.path)
                   ? 'bg-blue-500 text-white'
                   : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
@@ -60,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <item.icon className="h-5 w-5" />
               <span>{item.label}</span>
-            </a>
+            </div>
           </Link>
         ))}
       </nav>
@@ -126,13 +130,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => {}}>
                 <Search className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={() => {}}>
                 <Bell className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+              <Button variant="ghost" size="icon" onClick={() => {}}>
                 <MessageCircle className="h-5 w-5" />
               </Button>
             </div>

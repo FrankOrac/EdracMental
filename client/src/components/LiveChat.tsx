@@ -17,7 +17,8 @@ import {
   Mic,
   MicOff,
   Volume2,
-  VolumeX
+  VolumeX,
+  HelpCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -39,14 +40,33 @@ interface TypoCorrection {
   confidence: number;
 }
 
+const FAQ_RESPONSES = {
+  'how to create exam': 'To create an exam: 1) Go to the Exams tab in your dashboard, 2) Click "Create New Exam", 3) Set exam title, duration, and questions, 4) Choose subjects and difficulty levels, 5) Enable anti-cheating features if needed, 6) Save and activate your exam.',
+  'user management': 'User Management: You can create and manage three types of users - Students (take exams), Institutions (create exams for their students), and Admins (full system access). Go to Users tab to add, edit, or delete user accounts.',
+  'question bank': 'Question Bank: Add questions through bulk CSV/Excel upload or create them individually. Each question needs text, 4 options, correct answer, explanation, subject, and difficulty level. Use the Question Validator to check for errors.',
+  'exam sharing': 'Exam Sharing: Toggle exams to "Public" to generate shareable links. Share these links for institutional interviews or assessments. Guest users can register to take shared exams.',
+  'analytics dashboard': 'Analytics: View exam performance, user engagement, revenue metrics, and system statistics. Track student progress, exam completion rates, and platform usage patterns.',
+  'anti-cheating': 'Anti-Cheating Features: Enable tab switch detection, focus monitoring, time limits, and question randomization. The system logs suspicious activities during exams.',
+  'payment system': 'Payment Integration: Uses Paystack for Nigerian market. Supports subscriptions, one-time payments, and institutional billing. Configure in Settings > API Configuration.',
+  'ai features': 'AI Features: Auto-generate questions by subject/topic, get real-time explanations, 24/7 tutoring support, and question validation with typo checking.',
+  'technical support': 'Technical Support: Check system status in Settings, test API connections, view logs, and contact support for issues. All external integrations are monitored.',
+  'mobile access': 'Mobile Access: The platform is fully responsive and works on all devices. Students can take exams on phones/tablets with the same features as desktop.',
+  'grading system': 'Grading: Automatic scoring for multiple choice questions. Results show correct/incorrect answers, explanations, and percentage scores. Export results to CSV/Excel.',
+  'subjects topics': 'Subjects & Topics: Manage curriculum through Categories tab. Add subjects, create topics, and organize question banks by academic standards.',
+  'institution setup': 'Institution Setup: Create institutional accounts, add students, manage exams, and track performance. Institutions can create custom exams for their students.',
+  'backup security': 'Backup & Security: Data is backed up regularly, user sessions are secure, and all communications use HTTPS. Role-based access controls protect sensitive data.',
+  'api integration': 'API Integration: Connect external systems through our REST API. Test connections in Settings and configure webhooks for real-time updates.'
+};
+
 export default function LiveChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       type: 'bot',
-      content: 'Hello! I\'m your AI assistant for the Edrac CBT platform. I can help you with questions about exams, subjects, user management, and platform features. How can I assist you today?',
+      content: 'Hello! I\'m your assistant for the Edrac CBT platform. I can help you with questions about exams, subjects, user management, and platform features. How can I assist you today?',
       timestamp: new Date()
     }
   ]);
@@ -147,15 +167,60 @@ export default function LiveChat() {
       }
     },
     onError: () => {
-      const errorMessage: Message = {
+      // Fallback to FAQ system when AI is unavailable
+      const response = findFAQResponse(inputMessage);
+      const botMessage: Message = {
         id: Date.now().toString(),
-        type: 'system',
-        content: 'Sorry, I encountered an error. Please try again.',
+        type: 'bot',
+        content: response,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, botMessage]);
+      
+      // Text-to-speech for bot response
+      if (synthesis && isSpeaking) {
+        const utterance = new SpeechSynthesisUtterance(response);
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        synthesis.speak(utterance);
+      }
     }
   });
+
+  const findFAQResponse = (message: string): string => {
+    const normalizedMessage = message.toLowerCase();
+    
+    // Check for keyword matches in FAQ
+    for (const [key, response] of Object.entries(FAQ_RESPONSES)) {
+      if (normalizedMessage.includes(key) || key.split(' ').some(word => normalizedMessage.includes(word))) {
+        return response;
+      }
+    }
+    
+    // Default response when no match found
+    return "I'm here to help with the Edrac CBT platform. You can ask me about exam creation, user management, question banks, analytics, AI features, payment systems, or technical support. Type 'help' to see common questions.";
+  };
+
+  const showFAQOptions = () => {
+    const faqMessage: Message = {
+      id: Date.now().toString(),
+      type: 'bot',
+      content: "Here are some common questions I can help with:\n\n" + 
+               "• How to create exam\n" +
+               "• User management\n" +
+               "• Question bank\n" +
+               "• Exam sharing\n" +
+               "• Analytics dashboard\n" +
+               "• Anti-cheating features\n" +
+               "• Payment system\n" +
+               "• AI features\n" +
+               "• Technical support\n" +
+               "• Mobile access\n\n" +
+               "Just type any of these topics or ask your question!",
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, faqMessage]);
+  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -169,6 +234,13 @@ export default function LiveChat() {
 
     setMessages(prev => [...prev, userMessage]);
     
+    // Check for special commands
+    if (inputMessage.toLowerCase().includes('help') || inputMessage.toLowerCase().includes('faq')) {
+      showFAQOptions();
+      setInputMessage('');
+      return;
+    }
+    
     // Check for typos first
     checkTyposMutation.mutate(inputMessage);
     
@@ -176,14 +248,26 @@ export default function LiveChat() {
     const typingMessage: Message = {
       id: 'typing',
       type: 'bot',
-      content: 'AI is typing...',
+      content: 'Assistant is typing...',
       timestamp: new Date(),
       isTyping: true
     };
     setMessages(prev => [...prev, typingMessage]);
     
-    // Send message to AI
-    sendMessageMutation.mutate(inputMessage);
+    // Try AI first, fallback to FAQ if it fails
+    try {
+      sendMessageMutation.mutate(inputMessage);
+    } catch (error) {
+      // Immediate fallback to FAQ
+      const response = findFAQResponse(inputMessage);
+      const botMessage: Message = {
+        id: Date.now().toString(),
+        type: 'bot',
+        content: response,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, botMessage]);
+    }
     
     setInputMessage('');
     
@@ -278,8 +362,18 @@ export default function LiveChat() {
               <Button
                 variant="ghost"
                 size="icon"
+                onClick={showFAQOptions}
+                className="h-8 w-8 text-white hover:bg-white/20"
+                title="Show FAQ"
+              >
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={toggleSpeech}
                 className="h-8 w-8 text-white hover:bg-white/20"
+                title={isSpeaking ? "Disable voice" : "Enable voice"}
               >
                 {isSpeaking ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
               </Button>
@@ -288,6 +382,7 @@ export default function LiveChat() {
                 size="icon"
                 onClick={() => setIsMinimized(!isMinimized)}
                 className="h-8 w-8 text-white hover:bg-white/20"
+                title={isMinimized ? "Maximize" : "Minimize"}
               >
                 {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
               </Button>
@@ -296,6 +391,7 @@ export default function LiveChat() {
                 size="icon"
                 onClick={() => setIsOpen(false)}
                 className="h-8 w-8 text-white hover:bg-white/20"
+                title="Close chat"
               >
                 <X className="h-4 w-4" />
               </Button>
