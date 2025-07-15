@@ -3,10 +3,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DashboardLayout from "../layout/DashboardLayout";
 import { Search, Plus, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Question {
   id: number;
@@ -28,6 +33,8 @@ export default function QuestionManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
   // Fetch questions
   const { data: questions = [], isLoading } = useQuery({
@@ -37,6 +44,47 @@ export default function QuestionManager() {
   // Fetch subjects
   const { data: subjects = [] } = useQuery({
     queryKey: ["/api/subjects"],
+  });
+
+  // Fetch topics
+  const { data: topics = [] } = useQuery({
+    queryKey: ["/api/topics"],
+  });
+
+  // Create question mutation
+  const createQuestionMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest("/api/questions", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+      toast({ title: "Question created successfully" });
+      setIsAddDialogOpen(false);
+    },
+    onError: () => {
+      toast({ title: "Failed to create question", variant: "destructive" });
+    },
+  });
+
+  // Update question mutation
+  const updateQuestionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      return apiRequest(`/api/questions/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/questions"] });
+      toast({ title: "Question updated successfully" });
+      setEditingQuestion(null);
+    },
+    onError: () => {
+      toast({ title: "Failed to update question", variant: "destructive" });
+    },
   });
 
   // Delete question mutation
@@ -80,7 +128,7 @@ export default function QuestionManager() {
               className="pl-9"
             />
           </div>
-          <Button>
+          <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Question
           </Button>
@@ -128,7 +176,11 @@ export default function QuestionManager() {
                       <TableCell>{question.type}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => setEditingQuestion(question)}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button 
@@ -148,7 +200,199 @@ export default function QuestionManager() {
             )}
           </CardContent>
         </Card>
+
+        {/* Add Question Dialog */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Question</DialogTitle>
+              <DialogDescription>
+                Create a new question for your question bank.
+              </DialogDescription>
+            </DialogHeader>
+            <QuestionForm
+              subjects={subjects}
+              topics={topics}
+              onSubmit={(data) => createQuestionMutation.mutate(data)}
+              isLoading={createQuestionMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Question Dialog */}
+        <Dialog open={!!editingQuestion} onOpenChange={() => setEditingQuestion(null)}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Question</DialogTitle>
+              <DialogDescription>
+                Modify the question details and options.
+              </DialogDescription>
+            </DialogHeader>
+            {editingQuestion && (
+              <QuestionForm
+                question={editingQuestion}
+                subjects={subjects}
+                topics={topics}
+                onSubmit={(data) => updateQuestionMutation.mutate({ id: editingQuestion.id, data })}
+                isLoading={updateQuestionMutation.isPending}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
+  );
+}
+
+// Question Form Component
+function QuestionForm({ question, subjects, topics, onSubmit, isLoading }: any) {
+  const [formData, setFormData] = useState({
+    text: question?.text || '',
+    type: question?.type || 'multiple_choice',
+    options: question?.options || ['', '', '', ''],
+    correctAnswer: question?.correctAnswer || '',
+    explanation: question?.explanation || '',
+    difficulty: question?.difficulty || 'medium',
+    subjectId: question?.subjectId || '',
+    topicId: question?.topicId || '',
+    examType: question?.examType || 'jamb',
+    points: question?.points || 1,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
+  const handleOptionChange = (index: number, value: string) => {
+    const newOptions = [...formData.options];
+    newOptions[index] = value;
+    setFormData({ ...formData, options: newOptions });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="text">Question Text</Label>
+        <Textarea
+          id="text"
+          value={formData.text}
+          onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+          placeholder="Enter your question"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="subject">Subject</Label>
+          <Select value={formData.subjectId.toString()} onValueChange={(value) => setFormData({ ...formData, subjectId: parseInt(value) })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select subject" />
+            </SelectTrigger>
+            <SelectContent>
+              {subjects.map((subject: any) => (
+                <SelectItem key={subject.id} value={subject.id.toString()}>
+                  {subject.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="topic">Topic</Label>
+          <Select value={formData.topicId.toString()} onValueChange={(value) => setFormData({ ...formData, topicId: parseInt(value) })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select topic" />
+            </SelectTrigger>
+            <SelectContent>
+              {topics.map((topic: any) => (
+                <SelectItem key={topic.id} value={topic.id.toString()}>
+                  {topic.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="difficulty">Difficulty</Label>
+          <Select value={formData.difficulty} onValueChange={(value) => setFormData({ ...formData, difficulty: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select difficulty" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="easy">Easy</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="hard">Hard</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="examType">Exam Type</Label>
+          <Select value={formData.examType} onValueChange={(value) => setFormData({ ...formData, examType: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select exam type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="jamb">JAMB</SelectItem>
+              <SelectItem value="waec">WAEC</SelectItem>
+              <SelectItem value="neco">NECO</SelectItem>
+              <SelectItem value="gce">GCE</SelectItem>
+              <SelectItem value="custom">Custom</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div>
+        <Label>Options</Label>
+        <div className="space-y-2">
+          {formData.options.map((option, index) => (
+            <Input
+              key={index}
+              value={option}
+              onChange={(e) => handleOptionChange(index, e.target.value)}
+              placeholder={`Option ${String.fromCharCode(65 + index)}`}
+              required
+            />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="correctAnswer">Correct Answer</Label>
+        <Select value={formData.correctAnswer} onValueChange={(value) => setFormData({ ...formData, correctAnswer: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select correct answer" />
+          </SelectTrigger>
+          <SelectContent>
+            {formData.options.map((option, index) => (
+              <SelectItem key={index} value={option}>
+                {String.fromCharCode(65 + index)}: {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="explanation">Explanation</Label>
+        <Textarea
+          id="explanation"
+          value={formData.explanation}
+          onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
+          placeholder="Explain why this is the correct answer"
+        />
+      </div>
+
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? "Saving..." : question ? "Update Question" : "Create Question"}
+      </Button>
+    </form>
   );
 }
