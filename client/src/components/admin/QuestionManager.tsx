@@ -39,6 +39,9 @@ export default function QuestionManager() {
   const [addMode, setAddMode] = useState<'subject' | 'exam' | null>(null);
   const [uploadType, setUploadType] = useState<'online' | 'bulk' | null>(null);
   const [selectedTarget, setSelectedTarget] = useState<{id: string, name: string, type: 'subject' | 'exam'} | null>(null);
+  const [questionCount, setQuestionCount] = useState(1);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showQuestionCountDialog, setShowQuestionCountDialog] = useState(false);
 
   // Download sample template function
   const downloadSampleTemplate = () => {
@@ -349,7 +352,7 @@ export default function QuestionManager() {
                     onClick={() => {
                       setUploadType('online');
                       setShowAddOptions(false);
-                      setIsAddDialogOpen(true);
+                      setShowQuestionCountDialog(true);
                     }}
                   >
                     <Edit className="h-6 w-6" />
@@ -398,10 +401,10 @@ export default function QuestionManager() {
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                Add New Question {selectedTarget && `to ${selectedTarget.name}`}
+                Add Question {currentQuestionIndex + 1} of {questionCount} {selectedTarget && `to ${selectedTarget.name}`}
               </DialogTitle>
               <DialogDescription>
-                Create a new question for your question bank.
+                Create question {currentQuestionIndex + 1} for your question bank. {questionCount > 1 && `${questionCount - currentQuestionIndex - 1} more to go.`}
               </DialogDescription>
             </DialogHeader>
             <QuestionForm
@@ -411,14 +414,78 @@ export default function QuestionManager() {
               onSubmit={(data) => {
                 const questionData = {
                   ...data,
+                  subjectId: parseInt(data.subjectId),
+                  topicId: parseInt(data.topicId),
                   targetId: selectedTarget?.id,
                   targetType: selectedTarget?.type
                 };
-                createQuestionMutation.mutate(questionData);
+                createQuestionMutation.mutate(questionData, {
+                  onSuccess: () => {
+                    if (currentQuestionIndex < questionCount - 1) {
+                      setCurrentQuestionIndex(prev => prev + 1);
+                    } else {
+                      setIsAddDialogOpen(false);
+                      setCurrentQuestionIndex(0);
+                      toast({
+                        title: "Success!",
+                        description: `All ${questionCount} questions have been created successfully.`,
+                      });
+                    }
+                  }
+                });
               }}
               isLoading={createQuestionMutation.isPending}
               selectedTarget={selectedTarget}
+              questionNumber={currentQuestionIndex + 1}
+              totalQuestions={questionCount}
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* Question Count Dialog */}
+        <Dialog open={showQuestionCountDialog} onOpenChange={setShowQuestionCountDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>How many questions?</DialogTitle>
+              <DialogDescription>
+                How many questions would you like to add to {selectedTarget?.name}?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <Label htmlFor="questionCount">Number of questions:</Label>
+                <Select 
+                  value={questionCount.toString()} 
+                  onValueChange={(value) => setQuestionCount(parseInt(value))}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1,2,3,4,5,10,15,20,25,30].map(num => (
+                      <SelectItem key={num} value={num.toString()}>{num}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowQuestionCountDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    setShowQuestionCountDialog(false);
+                    setCurrentQuestionIndex(0);
+                    setIsAddDialogOpen(true);
+                  }}
+                >
+                  Start Adding Questions
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 
@@ -521,7 +588,7 @@ export default function QuestionManager() {
 }
 
 // Question Form Component
-function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, selectedTarget }: any) {
+function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, selectedTarget, questionNumber, totalQuestions }: any) {
   const [formData, setFormData] = useState({
     text: question?.text || '',
     type: question?.type || 'multiple_choice',
@@ -538,6 +605,21 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
+    // Reset form for next question
+    if (questionNumber < totalQuestions) {
+      setFormData({
+        text: '',
+        type: 'multiple_choice',
+        subjectId: formData.subjectId,
+        topicId: formData.topicId,
+        difficulty: formData.difficulty,
+        examType: formData.examType,
+        options: ['', '', '', ''],
+        correctAnswer: '',
+        explanation: '',
+        points: 1
+      });
+    }
   };
 
   const handleOptionChange = (index: number, value: string) => {
@@ -687,9 +769,18 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
         />
       </div>
 
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? "Saving..." : question ? "Update Question" : "Create Question"}
-      </Button>
+      <div className="flex gap-3">
+        <Button type="submit" disabled={isLoading} className="flex-1">
+          {isLoading ? "Creating..." : 
+           questionNumber < totalQuestions ? `Add Question ${questionNumber}` : 
+           totalQuestions > 1 ? "Complete All Questions" : "Create Question"}
+        </Button>
+        {questionNumber < totalQuestions && (
+          <div className="text-sm text-gray-500 self-center">
+            {totalQuestions - questionNumber} more
+          </div>
+        )}
+      </div>
     </form>
   );
 }
