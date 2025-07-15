@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DashboardLayout from "../layout/DashboardLayout";
-import { Search, Plus, Edit, Trash2, BookOpen, FileSpreadsheet, Upload, FileText, X, Download } from "lucide-react";
+import { Search, Plus, Edit, Trash2, BookOpen, FileSpreadsheet, Upload, FileText, X, Download, Image, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -443,6 +443,10 @@ export default function QuestionManager() {
                   onSuccess: () => {
                     if (currentQuestionIndex < questionCount - 1) {
                       setCurrentQuestionIndex(prev => prev + 1);
+                      toast({
+                        title: "Question Added!",
+                        description: `Question ${currentQuestionIndex + 1} of ${questionCount} created. Continue with the next one.`,
+                      });
                     } else {
                       setIsAddDialogOpen(false);
                       setCurrentQuestionIndex(0);
@@ -451,6 +455,13 @@ export default function QuestionManager() {
                         description: `All ${questionCount} questions have been created successfully.`,
                       });
                     }
+                  },
+                  onError: (error) => {
+                    toast({
+                      title: "Error",
+                      description: "Failed to create question. Please try again.",
+                      variant: "destructive",
+                    });
                   }
                 });
               }}
@@ -620,7 +631,11 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
     topicId: question?.topicId || (topics[0]?.id || 1),
     examType: question?.examType || 'jamb',
     points: question?.points || 1,
+    imageUrl: question?.imageUrl || '',
   });
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(question?.imageUrl || null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -637,9 +652,32 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
         options: ['', '', '', ''],
         correctAnswer: '',
         explanation: '',
-        points: 1
+        points: 1,
+        imageUrl: ''
       });
+      setImageFile(null);
+      setImagePreview(null);
     }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setImagePreview(result);
+        setFormData({ ...formData, imageUrl: result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setFormData({ ...formData, imageUrl: '' });
   };
 
   const handleOptionChange = (index: number, value: string) => {
@@ -672,6 +710,57 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
           onChange={(e) => setFormData({ ...formData, text: e.target.value })}
           placeholder="Enter your question"
           required
+        />
+      </div>
+
+      {/* Image Upload Section */}
+      <div className="space-y-3">
+        <Label>Question Image (Optional)</Label>
+        
+        {imagePreview ? (
+          <div className="relative inline-block">
+            <img 
+              src={imagePreview} 
+              alt="Question preview" 
+              className="max-w-full h-40 object-contain border rounded-lg"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              className="absolute top-1 right-1"
+              onClick={removeImage}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6">
+            <div className="text-center">
+              <Camera className="mx-auto h-12 w-12 text-gray-400" />
+              <div className="mt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                >
+                  <Image className="h-4 w-4 mr-2" />
+                  Upload Image
+                </Button>
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                PNG, JPG, GIF up to 5MB
+              </p>
+            </div>
+          </div>
+        )}
+        
+        <input
+          id="image-upload"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageUpload}
         />
       </div>
 
