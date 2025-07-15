@@ -104,7 +104,7 @@ export default function AdminDashboard() {
               Export Data
             </Button>
             <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-              <Settings className="mr-2 h-4 w-4" />
+              <SettingsIcon className="mr-2 h-4 w-4" />
               System Settings
             </Button>
           </div>
