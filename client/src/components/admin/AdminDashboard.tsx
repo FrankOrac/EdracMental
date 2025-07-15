@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import ModernDashboard from "./ModernDashboard";
+import EnhancedModernDashboard from "./EnhancedModernDashboard";
 import { 
   Users, 
   Database, 
@@ -46,10 +46,10 @@ export default function AdminDashboard() {
     );
   }
 
-  // Use the modern dashboard
+  // Use the enhanced modern dashboard
   return (
     <DashboardLayout>
-      <ModernDashboard />
+      <EnhancedModernDashboard />
     </DashboardLayout>
   );
 }

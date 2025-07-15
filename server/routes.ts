@@ -1028,6 +1028,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // API Health Check Routes
+  app.get('/api/ai/test', requireAuth, async (req, res) => {
+    try {
+      const hasOpenAI = !!process.env.OPENAI_API_KEY;
+      res.json({ 
+        status: hasOpenAI ? 'connected' : 'disconnected',
+        service: 'OpenAI',
+        configured: hasOpenAI
+      });
+    } catch (error) {
+      res.status(500).json({ status: 'error', service: 'OpenAI' });
+    }
+  });
+
+  app.get('/api/payments/test', requireAuth, async (req, res) => {
+    try {
+      const hasPaystack = !!process.env.PAYSTACK_SECRET_KEY;
+      res.json({ 
+        status: hasPaystack ? 'connected' : 'disconnected',
+        service: 'Paystack',
+        configured: hasPaystack
+      });
+    } catch (error) {
+      res.status(500).json({ status: 'error', service: 'Paystack' });
+    }
+  });
+
+  app.get('/api/email/test', requireAuth, async (req, res) => {
+    try {
+      const hasSendGrid = !!process.env.SENDGRID_API_KEY;
+      res.json({ 
+        status: hasSendGrid ? 'connected' : 'disconnected',
+        service: 'SendGrid',
+        configured: hasSendGrid
+      });
+    } catch (error) {
+      res.status(500).json({ status: 'error', service: 'SendGrid' });
+    }
+  });
+
+  app.get('/api/health/database', requireAuth, async (req, res) => {
+    try {
+      await db.select().from(users).limit(1);
+      res.json({ 
+        status: 'connected',
+        service: 'Database',
+        configured: true
+      });
+    } catch (error) {
+      res.status(500).json({ status: 'error', service: 'Database' });
+    }
+  });
+
   const httpServer = createServer(app);
   // Additional API endpoints for enhanced features
   
