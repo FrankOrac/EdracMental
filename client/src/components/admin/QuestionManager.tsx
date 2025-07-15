@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DashboardLayout from "../layout/DashboardLayout";
-import { Search, Plus, Edit, Trash2, BookOpen, FileSpreadsheet, Upload, FileText, X } from "lucide-react";
+import { Search, Plus, Edit, Trash2, BookOpen, FileSpreadsheet, Upload, FileText, X, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -38,6 +38,46 @@ export default function QuestionManager() {
   const [showAddOptions, setShowAddOptions] = useState(false);
   const [addMode, setAddMode] = useState<'subject' | 'exam' | null>(null);
   const [uploadType, setUploadType] = useState<'online' | 'bulk' | null>(null);
+  const [selectedTarget, setSelectedTarget] = useState<{id: string, name: string, type: 'subject' | 'exam'} | null>(null);
+
+  // Download sample template function
+  const downloadSampleTemplate = () => {
+    const sampleData = [
+      ['Question Text', 'Option A', 'Option B', 'Option C', 'Option D', 'Correct Answer', 'Explanation', 'Difficulty', 'Subject', 'Topic', 'Exam Type', 'Points'],
+      ['What is 2 + 2?', '3', '4', '5', '6', 'B', 'Basic addition: 2 + 2 equals 4', 'easy', 'Mathematics', 'Basic Arithmetic', 'jamb', '1'],
+      ['Choose the correct sentence', 'I are going', 'I am going', 'I is going', 'I be going', 'B', 'Correct subject-verb agreement with "I am"', 'easy', 'English', 'Grammar', 'waec', '1'],
+      ['What is the capital of Nigeria?', 'Lagos', 'Abuja', 'Kano', 'Port Harcourt', 'B', 'Abuja is the federal capital territory of Nigeria', 'easy', 'Geography', 'Countries and Capitals', 'neco', '1']
+    ];
+
+    const csvContent = sampleData.map(row => 
+      row.map(cell => `"${cell}"`).join(',')
+    ).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'questions_sample_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  };
+
+  // File upload handler
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    console.log('File selected for bulk upload:', file.name);
+    console.log('Target:', selectedTarget);
+    
+    // TODO: Implement bulk upload functionality
+    alert(`Bulk upload selected: ${file.name}\nTarget: ${selectedTarget?.name} (${selectedTarget?.type})\n\nThis feature will process Excel/CSV files and add questions to the selected ${selectedTarget?.type}.`);
+    
+    // Reset file input
+    event.target.value = '';
+  };
 
   // Fetch questions
   const { data: questions = [], isLoading } = useQuery({
@@ -52,6 +92,11 @@ export default function QuestionManager() {
   // Fetch topics
   const { data: topics = [] } = useQuery({
     queryKey: ["/api/topics"],
+  });
+
+  // Fetch exams
+  const { data: exams = [] } = useQuery({
+    queryKey: ["/api/exams"],
   });
 
   // Create question mutation
@@ -236,16 +281,60 @@ export default function QuestionManager() {
                   </Button>
                 </div>
               </div>
-            ) : !uploadType ? (
+            ) : !selectedTarget ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium">
-                    Adding questions to {addMode === 'subject' ? 'Subject' : 'Exam'}
+                    Select {addMode === 'subject' ? 'Subject' : 'Exam'}
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setAddMode(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {(addMode === 'subject' ? subjects : exams).map((item: any) => (
+                    <Button
+                      key={item.id}
+                      variant="outline"
+                      className="w-full justify-start h-auto p-3"
+                      onClick={() => setSelectedTarget({
+                        id: item.id,
+                        name: item.name || item.title,
+                        type: addMode as 'subject' | 'exam'
+                      })}
+                    >
+                      <div className="text-left">
+                        <div className="font-medium">{item.name || item.title}</div>
+                        {addMode === 'subject' && (
+                          <div className="text-xs text-gray-500">{item.code}</div>
+                        )}
+                        {addMode === 'exam' && (
+                          <div className="text-xs text-gray-500">{item.description}</div>
+                        )}
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            ) : !uploadType ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium">
+                      Adding to: {selectedTarget.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {selectedTarget.type === 'subject' ? 'Subject' : 'Exam'}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedTarget(null)}
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -272,13 +361,25 @@ export default function QuestionManager() {
                     className="h-20 flex flex-col gap-2"
                     onClick={() => {
                       setUploadType('bulk');
-                      document.getElementById('file-upload')?.click();
                       setShowAddOptions(false);
                     }}
                   >
                     <Upload className="h-6 w-6" />
                     <span>Bulk Upload</span>
                     <span className="text-xs text-gray-500">Excel/CSV file</span>
+                  </Button>
+                </div>
+                
+                {/* Download Sample Button */}
+                <div className="pt-2 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full"
+                    onClick={downloadSampleTemplate}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Sample Template
                   </Button>
                 </div>
               </div>
@@ -290,14 +391,14 @@ export default function QuestionManager() {
         <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
           setIsAddDialogOpen(open);
           if (!open) {
-            setAddMode(null);
+            // Don't reset selectedTarget - keep it persistent
             setUploadType(null);
           }
         }}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                Add New Question {addMode && `to ${addMode === 'subject' ? 'Subject' : 'Exam'}`}
+                Add New Question {selectedTarget && `to ${selectedTarget.name}`}
               </DialogTitle>
               <DialogDescription>
                 Create a new question for your question bank.
@@ -306,10 +407,56 @@ export default function QuestionManager() {
             <QuestionForm
               subjects={subjects}
               topics={topics}
-              onSubmit={(data) => createQuestionMutation.mutate(data)}
+              exams={exams}
+              onSubmit={(data) => {
+                const questionData = {
+                  ...data,
+                  targetId: selectedTarget?.id,
+                  targetType: selectedTarget?.type
+                };
+                createQuestionMutation.mutate(questionData);
+              }}
               isLoading={createQuestionMutation.isPending}
-              addMode={addMode}
+              selectedTarget={selectedTarget}
             />
+          </DialogContent>
+        </Dialog>
+
+        {/* Bulk Upload Dialog */}
+        <Dialog open={uploadType === 'bulk'} onOpenChange={(open) => {
+          if (!open) setUploadType(null);
+        }}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Bulk Upload Questions</DialogTitle>
+              <DialogDescription>
+                Upload questions to {selectedTarget?.name} using Excel or CSV file.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Select your file containing questions. Make sure it follows the sample template format.
+              </div>
+              
+              <div className="flex flex-col gap-3">
+                <Button
+                  variant="outline"
+                  onClick={downloadSampleTemplate}
+                  className="w-full"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Sample Template
+                </Button>
+                
+                <Button
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                  className="w-full"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Select File to Upload
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 
@@ -342,23 +489,39 @@ export default function QuestionManager() {
           className="hidden"
           onChange={handleFileUpload}
         />
+
+        {/* Clear Selection Button */}
+        {selectedTarget && (
+          <div className="fixed bottom-4 right-4 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border">
+            <div className="flex items-center gap-3">
+              <div className="text-sm">
+                <div className="font-medium">Adding to: {selectedTarget.name}</div>
+                <div className="text-xs text-gray-500">{selectedTarget.type}</div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedTarget(null);
+                  setAddMode(null);
+                  setUploadType(null);
+                  setShowAddOptions(false);
+                  setIsAddDialogOpen(false);
+                }}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
 }
 
-// File upload handler
-function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-
-  console.log('File selected for bulk upload:', file.name);
-  // TODO: Implement bulk upload functionality
-  alert(`Bulk upload selected: ${file.name}\nThis feature will be implemented to process Excel/CSV files.`);
-}
-
 // Question Form Component
-function QuestionForm({ question, subjects, topics, onSubmit, isLoading, addMode }: any) {
+function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, selectedTarget }: any) {
   const [formData, setFormData] = useState({
     text: question?.text || '',
     type: question?.type || 'multiple_choice',
@@ -385,15 +548,15 @@ function QuestionForm({ question, subjects, topics, onSubmit, isLoading, addMode
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {addMode && (
+      {selectedTarget && (
         <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
           <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
-            Adding question to: {addMode === 'subject' ? 'Subject' : 'Exam'}
+            Adding question to: {selectedTarget.name}
           </div>
           <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-            {addMode === 'subject' 
+            {selectedTarget.type === 'subject' 
               ? 'This question will be added to the selected subject\'s question bank'
-              : 'This question will be added directly to an exam'
+              : 'This question will be added directly to the selected exam'
             }
           </div>
         </div>
