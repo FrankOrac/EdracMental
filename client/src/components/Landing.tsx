@@ -166,10 +166,10 @@ export default function Landing() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.location.href = "/api/login"}
-                className="hidden md:inline-flex border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                onClick={() => window.location.href = "/api/auth/google"}
+                className="hidden md:inline-flex border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
               >
-                Login
+                Google Login
               </Button>
               
               <Button
@@ -177,7 +177,7 @@ export default function Landing() {
                 onClick={() => window.location.href = "/api/login"}
                 className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
               >
-                Get Started
+                Replit Login
               </Button>
 
               <Button
