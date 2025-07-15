@@ -5,12 +5,17 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardOverview from "./DashboardOverview";
 import DashboardExamManagement from "./DashboardExamManagement";
 import DashboardSettings from "./DashboardSettings";
+import UserManagement from "./UserManagement";
+import AdNetworkManager from "./AdNetworkManager";
+import CategoryTopicManager from "./CategoryTopicManager";
 import { 
   BarChart3, 
   BookOpen, 
   Settings as SettingsIcon,
   Users,
-  Database
+  Database,
+  DollarSign,
+  FolderOpen
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
@@ -44,7 +49,7 @@ export default function AdminDashboard() {
             className="mb-8"
           >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-1">
+              <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-1">
                 <TabsTrigger 
                   value="overview" 
                   className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
@@ -67,6 +72,20 @@ export default function AdminDashboard() {
                   Users
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="categories" 
+                  className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
+                >
+                  <FolderOpen className="h-4 w-4" />
+                  Categories
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="ads" 
+                  className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  Ads
+                </TabsTrigger>
+                <TabsTrigger 
                   value="settings" 
                   className="flex items-center gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
                 >
@@ -84,17 +103,15 @@ export default function AdminDashboard() {
               </TabsContent>
 
               <TabsContent value="users" className="space-y-6">
-                <div className="flex items-center justify-center h-64">
-                  <div className="text-center">
-                    <Users className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-600 dark:text-slate-300">
-                      User Management
-                    </h3>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2">
-                      User management interface coming soon
-                    </p>
-                  </div>
-                </div>
+                <UserManagement />
+              </TabsContent>
+
+              <TabsContent value="categories" className="space-y-6">
+                <CategoryTopicManager />
+              </TabsContent>
+
+              <TabsContent value="ads" className="space-y-6">
+                <AdNetworkManager />
               </TabsContent>
 
               <TabsContent value="settings" className="space-y-6">

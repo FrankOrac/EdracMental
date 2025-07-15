@@ -514,9 +514,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/exams/:id/questions', async (req, res) => {
+  app.get('/api/exams/:examId/questions', async (req, res) => {
     try {
-      const exam = await storage.getExam(req.params.id);
+      const { examId } = req.params;
+      
+      // Validate UUID format
+      if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(examId)) {
+        return res.status(400).json({ message: "Invalid exam ID format" });
+      }
+
+      const exam = await storage.getExam(examId);
       if (!exam) {
         return res.status(404).json({ message: "Exam not found" });
       }
@@ -1377,6 +1384,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error uploading image:', error);
       res.status(500).json({ message: 'Failed to upload image' });
+    }
+  });
+
+  // Enhanced analytics endpoint
+  app.get('/api/analytics/enhanced', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { range = '7d' } = req.query;
+      const enhancedData = {
+        revenue: {
+          current: 74000,
+          previous: 53000,
+          growth: 38.2
+        },
+        users: {
+          active: 15432,
+          new: 1847,
+          growth: 12.5
+        },
+        exams: {
+          taken: 8945,
+          completed: 7256,
+          avgScore: 78.5
+        },
+        geographic: [
+          { state: 'Lagos', users: 2341, revenue: 18600 },
+          { state: 'Abuja', users: 1876, revenue: 15200 },
+          { state: 'Kano', users: 1543, revenue: 12100 }
+        ]
+      };
+      res.json(enhancedData);
+    } catch (error) {
+      console.error('Error fetching enhanced analytics:', error);
+      res.status(500).json({ message: 'Failed to fetch enhanced analytics' });
+    }
+  });
+
+  // Topics and subjects management endpoints
+  app.get('/api/topics/subject/:subjectId', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const subjectId = parseInt(req.params.subjectId);
+      const topics = await storage.getTopicsBySubject(subjectId);
+      res.json(topics);
+    } catch (error) {
+      console.error('Error fetching topics:', error);
+      res.status(500).json({ message: 'Failed to fetch topics' });
+    }
+  });
+
+  app.post('/api/topics', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const newTopic = {
+        id: Date.now(),
+        ...req.body,
+        createdAt: new Date().toISOString()
+      };
+      
+      res.status(201).json(newTopic);
+    } catch (error) {
+      console.error('Error creating topic:', error);
+      res.status(500).json({ message: 'Failed to create topic' });
+    }
+  });
+
+  app.post('/api/subjects', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const newSubject = {
+        id: Date.now(),
+        ...req.body,
+        createdAt: new Date().toISOString()
+      };
+      
+      res.status(201).json(newSubject);
+    } catch (error) {
+      console.error('Error creating subject:', error);
+      res.status(500).json({ message: 'Failed to create subject' });
+    }
+  });
+
+  app.delete('/api/subjects/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      res.json({ message: 'Subject deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting subject:', error);
+      res.status(500).json({ message: 'Failed to delete subject' });
+    }
+  });
+
+  app.delete('/api/topics/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session.user.id;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      res.json({ message: 'Topic deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting topic:', error);
+      res.status(500).json({ message: 'Failed to delete topic' });
     }
   });
 

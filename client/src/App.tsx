@@ -14,7 +14,7 @@ import Exam from "@/pages/Exam";
 import AdminSettings from "@/pages/admin/Settings";
 import AdminSubjects from "@/pages/admin/Subjects";
 import AdminExams from "@/pages/admin/Exams";
-import AdminAnalytics from "@/pages/admin/Analytics";
+import Analytics from "@/components/Analytics";
 import AdminUsers from "@/pages/admin/Users";
 import AdminInstitutions from "@/pages/admin/Institutions";
 import AdminSystem from "@/pages/admin/System";
@@ -48,7 +48,7 @@ function Router() {
           <Route path="/settings" component={AdminSettings} />
           <Route path="/subjects" component={AdminSubjects} />
           <Route path="/exams" component={ExamManager} />
-          <Route path="/analytics" component={AdminAnalytics} />
+          <Route path="/analytics" component={Analytics} />
           <Route path="/admin/users" component={AdminUsers} />
           <Route path="/admin/questions" component={QuestionManager} />
           <Route path="/admin/institutions" component={AdminInstitutions} />
