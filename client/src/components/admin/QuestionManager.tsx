@@ -573,71 +573,76 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="subject">Subject</Label>
-          <Select value={formData.subjectId.toString()} onValueChange={(value) => setFormData({ ...formData, subjectId: parseInt(value) })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select subject" />
-            </SelectTrigger>
-            <SelectContent>
-              {subjects.map((subject: any) => (
-                <SelectItem key={subject.id} value={subject.id.toString()}>
-                  {subject.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Only show these fields when no target is selected */}
+      {!selectedTarget && (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="subject">Subject</Label>
+              <Select value={formData.subjectId.toString()} onValueChange={(value) => setFormData({ ...formData, subjectId: parseInt(value) })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map((subject: any) => (
+                    <SelectItem key={subject.id} value={subject.id.toString()}>
+                      {subject.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div>
-          <Label htmlFor="topic">Topic</Label>
-          <Select value={formData.topicId.toString()} onValueChange={(value) => setFormData({ ...formData, topicId: parseInt(value) })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select topic" />
-            </SelectTrigger>
-            <SelectContent>
-              {topics.map((topic: any) => (
-                <SelectItem key={topic.id} value={topic.id.toString()}>
-                  {topic.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+            <div>
+              <Label htmlFor="topic">Topic</Label>
+              <Select value={formData.topicId.toString()} onValueChange={(value) => setFormData({ ...formData, topicId: parseInt(value) })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select topic" />
+                </SelectTrigger>
+                <SelectContent>
+                  {topics.map((topic: any) => (
+                    <SelectItem key={topic.id} value={topic.id.toString()}>
+                      {topic.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="difficulty">Difficulty</Label>
-          <Select value={formData.difficulty} onValueChange={(value) => setFormData({ ...formData, difficulty: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="easy">Easy</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="hard">Hard</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="difficulty">Difficulty</Label>
+              <Select value={formData.difficulty} onValueChange={(value) => setFormData({ ...formData, difficulty: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="easy">Easy</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div>
-          <Label htmlFor="examType">Exam Type</Label>
-          <Select value={formData.examType} onValueChange={(value) => setFormData({ ...formData, examType: value })}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select exam type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="jamb">JAMB</SelectItem>
-              <SelectItem value="waec">WAEC</SelectItem>
-              <SelectItem value="neco">NECO</SelectItem>
-              <SelectItem value="gce">GCE</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+            <div>
+              <Label htmlFor="examType">Exam Type</Label>
+              <Select value={formData.examType} onValueChange={(value) => setFormData({ ...formData, examType: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select exam type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="jamb">JAMB</SelectItem>
+                  <SelectItem value="waec">WAEC</SelectItem>
+                  <SelectItem value="neco">NECO</SelectItem>
+                  <SelectItem value="gce">GCE</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </>
+      )}
 
       <div>
         <Label>Options</Label>
