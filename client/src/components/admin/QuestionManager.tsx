@@ -371,11 +371,13 @@ function QuestionForm({ question, subjects, topics, onSubmit, isLoading }: any) 
             <SelectValue placeholder="Select correct answer" />
           </SelectTrigger>
           <SelectContent>
-            {formData.options.map((option, index) => (
-              <SelectItem key={index} value={option}>
-                {String.fromCharCode(65 + index)}: {option}
-              </SelectItem>
-            ))}
+            {formData.options.map((option, index) => 
+              option.trim() ? (
+                <SelectItem key={index} value={option}>
+                  {String.fromCharCode(65 + index)}: {option}
+                </SelectItem>
+              ) : null
+            )}
           </SelectContent>
         </Select>
       </div>
