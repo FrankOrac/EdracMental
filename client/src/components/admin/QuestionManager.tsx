@@ -425,7 +425,7 @@ function QuestionManagerContent({ selectedSubject, selectedExam }: any) {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'question_template.xlsx';
+    a.download = 'question_template.csv';
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -435,83 +435,366 @@ function QuestionManagerContent({ selectedSubject, selectedExam }: any) {
     const matchesSearch = question.text.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = filterSubject === "all" || question.subjectId.toString() === filterSubject;
     const matchesDifficulty = selectedDifficulty === "all" || question.difficulty === selectedDifficulty;
-    const matchesSelectedSubject = selectedSubject ? question.subjectId === selectedSubject.id : true;
-    const matchesSelectedExam = selectedExam ? question.examId === selectedExam.id : true;
-    return matchesSearch && matchesSubject && matchesDifficulty && matchesSelectedSubject && matchesSelectedExam;
+    return matchesSearch && matchesSubject && matchesDifficulty;
   });
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "easy": return "bg-green-100 text-green-800";
-      case "medium": return "bg-yellow-100 text-yellow-800";
-      case "hard": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
+  // Calculate statistics
+  const totalQuestions = questions.length;
+  const easyQuestions = questions.filter((q: Question) => q.difficulty === 'easy').length;
+  const mediumQuestions = questions.filter((q: Question) => q.difficulty === 'medium').length;
+  const hardQuestions = questions.filter((q: Question) => q.difficulty === 'hard').length;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-500">Loading questions...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Question Bank
-          </h1>
-          <p className="text-slate-600 dark:text-slate-300 mt-2">
-            Manage and organize your exam questions
-          </p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <Dialog open={isAiGeneratorOpen} onOpenChange={setIsAiGeneratorOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-                <Sparkles className="h-4 w-4 mr-2" />
-                AI Generate
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="ai-generator-description">
-              <DialogHeader>
-                <DialogTitle>AI Question Generator</DialogTitle>
-                <p id="ai-generator-description" className="text-sm text-gray-600 dark:text-gray-300">
-                  Generate questions automatically using AI for any subject and topic.
-                </p>
-              </DialogHeader>
-              <AiQuestionGenerator 
-                subjects={subjects}
-                topics={topics}
-                onSubmit={(data) => generateQuestionsMutation.mutate(data)}
-                isLoading={generateQuestionsMutation.isPending}
-                onSuccess={() => setIsAiGeneratorOpen(false)}
-              />
-            </DialogContent>
-          </Dialog>
-          <Dialog open={isAddQuestionOpen} onOpenChange={setIsAddQuestionOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Questions
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md" aria-describedby="add-question-options-description">
-              <DialogHeader>
-                <DialogTitle>Add Questions</DialogTitle>
-                <p id="add-question-options-description" className="text-sm text-gray-600 dark:text-gray-300">
-                  Choose how you want to add questions to your bank.
-                </p>
-              </DialogHeader>
-              <div className="space-y-3">
-                <Button
-                  onClick={() => {
-                    setIsAddQuestionOpen(false);
-                    document.getElementById('file-upload')?.click();
-                  }}
-                  className="w-full justify-start"
-                  variant="outline"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Bulk Upload (CSV/Excel)
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Total Questions</p>
+                <p className="text-2xl font-bold text-blue-600">{totalQuestions}</p>
+              </div>
+              <FileText className="h-8 w-8 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Easy</p>
+                <p className="text-2xl font-bold text-green-600">{easyQuestions}</p>
+              </div>
+              <Target className="h-8 w-8 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Medium</p>
+                <p className="text-2xl font-bold text-yellow-600">{mediumQuestions}</p>
+              </div>
+              <Target className="h-8 w-8 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Hard</p>
+                <p className="text-2xl font-bold text-red-600">{hardQuestions}</p>
+              </div>
+              <Target className="h-8 w-8 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content */}
+      <Tabs defaultValue="questions" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="questions">Questions</TabsTrigger>
+          <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>
+          <TabsTrigger value="ai-generate">AI Generate</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="questions" className="space-y-4">
+          {/* Search and Filter */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Search and Filter</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search questions..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <Select value={filterSubject} onValueChange={setFilterSubject}>
+                  <SelectTrigger className="w-full md:w-48">
+                    <SelectValue placeholder="Filter by subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Subjects</SelectItem>
+                    {subjects.map((subject: any) => (
+                      <SelectItem key={subject.id} value={subject.id.toString()}>
+                        {subject.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                  <SelectTrigger className="w-full md:w-48">
+                    <SelectValue placeholder="Filter by difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Difficulties</SelectItem>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Add Question Button */}
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold">Questions ({filteredQuestions.length})</h3>
+            <Dialog open={isAddQuestionOpen} onOpenChange={setIsAddQuestionOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Question
                 </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add New Question</DialogTitle>
+                </DialogHeader>
+                <CreateQuestionForm
+                  subjects={subjects}
+                  topics={topics}
+                  onSubmit={(data: any) => createQuestionMutation.mutate(data)}
+                  isLoading={createQuestionMutation.isPending}
+                  onSuccess={() => setIsAddQuestionOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Questions Table */}
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Question</TableHead>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Difficulty</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Points</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredQuestions.map((question: Question) => {
+                    const subject = subjects.find((s: any) => s.id === question.subjectId);
+                    return (
+                      <TableRow key={question.id}>
+                        <TableCell className="font-medium">
+                          <div className="max-w-md">
+                            <p className="truncate">{question.text}</p>
+                            <p className="text-xs text-gray-500">
+                              Answer: {question.correctAnswer}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{subject?.name || 'Unknown'}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              question.difficulty === 'easy' ? 'default' :
+                              question.difficulty === 'medium' ? 'secondary' : 'destructive'
+                            }
+                          >
+                            {question.difficulty}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{question.type}</Badge>
+                        </TableCell>
+                        <TableCell>{question.points}</TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button variant="ghost" size="sm" onClick={() => setEditingQuestion(question)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                                <DialogHeader>
+                                  <DialogTitle>Edit Question</DialogTitle>
+                                </DialogHeader>
+                                <EditQuestionForm
+                                  question={editingQuestion}
+                                  subjects={subjects}
+                                  topics={topics}
+                                  onSubmit={(data: any) => updateQuestionMutation.mutate({ id: question.id, data })}
+                                  isLoading={updateQuestionMutation.isPending}
+                                  onSuccess={() => setEditingQuestion(null)}
+                                />
+                              </DialogContent>
+                            </Dialog>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (window.confirm('Are you sure you want to delete this question?')) {
+                                  deleteQuestionMutation.mutate(question.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="bulk-upload" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="h-5 w-5" />
+                Bulk Upload Questions
+              </CardTitle>
+              <CardDescription>
+                Upload questions from CSV or Excel files. Download the template to see the required format.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-4">
                 <Button
+                  onClick={downloadTemplate}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Template
+                </Button>
+                <div className="flex-1">
+                  <Input
+                    type="file"
+                    accept=".csv,.xlsx,.xls"
+                    onChange={handleFileUpload}
+                    className="cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {uploadProgress > 0 && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Upload Progress</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="w-full" />
+                </div>
+              )}
+
+              {uploadResults && (
+                <Alert className={uploadResults.success ? "border-green-500" : "border-red-500"}>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    <div className="space-y-2">
+                      <p className="font-medium">
+                        {uploadResults.success ? 'Upload Successful!' : 'Upload Failed'}
+                      </p>
+                      <p>
+                        Processed: {uploadResults.processed} questions
+                        {uploadResults.failed > 0 && ` | Failed: ${uploadResults.failed}`}
+                      </p>
+                      {uploadResults.errors.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="font-medium">Errors:</p>
+                          {uploadResults.errors.map((error, index) => (
+                            <p key={index} className="text-sm text-red-600">• {error}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-generate" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                AI Question Generator
+              </CardTitle>
+              <CardDescription>
+                Generate questions automatically using AI based on your specifications.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Dialog open={isAiGeneratorOpen} onOpenChange={setIsAiGeneratorOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate Questions with AI
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>AI Question Generator</DialogTitle>
+                  </DialogHeader>
+                  <AiQuestionGenerator
+                    subjects={subjects}
+                    topics={topics}
+                    onSubmit={(data: any) => generateQuestionsMutation.mutate(data)}
+                    isLoading={generateQuestionsMutation.isPending}
+                    onSuccess={() => setIsAiGeneratorOpen(false)}
+                  />
+                </DialogContent>
+              </Dialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// Hidden file input for bulk upload
+const fileInputElement = (
+  <input
+    id="file-upload"
+    type="file"
+    accept=".csv,.xlsx,.xls"
+    style={{ display: 'none' }}
+    onChange={handleFileUpload}
+  />
+);
                   onClick={() => {
                     setIsAddQuestionOpen(false);
                     setIsCreateDialogOpen(true);
