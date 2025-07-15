@@ -80,9 +80,51 @@ export default function LoginPage() {
     }
   ];
 
-  const handleDemoLogin = (email: string) => {
-    // For demo purposes, redirect to Replit auth
-    window.location.href = "/api/login";
+  const handleDemoLogin = async (email: string) => {
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: 'demo123'
+        }),
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Login Successful",
+          description: `Welcome back, ${result.user.firstName}!`,
+          variant: "default",
+        });
+        
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      } else {
+        toast({
+          title: "Login Failed",
+          description: result.message || "Invalid credentials",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Demo login error:', error);
+      toast({
+        title: "Login Error",
+        description: "An error occurred during login. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -97,6 +139,7 @@ export default function LoginPage() {
           description: "Please enter both email and password",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
 
@@ -115,7 +158,7 @@ export default function LoginPage() {
       if (response.ok) {
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${result.user.name}!`,
+          description: `Welcome back, ${result.user.firstName}!`,
           variant: "default",
         });
         
