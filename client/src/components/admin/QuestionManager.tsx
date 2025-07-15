@@ -412,13 +412,33 @@ export default function QuestionManager() {
               topics={topics}
               exams={exams}
               onSubmit={(data) => {
-                const questionData = {
-                  ...data,
-                  subjectId: parseInt(data.subjectId),
-                  topicId: parseInt(data.topicId),
+                // When we have a selected target, we need to handle subject/topic IDs
+                let questionData = { ...data };
+                
+                if (selectedTarget?.type === 'subject') {
+                  // For subjects, use the selected subject and first available topic
+                  questionData.subjectId = parseInt(selectedTarget.id);
+                  questionData.topicId = topics.find((t: any) => t.subjectId === parseInt(selectedTarget.id))?.id || 1;
+                } else if (selectedTarget?.type === 'exam') {
+                  // For exams, use default values or first available
+                  questionData.subjectId = subjects[0]?.id || 1;
+                  questionData.topicId = topics[0]?.id || 1;
+                } else {
+                  // No target selected, use form values
+                  questionData.subjectId = parseInt(data.subjectId) || subjects[0]?.id || 1;
+                  questionData.topicId = parseInt(data.topicId) || topics[0]?.id || 1;
+                }
+                
+                // Ensure all required fields have valid values
+                questionData = {
+                  ...questionData,
                   targetId: selectedTarget?.id,
-                  targetType: selectedTarget?.type
+                  targetType: selectedTarget?.type,
+                  difficulty: questionData.difficulty || 'medium',
+                  examType: questionData.examType || 'jamb',
+                  points: questionData.points || 1
                 };
+                
                 createQuestionMutation.mutate(questionData, {
                   onSuccess: () => {
                     if (currentQuestionIndex < questionCount - 1) {
@@ -596,8 +616,8 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
     correctAnswer: question?.correctAnswer || '',
     explanation: question?.explanation || '',
     difficulty: question?.difficulty || 'medium',
-    subjectId: question?.subjectId || '',
-    topicId: question?.topicId || '',
+    subjectId: question?.subjectId || (selectedTarget?.type === 'subject' ? parseInt(selectedTarget.id) : (subjects[0]?.id || 1)),
+    topicId: question?.topicId || (topics[0]?.id || 1),
     examType: question?.examType || 'jamb',
     points: question?.points || 1,
   });
@@ -610,8 +630,8 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
       setFormData({
         text: '',
         type: 'multiple_choice',
-        subjectId: formData.subjectId,
-        topicId: formData.topicId,
+        subjectId: selectedTarget?.type === 'subject' ? parseInt(selectedTarget.id) : (subjects[0]?.id || 1),
+        topicId: selectedTarget?.type === 'subject' ? (topics.find((t: any) => t.subjectId === parseInt(selectedTarget.id))?.id || 1) : (topics[0]?.id || 1),
         difficulty: formData.difficulty,
         examType: formData.examType,
         options: ['', '', '', ''],
