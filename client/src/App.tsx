@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
 import Landing from "@/components/Landing";
+import LoginPage from "@/components/auth/LoginPage";
 import Home from "@/pages/Home";
 import Exam from "@/pages/Exam";
 
@@ -24,7 +25,10 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <>
+          <Route path="/" component={Landing} />
+          <Route path="/login" component={LoginPage} />
+        </>
       ) : (
         <>
           <Route path="/" component={Home} />

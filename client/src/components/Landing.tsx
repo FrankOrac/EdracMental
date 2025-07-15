@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "./ThemeProvider";
+import { Link } from "wouter";
 import { 
   GraduationCap, 
   Brain, 
@@ -172,13 +173,14 @@ export default function Landing() {
                 Google Login
               </Button>
               
-              <Button
-                size="sm"
-                onClick={() => window.location.href = "/api/login"}
-                className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-              >
-                Replit Login
-              </Button>
+              <Link href="/login">
+                <Button
+                  size="sm"
+                  className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                >
+                  Sign In
+                </Button>
+              </Link>
 
               <Button
                 variant="ghost"
@@ -198,7 +200,9 @@ export default function Landing() {
                 <button onClick={() => scrollToSection("features")} className="text-left text-gray-700 dark:text-gray-300">Features</button>
                 <button onClick={() => scrollToSection("pricing")} className="text-left text-gray-700 dark:text-gray-300">Pricing</button>
                 <button onClick={() => scrollToSection("about")} className="text-left text-gray-700 dark:text-gray-300">About</button>
-                <Button onClick={() => window.location.href = "/api/login"} className="w-full">Get Started</Button>
+                <Link href="/login">
+                  <Button className="w-full">Get Started</Button>
+                </Link>
               </div>
             </div>
           )}
@@ -229,14 +233,15 @@ export default function Landing() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-              <Button 
-                size="lg"
-                onClick={() => window.location.href = "/api/login"}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
-              >
-                <ArrowRight className="mr-2 h-5 w-5" />
-                Start Learning Free
-              </Button>
+              <Link href="/login">
+                <Button 
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
+                >
+                  <ArrowRight className="mr-2 h-5 w-5" />
+                  Start Learning Free
+                </Button>
+              </Link>
               <Button 
                 variant="outline" 
                 size="lg"
