@@ -286,6 +286,7 @@ export default function QuestionManager() {
 
   return (
     <DashboardLayout>
+      <>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Question Bank</h1>
@@ -607,6 +608,7 @@ export default function QuestionManager() {
           onChange={handleFileUpload}
         />
       </div>
+      </>
     </DashboardLayout>
   );
 }
@@ -1918,7 +1920,9 @@ const fileInputElement = (
         className="hidden"
         onChange={handleFileUpload}
       />
-    </div>
+      </div>
+      </>
+    </DashboardLayout>
   );
 }
 

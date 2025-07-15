@@ -310,7 +310,7 @@ export default function UserManagement() {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-medium">
-                      {user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email?.charAt(0).toUpperCase() || 'U'}
+                      {(user.fullName || user.email) ? (user.fullName ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : user.email?.charAt(0).toUpperCase()) : 'U'}
                     </div>
                     <div>
                       <h4 className="font-medium text-lg group-hover:text-blue-600 transition-colors">
@@ -426,7 +426,7 @@ export default function UserManagement() {
             <div className="space-y-6">
               <div className="flex items-center gap-4">
                 <div className="h-16 w-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                  {selectedUser.fullName ? selectedUser.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : selectedUser.email?.charAt(0).toUpperCase() || 'U'}
+                  {(selectedUser.fullName || selectedUser.email) ? (selectedUser.fullName ? selectedUser.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : selectedUser.email?.charAt(0).toUpperCase()) : 'U'}
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold">{selectedUser.fullName || selectedUser.email || 'Unknown User'}</h3>
