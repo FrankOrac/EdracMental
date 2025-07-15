@@ -138,22 +138,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Find user by email in database (since users were created with different IDs)
+      // Find user by email in database
       let user;
       try {
         const allUsers = await db.select().from(users).where(eq(users.email, userAccount.email));
         user = allUsers[0];
         
-        // If user doesn't exist, create them
         if (!user) {
-          user = await storage.upsertUser({
-            id: userAccount.id,
-            email: userAccount.email,
-            firstName: userAccount.name.split(' ')[0],
-            lastName: userAccount.name.split(' ').slice(1).join(' ') || 'User',
-            role: userAccount.role,
-            subscriptionPlan: userAccount.plan === 'admin' ? 'premium' : userAccount.plan
-          });
+          return res.status(401).json({ message: "User not found in database" });
         }
       } catch (error) {
         console.error('Error finding user:', error);
