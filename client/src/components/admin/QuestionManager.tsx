@@ -636,7 +636,7 @@ function CreateQuestionForm({ subjects, topics, onSubmit, isLoading }: any) {
     onSubmit({
       ...formData,
       subjectId: parseInt(formData.subjectId),
-      topicId: formData.topicId ? parseInt(formData.topicId) : undefined,
+      topicId: formData.topicId && formData.topicId !== "none" ? parseInt(formData.topicId) : undefined,
       points: parseInt(formData.points.toString())
     });
   };
@@ -678,7 +678,7 @@ function CreateQuestionForm({ subjects, topics, onSubmit, isLoading }: any) {
               <SelectValue placeholder="Select topic (optional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No specific topic</SelectItem>
+              <SelectItem value="none">No specific topic</SelectItem>
               {topics.filter((topic: any) => topic.subjectId === parseInt(formData.subjectId)).map((topic: any) => (
                 <SelectItem key={topic.id} value={topic.id.toString()}>
                   {topic.name}
@@ -809,7 +809,7 @@ function AiQuestionGenerator({ subjects, topics, onSubmit, isLoading, onSuccess 
                 <SelectValue placeholder="Select topic (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Generate for entire subject</SelectItem>
+                <SelectItem value="none">Generate for entire subject</SelectItem>
                 {topics.filter((topic: any) => topic.subjectId === parseInt(formData.subject)).map((topic: any) => (
                   <SelectItem key={topic.id} value={topic.id.toString()}>
                     {topic.name}

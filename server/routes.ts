@@ -1087,7 +1087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             explanation: question.explanation,
             difficulty: question.difficulty,
             subjectId: parseInt(subject),
-            topicId: topic ? parseInt(topic) : undefined,
+            topicId: topic && topic !== "none" ? parseInt(topic) : undefined,
             examType: examType,
             points: 1,
             isActive: true,
