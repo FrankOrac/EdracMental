@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DashboardLayout from "../layout/DashboardLayout";
-import { Search, Plus, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, Edit, Trash2, BookOpen, FileSpreadsheet, Upload, FileText, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -35,6 +35,9 @@ export default function QuestionManager() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [showAddOptions, setShowAddOptions] = useState(false);
+  const [addMode, setAddMode] = useState<'subject' | 'exam' | null>(null);
+  const [uploadType, setUploadType] = useState<'online' | 'bulk' | null>(null);
 
   // Fetch questions
   const { data: questions = [], isLoading } = useQuery({
@@ -128,9 +131,9 @@ export default function QuestionManager() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button onClick={() => setShowAddOptions(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Question
+            Add Questions
           </Button>
         </div>
 
@@ -201,11 +204,101 @@ export default function QuestionManager() {
           </CardContent>
         </Card>
 
+        {/* Add Options Dialog */}
+        <Dialog open={showAddOptions} onOpenChange={setShowAddOptions}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add Questions</DialogTitle>
+              <DialogDescription>
+                Choose where to add your questions and how you want to add them.
+              </DialogDescription>
+            </DialogHeader>
+            
+            {!addMode ? (
+              <div className="space-y-4">
+                <div className="text-sm font-medium mb-3">Where do you want to add questions?</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setAddMode('subject')}
+                  >
+                    <BookOpen className="h-6 w-6" />
+                    <span>To Subject</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => setAddMode('exam')}
+                  >
+                    <FileText className="h-6 w-6" />
+                    <span>To Exam</span>
+                  </Button>
+                </div>
+              </div>
+            ) : !uploadType ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium">
+                    Adding questions to {addMode === 'subject' ? 'Subject' : 'Exam'}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setAddMode(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                  How would you like to add questions?
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => {
+                      setUploadType('online');
+                      setShowAddOptions(false);
+                      setIsAddDialogOpen(true);
+                    }}
+                  >
+                    <Edit className="h-6 w-6" />
+                    <span>Online</span>
+                    <span className="text-xs text-gray-500">Create manually</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-20 flex flex-col gap-2"
+                    onClick={() => {
+                      setUploadType('bulk');
+                      document.getElementById('file-upload')?.click();
+                      setShowAddOptions(false);
+                    }}
+                  >
+                    <Upload className="h-6 w-6" />
+                    <span>Bulk Upload</span>
+                    <span className="text-xs text-gray-500">Excel/CSV file</span>
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </DialogContent>
+        </Dialog>
+
         {/* Add Question Dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+          setIsAddDialogOpen(open);
+          if (!open) {
+            setAddMode(null);
+            setUploadType(null);
+          }
+        }}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Question</DialogTitle>
+              <DialogTitle>
+                Add New Question {addMode && `to ${addMode === 'subject' ? 'Subject' : 'Exam'}`}
+              </DialogTitle>
               <DialogDescription>
                 Create a new question for your question bank.
               </DialogDescription>
@@ -215,6 +308,7 @@ export default function QuestionManager() {
               topics={topics}
               onSubmit={(data) => createQuestionMutation.mutate(data)}
               isLoading={createQuestionMutation.isPending}
+              addMode={addMode}
             />
           </DialogContent>
         </Dialog>
@@ -239,13 +333,32 @@ export default function QuestionManager() {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Hidden file input for bulk upload */}
+        <input
+          id="file-upload"
+          type="file"
+          accept=".csv,.xlsx,.xls"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
       </div>
     </DashboardLayout>
   );
 }
 
+// File upload handler
+function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  console.log('File selected for bulk upload:', file.name);
+  // TODO: Implement bulk upload functionality
+  alert(`Bulk upload selected: ${file.name}\nThis feature will be implemented to process Excel/CSV files.`);
+}
+
 // Question Form Component
-function QuestionForm({ question, subjects, topics, onSubmit, isLoading }: any) {
+function QuestionForm({ question, subjects, topics, onSubmit, isLoading, addMode }: any) {
   const [formData, setFormData] = useState({
     text: question?.text || '',
     type: question?.type || 'multiple_choice',
@@ -272,6 +385,20 @@ function QuestionForm({ question, subjects, topics, onSubmit, isLoading }: any) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {addMode && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+          <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
+            Adding question to: {addMode === 'subject' ? 'Subject' : 'Exam'}
+          </div>
+          <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+            {addMode === 'subject' 
+              ? 'This question will be added to the selected subject\'s question bank'
+              : 'This question will be added directly to an exam'
+            }
+          </div>
+        </div>
+      )}
+      
       <div>
         <Label htmlFor="text">Question Text</Label>
         <Textarea
