@@ -51,9 +51,23 @@ export default function Landing() {
     {
       icon: Brain,
       title: "24/7 AI Tutor",
-      description: "Get instant explanations, solve doubts, and receive personalized learning recommendations anytime, anywhere.",
+      description: "Advanced AI tutoring with instant explanations, typo detection, and intelligent fallback responses even offline.",
       gradient: "from-blue-500 to-purple-600",
-      stats: "50K+ Questions Explained"
+      stats: "Smart Fallback System"
+    },
+    {
+      icon: Shield,
+      title: "Advanced Proctoring",
+      description: "Comprehensive proctoring with tab monitoring, focus detection, webcam supervision, and violation reporting.",
+      gradient: "from-green-500 to-purple-600",
+      stats: "Enterprise-Grade Security"
+    },
+    {
+      icon: Sparkles,
+      title: "AI Question Validation",
+      description: "Automated question validation with grammar checking, typo correction, and content optimization.",
+      gradient: "from-purple-500 to-pink-600",
+      stats: "AI-Powered Validation"
     },
     {
       icon: Clock,
@@ -66,7 +80,7 @@ export default function Landing() {
       icon: TrendingUp,
       title: "Smart Analytics",
       description: "Track your progress with detailed performance insights, identify weak areas, and get improvement suggestions.",
-      gradient: "from-purple-500 to-pink-600",
+      gradient: "from-orange-500 to-red-600",
       stats: "Advanced Performance Tracking"
     },
     {
@@ -75,47 +89,33 @@ export default function Landing() {
       description: "Complete coverage of JAMB, WAEC, NECO, GCE, and Post-UTME syllabus with up-to-date question banks.",
       gradient: "from-blue-500 to-green-500",
       stats: "100% Curriculum Coverage"
-    },
-    {
-      icon: Shield,
-      title: "Anti-Cheating",
-      description: "Advanced proctoring features including tab monitoring, focus detection, and optional webcam supervision.",
-      gradient: "from-green-500 to-purple-600",
-      stats: "Enterprise-Grade Security"
-    },
-    {
-      icon: Users,
-      title: "Institutional Tools",
-      description: "Custom exam builder, student management, performance tracking for schools and organizations.",
-      gradient: "from-purple-500 to-blue-600",
-      stats: "Multi-Institution Support"
     }
   ];
 
   const achievements = [
     {
-      icon: Award,
-      title: "10K+ Students",
-      description: "Trusted by thousands of students across Nigeria",
-      number: "10,000+"
+      icon: Brain,
+      title: "AI Tutor",
+      description: "24/7 intelligent tutoring with fallback responses",
+      number: "24/7"
     },
     {
-      icon: BookOpen,
-      title: "50K+ Questions",
-      description: "Comprehensive question bank covering all topics",
-      number: "50,000+"
+      icon: Shield,
+      title: "Proctoring",
+      description: "Advanced monitoring with webcam supervision",
+      number: "100%"
     },
     {
-      icon: BarChart3,
-      title: "95% Success Rate",
-      description: "Students show significant improvement in scores",
-      number: "95%"
+      icon: Sparkles,
+      title: "AI Validation",
+      description: "Automated question checking and typo correction",
+      number: "Real-time"
     },
     {
       icon: Target,
-      title: "24/7 Support",
-      description: "Round-the-clock AI tutoring and assistance",
-      number: "24/7"
+      title: "Success Rate",
+      description: "Students show significant improvement in scores",
+      number: "95%"
     }
   ];
 
@@ -333,9 +333,9 @@ export default function Landing() {
             </h1>
             
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              Join thousands of students who've achieved their dreams with our AI-powered CBT platform. 
-              Get personalized learning paths, instant feedback, and comprehensive exam preparation for 
-              JAMB, WAEC, NECO, and more.
+              Experience the future of learning with our <strong>24/7 AI Tutor</strong> and <strong>Advanced Proctoring System</strong>. 
+              Get instant explanations, real-time monitoring, and comprehensive exam preparation for 
+              JAMB, WAEC, NECO, and more - all powered by cutting-edge AI technology.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
@@ -438,6 +438,127 @@ export default function Landing() {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Features Highlight Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 dark:from-blue-900 dark:via-purple-900 dark:to-indigo-900">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-6">
+              <Brain className="h-4 w-4 text-blue-500 mr-2" />
+              <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                Advanced AI Technology
+              </span>
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              Powered by Next-Generation AI
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12">
+              Experience the future of learning with our comprehensive AI-powered features designed to enhance your exam preparation journey.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            {/* AI Tutor Feature */}
+            <div className="relative group perspective-1000">
+              <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-1000"></div>
+              <Card className="relative backdrop-blur-lg bg-white/80 dark:bg-white/10 border-white/20 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 transform hover:rotateY-5">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Brain className="text-white text-2xl" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">24/7 AI Tutor</h3>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+                    Get instant explanations for any question with our advanced AI tutor that provides detailed step-by-step solutions, even when offline with intelligent fallback responses.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Instant question explanations</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Typo detection & correction</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Smart fallback responses</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Proctoring System */}
+            <div className="relative group perspective-1000">
+              <div className="absolute -inset-4 bg-gradient-to-r from-green-500/20 to-purple-600/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-1000"></div>
+              <Card className="relative backdrop-blur-lg bg-white/80 dark:bg-white/10 border-white/20 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 transform hover:rotateY-5">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Shield className="text-white text-2xl" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Advanced Proctoring</h3>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+                    Comprehensive exam monitoring with tab detection, focus tracking, webcam supervision, and real-time violation reporting for secure testing environments.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Tab switch monitoring</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Focus detection system</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Webcam supervision</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Question Validation */}
+            <div className="relative group perspective-1000">
+              <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-pink-600/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-1000"></div>
+              <Card className="relative backdrop-blur-lg bg-white/80 dark:bg-white/10 border-white/20 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 transform hover:rotateY-5">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Sparkles className="text-white text-2xl" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">AI Question Validation</h3>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+                    Automated question validation with grammar checking, typo correction, and content optimization to ensure high-quality exam content.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Grammar & spelling checks</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Content optimization</span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                      <span>Real-time validation</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Call to Action */}
+          <div className="text-center">
+            <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 cursor-pointer">
+              <Sparkles className="h-5 w-5 mr-2" />
+              Experience AI-Powered Learning Today
+              <ArrowRight className="h-5 w-5 ml-2" />
             </div>
           </div>
         </div>
