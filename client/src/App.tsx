@@ -29,7 +29,7 @@ import CreateQuestions from "@/pages/CreateQuestions";
 import EdracPreloader from "@/components/EdracPreloader";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [showPreloader, setShowPreloader] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -61,17 +61,41 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/exam/:examId?" component={Exam} />
-          <Route path="/settings" component={AdminSettings} />
-          <Route path="/subjects" component={AdminSubjects} />
-          <Route path="/exams" component={ExamManager} />
-          <Route path="/analytics" component={Analytics} />
-          <Route path="/admin/users" component={AdminUsers} />
-          <Route path="/admin/questions" component={QuestionManager} />
-          <Route path="/admin/question-validator" component={QuestionValidator} />
-          <Route path="/admin/institutions" component={AdminInstitutions} />
-          <Route path="/admin/system" component={AdminSystem} />
           <Route path="/profile" component={Profile} />
-          <Route path="/create-questions" component={CreateQuestions} />
+          
+          {/* Admin-only routes */}
+          {user?.role === 'admin' && (
+            <>
+              <Route path="/settings" component={AdminSettings} />
+              <Route path="/analytics" component={Analytics} />
+              <Route path="/admin/users" component={AdminUsers} />
+              <Route path="/admin/questions" component={QuestionManager} />
+              <Route path="/admin/question-validator" component={QuestionValidator} />
+              <Route path="/admin/institutions" component={AdminInstitutions} />
+              <Route path="/admin/system" component={AdminSystem} />
+            </>
+          )}
+          
+          {/* Institution-only routes */}
+          {user?.role === 'institution' && (
+            <>
+              <Route path="/exams" component={ExamManager} />
+              <Route path="/create-questions" component={CreateQuestions} />
+              <Route path="/students" component={AdminUsers} />
+              <Route path="/analytics" component={Analytics} />
+              <Route path="/settings" component={AdminSettings} />
+            </>
+          )}
+          
+          {/* Student-only routes */}
+          {user?.role === 'student' && (
+            <>
+              <Route path="/exams" component={ExamManager} />
+              <Route path="/subjects" component={AdminSubjects} />
+              <Route path="/progress" component={Analytics} />
+              <Route path="/tutor" component={LiveChat} />
+            </>
+          )}
         </>
       )}
       {/* Public exam sharing routes */}

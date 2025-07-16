@@ -22,21 +22,49 @@ import {
   Sun,
   Moon,
   User,
-  Plus
+  Plus,
+  Brain
 } from "lucide-react";
 
-const sidebarItems = [
-  { icon: Home, label: "Dashboard", path: "/" },
-  { icon: BookOpen, label: "Exams", path: "/exams" },
-  { icon: FileText, label: "Questions", path: "/admin/questions" },
-  { icon: Plus, label: "Create Questions", path: "/create-questions" },
-  { icon: CheckCircle2, label: "Question Validator", path: "/admin/question-validator" },
-  { icon: BarChart3, label: "Analytics", path: "/analytics" },
-  { icon: Users, label: "Users", path: "/admin/users" },
-  { icon: Building, label: "Institutions", path: "/admin/institutions" },
-  { icon: User, label: "Profile", path: "/profile" },
-  { icon: Settings, label: "Settings", path: "/settings" },
-];
+const getSidebarItems = (userRole: string) => {
+  const commonItems = [
+    { icon: Home, label: "Dashboard", path: "/" },
+    { icon: User, label: "Profile", path: "/profile" },
+  ];
+
+  if (userRole === 'admin') {
+    return [
+      ...commonItems,
+      { icon: BarChart3, label: "System Analytics", path: "/analytics" },
+      { icon: Users, label: "User Management", path: "/admin/users" },
+      { icon: Building, label: "Institutions", path: "/admin/institutions" },
+      { icon: FileText, label: "Content Management", path: "/admin/questions" },
+      { icon: CheckCircle2, label: "Question Validator", path: "/admin/question-validator" },
+      { icon: Shield, label: "System Health", path: "/admin/system" },
+      { icon: Settings, label: "Global Settings", path: "/settings" },
+    ];
+  }
+
+  if (userRole === 'institution') {
+    return [
+      ...commonItems,
+      { icon: BookOpen, label: "Exam Management", path: "/exams" },
+      { icon: FileText, label: "Question Bank", path: "/create-questions" },
+      { icon: Users, label: "Student Management", path: "/students" },
+      { icon: BarChart3, label: "Analytics", path: "/analytics" },
+      { icon: Settings, label: "Institution Settings", path: "/settings" },
+    ];
+  }
+
+  // Student role
+  return [
+    ...commonItems,
+    { icon: BookOpen, label: "Available Exams", path: "/exams" },
+    { icon: Brain, label: "Study Materials", path: "/subjects" },
+    { icon: BarChart3, label: "My Progress", path: "/progress" },
+    { icon: MessageCircle, label: "AI Tutor", path: "/tutor" },
+  ];
+};
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -45,6 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { theme, toggleTheme } = useTheme();
 
   const isActive = (path: string) => location === path;
+  const sidebarItems = getSidebarItems(user?.role || 'student');
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">

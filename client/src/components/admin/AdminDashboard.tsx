@@ -49,57 +49,46 @@ export default function AdminDashboard() {
             className="mb-8"
           >
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-1">
+              <TabsList className="grid w-full grid-cols-5 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-1">
                 <TabsTrigger 
                   value="overview" 
                   className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
                 >
                   <BarChart3 className="h-4 w-4" />
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="exams" 
-                  className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
-                >
-                  <BookOpen className="h-4 w-4" />
-                  Exams
+                  System Overview
                 </TabsTrigger>
                 <TabsTrigger 
                   value="users" 
                   className="flex items-center gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white"
                 >
                   <Users className="h-4 w-4" />
-                  Users
+                  User Management
                 </TabsTrigger>
                 <TabsTrigger 
                   value="categories" 
                   className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
                 >
                   <FolderOpen className="h-4 w-4" />
-                  Categories
+                  Content Management
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="ads" 
-                  className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
+                  value="system" 
+                  className="flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white"
                 >
-                  <DollarSign className="h-4 w-4" />
-                  Ads
+                  <Database className="h-4 w-4" />
+                  System Health
                 </TabsTrigger>
                 <TabsTrigger 
                   value="settings" 
                   className="flex items-center gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
                 >
                   <SettingsIcon className="h-4 w-4" />
-                  Settings
+                  Global Settings
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
                 <DashboardOverview />
-              </TabsContent>
-
-              <TabsContent value="exams" className="space-y-6">
-                <DashboardExamManagement />
               </TabsContent>
 
               <TabsContent value="users" className="space-y-6">
@@ -110,7 +99,7 @@ export default function AdminDashboard() {
                 <CategoryTopicManager />
               </TabsContent>
 
-              <TabsContent value="ads" className="space-y-6">
+              <TabsContent value="system" className="space-y-6">
                 <AdNetworkManager />
               </TabsContent>
 
