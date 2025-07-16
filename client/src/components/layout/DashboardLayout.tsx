@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <span className="font-semibold text-lg">Edrac CBT</span>
       </div>
       
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {sidebarItems.map((item) => (
           <Link key={item.path} href={item.path}>
             <div
@@ -151,9 +151,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page Content */}
-        <main className="p-4 md:p-6">
+        <main className="p-4 md:p-6 min-h-[calc(100vh-140px)]">
           {children}
         </main>
+        
+        {/* Footer */}
+        <footer className="bg-white dark:bg-slate-800 border-t px-4 py-6 md:px-6">
+          <div className="text-center text-sm text-slate-500 dark:text-slate-400">
+            <p>&copy; 2025 Edrac CBT Platform. All rights reserved.</p>
+            <p className="mt-1">Empowering education through innovative technology.</p>
+          </div>
+        </footer>
       </div>
     </div>
   );
