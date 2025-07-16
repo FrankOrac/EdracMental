@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import DashboardLayout from "../layout/DashboardLayout";
+import MultiQuestionCreator from "./MultiQuestionCreator";
 import { Search, Plus, Edit, Trash2, BookOpen, FileSpreadsheet, Upload, FileText, X, Download, Image, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -42,6 +43,7 @@ export default function QuestionManager() {
   const [questionCount, setQuestionCount] = useState(1);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showQuestionCountDialog, setShowQuestionCountDialog] = useState(false);
+  const [showMultiCreator, setShowMultiCreator] = useState(false);
 
   // Download sample template function
   const downloadSampleTemplate = () => {
@@ -389,6 +391,85 @@ export default function QuestionManager() {
             ) : null}
           </DialogContent>
         </Dialog>
+
+        {/* Question Count Dialog */}
+        <Dialog open={showQuestionCountDialog} onOpenChange={setShowQuestionCountDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>How many questions?</DialogTitle>
+              <DialogDescription>
+                Select how many questions you want to create for {selectedTarget?.name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="question-count">Number of Questions</Label>
+                <Select
+                  value={questionCount.toString()}
+                  onValueChange={(value) => setQuestionCount(parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select quantity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 Question</SelectItem>
+                    <SelectItem value="2">2 Questions</SelectItem>
+                    <SelectItem value="3">3 Questions</SelectItem>
+                    <SelectItem value="4">4 Questions</SelectItem>
+                    <SelectItem value="5">5 Questions</SelectItem>
+                    <SelectItem value="10">10 Questions</SelectItem>
+                    <SelectItem value="15">15 Questions</SelectItem>
+                    <SelectItem value="20">20 Questions</SelectItem>
+                    <SelectItem value="25">25 Questions</SelectItem>
+                    <SelectItem value="30">30 Questions</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowQuestionCountDialog(false);
+                    setUploadType(null);
+                    setSelectedTarget(null);
+                    setAddMode(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowQuestionCountDialog(false);
+                    setShowMultiCreator(true);
+                  }}
+                >
+                  Start Creating
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Multi-Question Creator */}
+        <MultiQuestionCreator
+          isOpen={showMultiCreator}
+          onClose={() => {
+            setShowMultiCreator(false);
+            setUploadType(null);
+            setSelectedTarget(null);
+            setAddMode(null);
+            setQuestionCount(1);
+          }}
+          questionCount={questionCount}
+          selectedSubject={selectedTarget?.type === 'subject' ? {
+            id: parseInt(selectedTarget.id),
+            name: selectedTarget.name,
+            category: ''
+          } : undefined}
+          selectedTopic={selectedTarget?.type === 'subject' ? 
+            topics.find((t: any) => t.subjectId === parseInt(selectedTarget.id)) : undefined}
+        />
 
         {/* Add Question Dialog */}
         <Dialog open={isAddDialogOpen} onOpenChange={(open) => {

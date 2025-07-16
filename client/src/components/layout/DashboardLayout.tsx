@@ -20,7 +20,8 @@ import {
   MessageCircle,
   CheckCircle2,
   Sun,
-  Moon
+  Moon,
+  User
 } from "lucide-react";
 
 const sidebarItems = [
@@ -31,6 +32,7 @@ const sidebarItems = [
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: Users, label: "Users", path: "/admin/users" },
   { icon: Building, label: "Institutions", path: "/admin/institutions" },
+  { icon: User, label: "Profile", path: "/profile" },
   { icon: Settings, label: "Settings", path: "/settings" },
 ];
 

@@ -23,6 +23,7 @@ import ExamManager from "@/components/admin/ExamManager";
 import ExamShare from "@/components/ExamShare";
 import LiveChat from "@/components/LiveChat";
 import QuestionValidator from "@/components/QuestionValidator";
+import ProfileManager from "@/components/profile/ProfileManager";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -56,6 +57,7 @@ function Router() {
           <Route path="/admin/question-validator" component={QuestionValidator} />
           <Route path="/admin/institutions" component={AdminInstitutions} />
           <Route path="/admin/system" component={AdminSystem} />
+          <Route path="/profile" component={ProfileManager} />
         </>
       )}
       {/* Public exam sharing routes */}

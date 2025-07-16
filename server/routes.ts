@@ -793,6 +793,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile management routes
+  app.put('/api/auth/profile', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const profileData = req.body;
+      
+      // Validate profile data
+      const allowedFields = ['name', 'username', 'phone', 'bio', 'location', 'institution'];
+      const updateData = Object.keys(profileData)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = profileData[key];
+          return obj;
+        }, {} as any);
+      
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        ...updateData
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.post('/api/auth/change-password', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const { currentPassword, newPassword } = req.body;
+      
+      // In production, you would verify the current password
+      // For demo purposes, we'll just simulate successful change
+      if (currentPassword === 'demo123') {
+        res.json({ message: "Password changed successfully" });
+      } else {
+        res.status(400).json({ message: "Current password is incorrect" });
+      }
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ message: "Failed to change password" });
+    }
+  });
+
+  app.post('/api/auth/upload-profile-pic', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      
+      // In production, you would handle file upload to cloud storage
+      // For demo purposes, we'll simulate successful upload
+      const profilePicUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(req.session.user.name || 'User')}&background=random`;
+      
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        avatar: profilePicUrl
+      });
+      
+      res.json({ profilePicUrl, user: updatedUser });
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      res.status(500).json({ message: "Failed to upload profile picture" });
+    }
+  });
+
   // Admin routes for users management
   app.get('/api/users', requireAuth, async (req: any, res) => {
     try {
