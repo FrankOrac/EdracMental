@@ -56,6 +56,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        {/* Home button that goes to landing page */}
+        <a href="/" className="block">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors cursor-pointer text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">
+            <Home className="h-5 w-5" />
+            <span>Home</span>
+          </div>
+        </a>
+        
         {sidebarItems.map((item) => (
           <Link key={item.path} href={item.path}>
             <div
