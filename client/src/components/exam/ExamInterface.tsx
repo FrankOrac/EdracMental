@@ -11,6 +11,8 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import QuestionNavigator from "./QuestionNavigator";
 import AiTutor from "../ai/AiTutor";
+import ProctorSystem from "./ProctorSystem";
+import RobustAITutor from "../ai/RobustAITutor";
 import { 
   Clock, 
   Flag, 
@@ -18,7 +20,9 @@ import {
   ChevronLeft, 
   ChevronRight, 
   AlertTriangle,
-  Send
+  Send,
+  Shield,
+  Eye
 } from "lucide-react";
 
 interface ExamInterfaceProps {
@@ -36,6 +40,9 @@ export default function ExamInterface({ session, onExamComplete }: ExamInterface
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
   const [focusLossCount, setFocusLossCount] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
+  const [proctorViolations, setProctorViolations] = useState<any[]>([]);
+  const [proctorActive, setProctorActive] = useState(false);
+  const [showProctorSystem, setShowProctorSystem] = useState(false);
 
   // Get exam details
   const { data: exam } = useQuery({
@@ -179,11 +186,39 @@ export default function ExamInterface({ session, onExamComplete }: ExamInterface
         answers,
         flaggedQuestions,
         remainingTime: timeRemaining,
+        proctorViolations,
+        tabSwitchCount,
+        focusLossCount,
       });
     }, 30000);
 
     return () => clearInterval(autoSave);
-  }, [currentQuestionIndex, answers, flaggedQuestions, timeRemaining, updateSessionMutation]);
+  }, [currentQuestionIndex, answers, flaggedQuestions, timeRemaining, updateSessionMutation, proctorViolations, tabSwitchCount, focusLossCount]);
+
+  // Handle proctor violations
+  const handleProctorViolation = useCallback((violation: any) => {
+    setProctorViolations(prev => [...prev, violation]);
+    
+    // Show toast for high severity violations
+    if (violation.severity === 'high') {
+      toast({
+        title: "Security Violation Detected",
+        description: violation.description,
+        variant: "destructive",
+      });
+    }
+    
+    // Auto-save violations immediately
+    updateSessionMutation.mutate({
+      currentQuestionIndex,
+      answers,
+      flaggedQuestions,
+      remainingTime: timeRemaining,
+      proctorViolations: [...proctorViolations, violation],
+      tabSwitchCount,
+      focusLossCount,
+    });
+  }, [currentQuestionIndex, answers, flaggedQuestions, timeRemaining, proctorViolations, tabSwitchCount, focusLossCount, updateSessionMutation, toast]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -403,14 +438,24 @@ export default function ExamInterface({ session, onExamComplete }: ExamInterface
                     {flaggedQuestions.includes(currentQuestion.id) ? "Unflag" : "Flag for Review"}
                   </Button>
 
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAiTutor(true)}
-                    className="border-purple-500 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                  >
-                    <Brain className="mr-2 h-4 w-4" />
-                    Ask AI Tutor
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAiTutor(true)}
+                      className="border-purple-500 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    >
+                      <Brain className="mr-2 h-4 w-4" />
+                      Ask AI Tutor
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowProctorSystem(true)}
+                      className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                    >
+                      <Shield className="mr-2 h-4 w-4" />
+                      Proctor System
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -434,11 +479,57 @@ export default function ExamInterface({ session, onExamComplete }: ExamInterface
 
       {/* AI Tutor Modal */}
       {showAiTutor && (
-        <AiTutor
-          question={currentQuestion}
-          isOpen={showAiTutor}
-          onClose={() => setShowAiTutor(false)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">AI Tutor</h3>
+              <Button variant="ghost" onClick={() => setShowAiTutor(false)}>
+                ×
+              </Button>
+            </div>
+            <div className="p-4">
+              <RobustAITutor
+                questionData={currentQuestion}
+                context={`Exam: ${exam?.title}, Question ${currentQuestionIndex + 1}`}
+                examId={session.examId}
+                userId={session.userId}
+                onClose={() => setShowAiTutor(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Proctor System Modal */}
+      {showProctorSystem && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-900 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-lg font-semibold">Proctor System</h3>
+              <Button variant="ghost" onClick={() => setShowProctorSystem(false)}>
+                ×
+              </Button>
+            </div>
+            <div className="p-4">
+              <ProctorSystem
+                examId={session.examId}
+                userId={session.userId}
+                onViolation={handleProctorViolation}
+                enableWebcam={true}
+                enableAudio={true}
+                enableTabMonitoring={true}
+                enableFocusDetection={true}
+                onProctorReady={() => {
+                  setProctorActive(true);
+                  toast({
+                    title: "Proctor System Active",
+                    description: "Advanced monitoring is now enabled for this exam session.",
+                  });
+                }}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

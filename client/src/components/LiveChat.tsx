@@ -140,34 +140,42 @@ export default function LiveChat() {
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
-      return apiRequest('/api/ai/chat', {
-        method: 'POST',
-        body: { 
-          message, 
-          context: 'edrac-cbt-platform',
-          conversationHistory: messages.slice(-5) // Send last 5 messages for context
-        }
-      });
+      // Try AI tutoring first
+      try {
+        const response = await apiRequest('/api/ai/tutor', {
+          method: 'POST',
+          body: JSON.stringify({ 
+            question: message, 
+            context: 'edrac-cbt-platform-livechat',
+            conversationHistory: messages.slice(-5) // Send last 5 messages for context
+          })
+        });
+        return await response.json();
+      } catch (error) {
+        // Fallback to FAQ system when AI is unavailable
+        const response = findFAQResponse(message);
+        return { explanation: response, confidence: 0.4 };
+      }
     },
     onSuccess: (data) => {
       const botMessage: Message = {
         id: Date.now().toString(),
         type: 'bot',
-        content: data.response,
+        content: data.explanation || data.response,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botMessage]);
       
       // Text-to-speech for bot response
       if (synthesis && isSpeaking) {
-        const utterance = new SpeechSynthesisUtterance(data.response);
+        const utterance = new SpeechSynthesisUtterance(data.explanation || data.response);
         utterance.rate = 0.9;
         utterance.pitch = 1;
         synthesis.speak(utterance);
       }
     },
     onError: () => {
-      // Fallback to FAQ system when AI is unavailable
+      // Final fallback to FAQ system
       const response = findFAQResponse(inputMessage);
       const botMessage: Message = {
         id: Date.now().toString(),

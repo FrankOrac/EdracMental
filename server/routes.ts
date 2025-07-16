@@ -761,25 +761,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai/tutor', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/tutor', async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub;
-      const { question, context } = req.body;
-
-      const response = await provideTutoring(question, context);
+      const { question, context, questionData } = req.body;
       
-      // Save interaction
-      await storage.createAiInteraction({
-        userId,
-        type: "tutor_chat",
-        question,
-        response: response.explanation,
-      });
+      if (!question) {
+        return res.status(400).json({ message: "Question is required" });
+      }
+      
+      let response;
+      
+      try {
+        // Try to get AI response first
+        response = await provideTutoring(question, context);
+      } catch (aiError) {
+        console.error("AI tutoring failed:", aiError);
+        
+        // Fallback to basic response based on question content
+        const fallbackResponse = generateFallbackTutorResponse(question, questionData);
+        response = {
+          explanation: fallbackResponse,
+          confidence: 0.4,
+          examples: [],
+          relatedTopics: []
+        };
+      }
+      
+      // Save AI interaction if user is authenticated
+      if (req.user?.claims?.sub) {
+        try {
+          await storage.createAiInteraction({
+            userId: req.user.claims.sub,
+            type: "tutor_chat",
+            question,
+            response: response.explanation,
+          });
+        } catch (saveError) {
+          console.error("Failed to save AI interaction:", saveError);
+        }
+      }
 
       res.json(response);
     } catch (error) {
-      console.error("Error providing tutoring:", error);
-      res.status(500).json({ message: "Failed to provide tutoring" });
+      console.error("Error in AI tutoring:", error);
+      res.status(500).json({ 
+        message: "Tutoring service temporarily unavailable",
+        explanation: "I'm having trouble right now, but I'm still here to help! Please try rephrasing your question or contact support if this persists."
+      });
+    }
+  });
+
+  // Helper function for fallback tutor responses
+  function generateFallbackTutorResponse(question: string, questionData?: any): string {
+    const lowerQuestion = question.toLowerCase();
+    
+    // Subject-specific fallbacks
+    if (questionData?.subject) {
+      const subject = questionData.subject.toLowerCase();
+      if (subject.includes('math') || subject.includes('physic') || subject.includes('chemistry')) {
+        return `For ${questionData.subject} problems, try breaking them down into smaller steps. Identify what you know and what you need to find. Practice similar problems to reinforce your understanding.`;
+      } else if (subject.includes('biology') || subject.includes('science')) {
+        return `Science concepts are easier when you connect them to real-world examples. Try to understand the 'why' behind phenomena, not just memorize facts. Drawing diagrams can help visualize processes.`;
+      } else if (subject.includes('english') || subject.includes('literature')) {
+        return `For language questions, context often provides clues. Focus on identifying key themes and main ideas. Building vocabulary takes time - learn words in context.`;
+      }
+    }
+    
+    // General fallback responses
+    const fallbacks = [
+      "I'm here to help you understand this concept. Break it down into smaller parts and try to connect it to what you already know.",
+      "This is a good question! Try thinking about the fundamentals first, then build up to the more complex aspects.",
+      "Learning is a process. Don't worry if it seems difficult at first - focus on understanding the core concepts.",
+      "Let me help you approach this systematically. What part of this topic would you like to explore first?",
+      "Great question! The key is to understand the underlying principles. Can you identify the main concepts involved?"
+    ];
+    
+    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  }
+
+  // Helper function for basic typo detection
+  function detectBasicTypos(text: string): Array<{original: string, corrected: string, confidence: number}> {
+    const corrections = [];
+    const commonTypos = {
+      'teh': 'the',
+      'adn': 'and',
+      'taht': 'that',
+      'wihch': 'which',
+      'thier': 'their',
+      'recieve': 'receive',
+      'seperate': 'separate',
+      'occured': 'occurred',
+      'definately': 'definitely',
+      'neccessary': 'necessary'
+    };
+    
+    const words = text.toLowerCase().split(/\s+/);
+    words.forEach(word => {
+      const cleanWord = word.replace(/[^\w]/g, '');
+      if (commonTypos[cleanWord]) {
+        corrections.push({
+          original: cleanWord,
+          corrected: commonTypos[cleanWord],
+          confidence: 0.8
+        });
+      }
+    });
+    
+    return corrections;
+  }
+
+  // Add typo checking endpoint
+  app.post('/api/ai/check-typos', async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ message: "Text is required" });
+      }
+      
+      const corrections = detectBasicTypos(text);
+      res.json({ corrections });
+    } catch (error) {
+      console.error("Error checking typos:", error);
+      res.status(500).json({ message: "Typo checking service unavailable" });
+    }
+  });
+
+  // Enhanced AI question validation endpoint
+  app.post('/api/ai/validate-questions', async (req, res) => {
+    try {
+      const { questions } = req.body;
+      
+      if (!questions || !Array.isArray(questions)) {
+        return res.status(400).json({ message: "Questions array is required" });
+      }
+      
+      const validatedQuestions = [];
+      
+      for (const question of questions) {
+        const issues = [];
+        
+        // Basic validation
+        if (!question.text || question.text.length < 10) {
+          issues.push({
+            id: `question-${Date.now()}`,
+            type: 'error',
+            category: 'content',
+            message: 'Question text is too short',
+            originalText: question.text,
+            suggestedFix: 'Question should be at least 10 characters long',
+            confidence: 0.9,
+            position: { start: 0, end: question.text?.length || 0 }
+          });
+        }
+        
+        if (!question.options || question.options.length < 2) {
+          issues.push({
+            id: `options-${Date.now()}`,
+            type: 'error',
+            category: 'options',
+            message: 'Insufficient answer options',
+            originalText: JSON.stringify(question.options),
+            suggestedFix: 'Question should have at least 2 answer options',
+            confidence: 0.9,
+            position: { start: 0, end: 0 }
+          });
+        }
+        
+        if (!question.correctAnswer) {
+          issues.push({
+            id: `answer-${Date.now()}`,
+            type: 'error',
+            category: 'answer',
+            message: 'Correct answer is missing',
+            originalText: question.correctAnswer,
+            suggestedFix: 'Please specify the correct answer',
+            confidence: 0.9,
+            position: { start: 0, end: 0 }
+          });
+        }
+        
+        // Try AI enhancement
+        try {
+          const aiResponse = await explainQuestion(question.text, question.correctAnswer);
+          if (aiResponse.explanation && aiResponse.explanation !== question.explanation) {
+            issues.push({
+              id: `ai-explanation-${Date.now()}`,
+              type: 'suggestion',
+              category: 'content',
+              message: 'AI-generated explanation improvement',
+              originalText: question.explanation,
+              suggestedFix: aiResponse.explanation,
+              confidence: aiResponse.confidence || 0.7,
+              position: { start: 0, end: question.explanation?.length || 0 }
+            });
+          }
+        } catch (aiError) {
+          console.error("AI validation failed for question:", aiError);
+          // Continue with basic validation
+        }
+        
+        // Check for typos in question text
+        const typos = detectBasicTypos(question.text);
+        if (typos.length > 0) {
+          issues.push({
+            id: `typo-${Date.now()}`,
+            type: 'warning',
+            category: 'grammar',
+            message: `Found ${typos.length} potential typo(s)`,
+            originalText: question.text,
+            suggestedFix: typos.map(t => `"${t.original}" → "${t.corrected}"`).join(', '),
+            confidence: 0.8,
+            position: { start: 0, end: question.text.length }
+          });
+        }
+        
+        validatedQuestions.push({
+          ...question,
+          issues
+        });
+      }
+      
+      const questionsWithIssues = validatedQuestions.filter(q => q.issues.length > 0).length;
+      const totalIssues = validatedQuestions.reduce((sum, q) => sum + q.issues.length, 0);
+      
+      res.json({
+        validatedQuestions,
+        questionsWithIssues,
+        totalIssues,
+        summary: {
+          total: questions.length,
+          withIssues: questionsWithIssues,
+          totalIssues
+        }
+      });
+    } catch (error) {
+      console.error("Error validating questions:", error);
+      res.status(500).json({ message: "Question validation service unavailable" });
     }
   });
 
