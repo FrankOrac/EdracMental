@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import Landing from "@/components/Landing";
 import LoginPage from "@/components/auth/LoginPage";
@@ -25,9 +26,28 @@ import LiveChat from "@/components/LiveChat";
 import QuestionValidator from "@/components/QuestionValidator";
 import Profile from "@/pages/Profile";
 import CreateQuestions from "@/pages/CreateQuestions";
+import EdracPreloader from "@/components/EdracPreloader";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
+  const [showPreloader, setShowPreloader] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  useEffect(() => {
+    // Show preloader only on first app load
+    if (isInitialLoad && !isLoading) {
+      setIsInitialLoad(false);
+    }
+  }, [isLoading, isInitialLoad]);
+
+  const handlePreloaderComplete = () => {
+    setShowPreloader(false);
+  };
+
+  // Show preloader on initial app load
+  if (showPreloader && isInitialLoad) {
+    return <EdracPreloader onComplete={handlePreloaderComplete} duration={2500} />;
+  }
 
   return (
     <Switch>
