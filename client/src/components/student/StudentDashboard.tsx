@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import RobustAITutor from "@/components/ai/RobustAITutor";
 import { 
   BookOpen, 
   Clock, 
@@ -22,12 +23,14 @@ import {
   TrendingUp,
   CheckCircle2,
   AlertCircle,
-  Star
+  Star,
+  MessageSquare
 } from "lucide-react";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [showAITutor, setShowAITutor] = useState(false);
 
   const { data: userStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/analytics/user"],
@@ -85,7 +88,7 @@ export default function StudentDashboard() {
           </motion.div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-5 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
               <TabsTrigger 
                 value="overview" 
                 className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
@@ -113,6 +116,13 @@ export default function StudentDashboard() {
               >
                 <Target className="h-4 w-4" />
                 Practice
+              </TabsTrigger>
+              <TabsTrigger 
+                value="ai-tutor" 
+                className="flex items-center gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+              >
+                <MessageSquare className="h-4 w-4" />
+                AI Tutor
               </TabsTrigger>
             </TabsList>
 
@@ -244,9 +254,13 @@ export default function StudentDashboard() {
                         <Calendar className="h-4 w-4 mr-2" />
                         Schedule Study
                       </Button>
-                      <Button className="w-full justify-start" variant="outline">
-                        <BarChart3 className="h-4 w-4 mr-2" />
-                        View Analytics
+                      <Button 
+                        className="w-full justify-start" 
+                        variant="outline"
+                        onClick={() => setActiveTab("ai-tutor")}
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        AI Tutor
                       </Button>
                     </div>
                   </CardContent>
@@ -337,13 +351,75 @@ export default function StudentDashboard() {
                     <p className="text-gray-600 dark:text-gray-400 mb-6">
                       Sharpen your skills with practice questions across various subjects
                     </p>
-                    <Link href="/practice">
-                      <Button size="lg">
-                        <Play className="h-5 w-5 mr-2" />
-                        Start Practice Session
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Link href="/practice">
+                        <Button size="lg">
+                          <Play className="h-5 w-5 mr-2" />
+                          Start Practice Session
+                        </Button>
+                      </Link>
+                      <Button 
+                        size="lg" 
+                        variant="outline"
+                        onClick={() => setActiveTab("ai-tutor")}
+                      >
+                        <MessageSquare className="h-5 w-5 mr-2" />
+                        Chat with AI Tutor
                       </Button>
-                    </Link>
+                    </div>
                   </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="ai-tutor" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-6 w-6 text-purple-500" />
+                    AI Tutor - 24/7 Learning Assistant
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-4">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      Get instant help with your studies! Ask questions about any topic, get explanations, 
+                      examples, and personalized guidance from our AI tutor.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <Card className="border-purple-200 dark:border-purple-800">
+                        <CardContent className="p-4 text-center">
+                          <Brain className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+                          <h4 className="font-semibold mb-1">Smart Explanations</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Get step-by-step explanations for complex topics
+                          </p>
+                        </CardContent>
+                      </Card>
+                      <Card className="border-green-200 dark:border-green-800">
+                        <CardContent className="p-4 text-center">
+                          <Target className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                          <h4 className="font-semibold mb-1">Practice Guidance</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Receive hints and tips for solving problems
+                          </p>
+                        </CardContent>
+                      </Card>
+                      <Card className="border-blue-200 dark:border-blue-800">
+                        <CardContent className="p-4 text-center">
+                          <Clock className="h-8 w-8 text-blue-500 mx-auto mb-2" />
+                          <h4 className="font-semibold mb-1">24/7 Available</h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Study anytime with instant responses
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                  <RobustAITutor
+                    context="Student dashboard - general tutoring"
+                    userId={(user as any)?.id}
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
