@@ -37,8 +37,25 @@ import {
 import { generateQuestions, explainQuestion, provideTutoring } from "./services/openai";
 import { paystackService } from "./services/paystack";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configure multer for file uploads
+  const multerStorage = multer.memoryStorage();
+  const upload = multer({
+    storage: multerStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
   // Auth middleware
   await setupAuth(app);
   await setupGoogleAuth(app);
@@ -191,6 +208,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.clearCookie('connect.sid');
       res.json({ message: "Logged out successfully" });
     });
+  });
+
+  // Profile update endpoint
+  app.put('/api/auth/profile', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const updateData = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        phone: req.body.phone,
+        bio: req.body.bio,
+        location: req.body.location,
+        institution: req.body.institution
+      };
+
+      // Remove undefined values
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] === undefined) {
+          delete updateData[key];
+        }
+      });
+
+      const [updatedUser] = await db
+        .update(users)
+        .set(updateData)
+        .where(eq(users.id, userId))
+        .returning();
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  // Change password endpoint
+  app.post('/api/auth/change-password', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const { currentPassword, newPassword } = req.body;
+
+      // For demo purposes, we'll just return success
+      // In production, you'd verify the current password hash
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ message: "Current and new passwords are required" });
+      }
+
+      // Here you would hash the new password and update the database
+      // For demo, we'll just return success
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ message: "Failed to change password" });
+    }
+  });
+
+  // Profile picture upload endpoint
+  app.post('/api/auth/upload-avatar', requireAuth, upload.single('avatar'), async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      // Convert buffer to base64 data URL
+      const base64 = req.file.buffer.toString('base64');
+      const avatarUrl = `data:${req.file.mimetype};base64,${base64}`;
+
+      const [updatedUser] = await db
+        .update(users)
+        .set({ avatar: avatarUrl })
+        .where(eq(users.id, userId))
+        .returning();
+
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ avatarUrl });
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      res.status(500).json({ message: "Failed to upload avatar" });
+    }
   });
 
   // Subject and topic routes

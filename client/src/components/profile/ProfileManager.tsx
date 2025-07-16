@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -82,17 +83,42 @@ export default function ProfileManager() {
   });
 
   // Fetch user profile
-  const { data: user, isLoading } = useQuery<UserProfile>({
+  const { data: user, isLoading } = useQuery({
     queryKey: ['/api/auth/user'],
     refetchOnWindowFocus: false,
   });
 
+  // Initialize profile data when user loads
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        username: user.username || '',
+        phone: user.phone || '',
+        bio: user.bio || '',
+        location: user.location || '',
+        institution: user.institution || ''
+      });
+    }
+  }, [user]);
+
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: ProfileUpdateData) => {
+      const nameParts = data.name?.split(' ') || [];
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+      
       return await apiRequest('/api/auth/profile', {
         method: 'PUT',
-        body: data
+        body: {
+          firstName,
+          lastName,
+          phone: data.phone,
+          bio: data.bio,
+          location: data.location,
+          institution: data.institution
+        }
       });
     },
     onSuccess: () => {
@@ -145,12 +171,19 @@ export default function ProfileManager() {
   const uploadProfilePicMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
-      formData.append('profilePicture', file);
+      formData.append('avatar', file);
       
-      return await apiRequest('/api/auth/upload-profile-pic', {
+      const response = await fetch('/api/auth/upload-avatar', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload avatar');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });

@@ -21,13 +21,15 @@ import {
   CheckCircle2,
   Sun,
   Moon,
-  User
+  User,
+  Plus
 } from "lucide-react";
 
 const sidebarItems = [
   { icon: Home, label: "Dashboard", path: "/" },
   { icon: BookOpen, label: "Exams", path: "/exams" },
   { icon: FileText, label: "Questions", path: "/admin/questions" },
+  { icon: Plus, label: "Create Questions", path: "/create-questions" },
   { icon: CheckCircle2, label: "Question Validator", path: "/admin/question-validator" },
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: Users, label: "Users", path: "/admin/users" },
