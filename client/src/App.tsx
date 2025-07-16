@@ -12,6 +12,7 @@ import LoginPage from "@/components/auth/LoginPage";
 import SignupPage from "@/components/auth/SignupPage";
 import Home from "@/pages/Home";
 import Exam from "@/pages/Exam";
+import Practice from "@/pages/Practice";
 import AdminSettings from "@/pages/admin/Settings";
 import AdminSubjects from "@/pages/admin/Subjects";
 import AdminExams from "@/pages/admin/Exams";
@@ -61,6 +62,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/exam/:examId?" component={Exam} />
+          <Route path="/practice/:subjectId?" component={Practice} />
           <Route path="/profile" component={Profile} />
           
           {/* Admin-only routes */}

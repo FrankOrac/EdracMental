@@ -501,6 +501,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get practice questions for a subject
+  app.get("/api/questions/practice/:subjectId", requireAuth, async (req, res) => {
+    try {
+      const subjectId = parseInt(req.params.subjectId);
+      const limit = parseInt(req.query.limit as string) || 20;
+      
+      const questions = await storage.getRandomQuestions({
+        subjectIds: [subjectId],
+        limit
+      });
+      
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching practice questions:", error);
+      res.status(500).json({ message: "Failed to fetch practice questions" });
+    }
+  });
+
   app.post('/api/questions/generate', requireAuth, async (req: any, res) => {
     try {
       const currentUserId = req.session.user?.id || req.user?.claims?.sub;
