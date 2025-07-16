@@ -161,6 +161,103 @@
   .timer-normal {
     @apply text-green-500;
   }
+  
+  /* Mobile responsive fixes */
+  @media (max-width: 768px) {
+    .dashboard-card {
+      @apply p-4 !important;
+    }
+    
+    .hero-title {
+      @apply text-2xl sm:text-3xl !important;
+    }
+    
+    .hero-subtitle {
+      @apply text-base sm:text-lg !important;
+    }
+    
+    .feature-card {
+      @apply p-4 !important;
+    }
+    
+    .pricing-card {
+      @apply p-4 !important;
+    }
+    
+    .mobile-nav {
+      @apply px-4 py-2 !important;
+    }
+    
+    .mobile-grid {
+      @apply grid-cols-1 !important;
+    }
+    
+    .mobile-text-center {
+      @apply text-center !important;
+    }
+    
+    .mobile-hidden {
+      @apply hidden !important;
+    }
+    
+    .mobile-full-width {
+      @apply w-full !important;
+    }
+    
+    .mobile-space-y-4 {
+      @apply space-y-4 !important;
+    }
+    
+    .mobile-px-4 {
+      @apply px-4 !important;
+    }
+    
+    .mobile-py-2 {
+      @apply py-2 !important;
+    }
+    
+    .mobile-gap-4 {
+      @apply gap-4 !important;
+    }
+    
+    .mobile-text-sm {
+      @apply text-sm !important;
+    }
+    
+    .mobile-text-xs {
+      @apply text-xs !important;
+    }
+  }
+  
+  /* Tablet responsive fixes */
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .tablet-grid-2 {
+      @apply grid-cols-2 !important;
+    }
+    
+    .tablet-text-base {
+      @apply text-base !important;
+    }
+    
+    .tablet-p-6 {
+      @apply p-6 !important;
+    }
+  }
+  
+  /* Touch-friendly improvements */
+  @media (hover: none) and (pointer: coarse) {
+    .touch-target {
+      @apply min-h-12 min-w-12 !important;
+    }
+    
+    .touch-button {
+      @apply py-3 px-4 !important;
+    }
+    
+    .touch-nav {
+      @apply py-4 !important;
+    }
+  }
 }
 
 /* Custom scrollbar */

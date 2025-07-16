@@ -111,7 +111,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:bg-white md:dark:bg-slate-800 md:border-r">
+      <div className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:bg-white lg:dark:bg-slate-800 lg:border-r">
         <SidebarContent />
       </div>
 
@@ -121,7 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden fixed top-4 left-4 z-50 bg-white shadow-md"
+            className="lg:hidden fixed top-4 left-4 z-50 bg-white dark:bg-slate-800 shadow-md"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -132,26 +132,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </Sheet>
 
       {/* Main Content */}
-      <div className="md:pl-64">
+      <div className="lg:pl-64">
         {/* Header */}
-        <header className="bg-white dark:bg-slate-800 border-b px-4 py-4 md:px-6">
+        <header className="bg-white dark:bg-slate-800 border-b px-4 py-4 lg:px-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
+              <h1 className="text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-200 ml-12 lg:ml-0">
                 {sidebarItems.find(item => isActive(item.path))?.label || 'Dashboard'}
               </h1>
             </div>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => {}}>
+            <div className="flex items-center gap-2 lg:gap-4">
+              <Button variant="ghost" size="icon" onClick={() => {}} className="hidden sm:flex">
                 <Search className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => {}}>
+              <Button variant="ghost" size="icon" onClick={() => {}} className="hidden sm:flex">
                 <Bell className="h-5 w-5" />
               </Button>
               <Button variant="ghost" size="icon" onClick={toggleTheme}>
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => {}}>
+              <Button variant="ghost" size="icon" onClick={() => {}} className="hidden sm:flex">
                 <MessageCircle className="h-5 w-5" />
               </Button>
             </div>
@@ -159,7 +159,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Page Content */}
-        <main className="p-4 md:p-6 min-h-[calc(100vh-140px)]">
+        <main className="p-4 lg:p-6 min-h-[calc(100vh-140px)]">
           {children}
         </main>
         

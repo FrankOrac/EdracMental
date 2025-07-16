@@ -307,16 +307,16 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center relative overflow-hidden">
+      <section className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center relative overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
-          <div className="absolute top-40 right-20 w-24 h-24 bg-purple-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "2s" }}></div>
-          <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-green-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "4s" }}></div>
+          <div className="absolute top-20 left-4 sm:left-10 w-24 h-24 sm:w-32 sm:h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
+          <div className="absolute top-40 right-4 sm:right-20 w-16 h-16 sm:w-24 sm:h-24 bg-purple-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+          <div className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-green-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "4s" }}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
-          <div className="text-center lg:text-left">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
+          <div className="text-center lg:text-left order-2 lg:order-1">
             <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-6">
               <Sparkles className="h-4 w-4 text-blue-500 mr-2" />
               <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
@@ -324,7 +324,7 @@ export default function Landing() {
               </span>
             </div>
             
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
               Master Your{" "}
               <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 Exams with AI
@@ -332,7 +332,7 @@ export default function Landing() {
               Intelligence
             </h1>
             
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
               Experience the future of learning with our <strong>24/7 AI Tutor</strong> and <strong>Advanced Proctoring System</strong>. 
               Get instant explanations, real-time monitoring, and comprehensive exam preparation for 
               JAMB, WAEC, NECO, and more - all powered by cutting-edge AI technology.
@@ -370,7 +370,7 @@ export default function Landing() {
               ))}
             </div>
 
-            <div className="flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
                 <span>Free Registration</span>
@@ -386,12 +386,12 @@ export default function Landing() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative order-1 lg:order-2 mb-8 lg:mb-0">
             {/* 3D Dashboard Preview */}
             <div className="relative group">
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
               <Card className="relative backdrop-blur-lg bg-white/10 dark:bg-white/5 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 transform perspective-1000 hover:rotateY-5">
-                <CardContent className="p-8">
+                <CardContent className="p-4 sm:p-6 lg:p-8">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full animate-pulse"></div>
@@ -461,7 +461,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-16">
             {/* AI Tutor Feature */}
             <div className="relative group perspective-1000">
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-3xl blur opacity-0 group-hover:opacity-100 transition duration-1000"></div>
@@ -568,18 +568,18 @@ export default function Landing() {
       <section id="features" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Why Choose Edrac?</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Why Choose Edrac?</h2>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Experience the future of education with our comprehensive CBT platform designed specifically for Nigerian students and institutions.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <div key={index} className="relative group perspective-1000">
                 <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                 <Card className="relative backdrop-blur-lg bg-white/80 dark:bg-white/10 border-white/20 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 transform hover:rotateY-5 group-hover:bg-white/90 dark:group-hover:bg-white/20">
-                  <CardContent className="p-6">
+                  <CardContent className="p-4 sm:p-6">
                     <div className={`w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                       <feature.icon className="text-white text-xl" />
                     </div>
@@ -607,13 +607,13 @@ export default function Landing() {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Experience Our Dashboard</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Experience Our Dashboard</h2>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8">
               Explore different user roles and see how Edrac adapts to your needs
             </p>
             
             {/* Role Selector */}
-            <div className="flex justify-center space-x-4 mb-8">
+            <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4 mb-8">
               {["student", "institution", "admin"].map((role) => (
                 <Button
                   key={role}
@@ -635,11 +635,11 @@ export default function Landing() {
 
           {/* Dashboard Content */}
           <Card className="backdrop-blur-lg bg-white/90 dark:bg-gray-900/90 border-white/20 shadow-2xl">
-            <CardContent className="p-8">
-              <div className="grid lg:grid-cols-3 gap-8">
+            <CardContent className="p-4 sm:p-6 lg:p-8">
+              <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
                 <div className="lg:col-span-2 space-y-6">
                   {/* Stats Cards */}
-                  <div className="grid md:grid-cols-3 gap-4">
+                  <div className="grid sm:grid-cols-1 md:grid-cols-3 gap-4">
                     {activeRole === "student" && (
                       <>
                         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white">
@@ -743,13 +743,13 @@ export default function Landing() {
       <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-blue-900/20 dark:to-purple-900/20">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Choose Your Plan</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Choose Your Plan</h2>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
               Start free and upgrade when you're ready. All plans include our core CBT features with premium AI tutoring available.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
             {pricingPlans.map((plan, index) => (
               <Card 
                 key={index} 
@@ -763,7 +763,7 @@ export default function Landing() {
                   </div>
                 )}
                 
-                <CardContent className="p-8">
+                <CardContent className="p-6 sm:p-8">
                   <div className="text-center mb-8">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
                     <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">{plan.price}</div>
@@ -809,8 +809,8 @@ export default function Landing() {
       {/* Footer */}
       <footer id="about" className="bg-gray-900 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="md:col-span-2">
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-2">
               <div className="flex items-center space-x-2 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                   <GraduationCap className="text-white text-lg" />
