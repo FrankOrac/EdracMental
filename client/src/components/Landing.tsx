@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Button3D } from "@/components/ui/button-3d";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTheme } from "./ThemeProvider";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import { 
   GraduationCap, 
   Brain, 
@@ -18,50 +21,101 @@ import {
   Sun,
   Menu,
   X,
-  ArrowRight
+  ArrowRight,
+  LogOut,
+  Sparkles,
+  Zap,
+  Target,
+  Award,
+  BookOpen,
+  BarChart3
 } from "lucide-react";
 
 export default function Landing() {
   const { theme, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const [, navigate] = useLocation();
   const [activeRole, setActiveRole] = useState("student");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const features = [
     {
       icon: Brain,
       title: "24/7 AI Tutor",
       description: "Get instant explanations, solve doubts, and receive personalized learning recommendations anytime, anywhere.",
-      gradient: "from-blue-500 to-purple-600"
+      gradient: "from-blue-500 to-purple-600",
+      stats: "50K+ Questions Explained"
     },
     {
       icon: Clock,
       title: "Timed CBT Engine",
       description: "Practice with realistic exam conditions including countdown timers, auto-submit, and question randomization.",
-      gradient: "from-green-500 to-teal-600"
+      gradient: "from-green-500 to-teal-600",
+      stats: "Real Exam Conditions"
     },
     {
       icon: TrendingUp,
       title: "Smart Analytics",
       description: "Track your progress with detailed performance insights, identify weak areas, and get improvement suggestions.",
-      gradient: "from-purple-500 to-pink-600"
+      gradient: "from-purple-500 to-pink-600",
+      stats: "Advanced Performance Tracking"
     },
     {
       icon: GraduationCap,
       title: "Nigerian Curriculum",
       description: "Complete coverage of JAMB, WAEC, NECO, GCE, and Post-UTME syllabus with up-to-date question banks.",
-      gradient: "from-blue-500 to-green-500"
+      gradient: "from-blue-500 to-green-500",
+      stats: "100% Curriculum Coverage"
     },
     {
       icon: Shield,
       title: "Anti-Cheating",
       description: "Advanced proctoring features including tab monitoring, focus detection, and optional webcam supervision.",
-      gradient: "from-green-500 to-purple-600"
+      gradient: "from-green-500 to-purple-600",
+      stats: "Enterprise-Grade Security"
     },
     {
       icon: Users,
       title: "Institutional Tools",
       description: "Custom exam builder, student management, performance tracking for schools and organizations.",
-      gradient: "from-purple-500 to-blue-600"
+      gradient: "from-purple-500 to-blue-600",
+      stats: "Multi-Institution Support"
+    }
+  ];
+
+  const achievements = [
+    {
+      icon: Award,
+      title: "10K+ Students",
+      description: "Trusted by thousands of students across Nigeria",
+      number: "10,000+"
+    },
+    {
+      icon: BookOpen,
+      title: "50K+ Questions",
+      description: "Comprehensive question bank covering all topics",
+      number: "50,000+"
+    },
+    {
+      icon: BarChart3,
+      title: "95% Success Rate",
+      description: "Students show significant improvement in scores",
+      number: "95%"
+    },
+    {
+      icon: Target,
+      title: "24/7 Support",
+      description: "Round-the-clock AI tutoring and assistance",
+      number: "24/7"
     }
   ];
 
@@ -164,24 +218,49 @@ export default function Landing() {
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </Button>
               
-              <Link href="/login">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hidden md:inline-flex text-gray-700 dark:text-gray-300"
-                >
-                  Login
-                </Button>
-              </Link>
-              
-              <Link href="/signup">
-                <Button
-                  size="sm"
-                  className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                >
-                  Sign Up
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link href="/dashboard">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hidden md:inline-flex text-gray-700 dark:text-gray-300"
+                    >
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="hidden md:inline-flex text-gray-700 dark:text-gray-300 hover:text-red-600"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="hidden md:inline-flex text-gray-700 dark:text-gray-300"
+                    >
+                      Login
+                    </Button>
+                  </Link>
+                  
+                  <Link href="/signup">
+                    <Button
+                      size="sm"
+                      className="hidden md:inline-flex bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                    >
+                      Sign Up
+                    </Button>
+                  </Link>
+                </>
+              )}
 
               <Button
                 variant="ghost"
@@ -201,12 +280,26 @@ export default function Landing() {
                 <button onClick={() => scrollToSection("features")} className="text-left text-gray-700 dark:text-gray-300">Features</button>
                 <button onClick={() => scrollToSection("pricing")} className="text-left text-gray-700 dark:text-gray-300">Pricing</button>
                 <button onClick={() => scrollToSection("about")} className="text-left text-gray-700 dark:text-gray-300">About</button>
-                <Link href="/login">
-                  <Button variant="ghost" className="w-full justify-start">Login</Button>
-                </Link>
-                <Link href="/signup">
-                  <Button className="w-full">Sign Up</Button>
-                </Link>
+                {user ? (
+                  <>
+                    <Link href="/dashboard">
+                      <Button variant="ghost" className="w-full justify-start">Dashboard</Button>
+                    </Link>
+                    <Button variant="ghost" onClick={handleLogout} className="w-full justify-start text-red-600">
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login">
+                      <Button variant="ghost" className="w-full justify-start">Login</Button>
+                    </Link>
+                    <Link href="/signup">
+                      <Button className="w-full">Sign Up</Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -222,38 +315,59 @@ export default function Landing() {
           <div className="absolute bottom-20 left-1/3 w-40 h-40 bg-green-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "4s" }}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
           <div className="text-center lg:text-left">
+            <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-6">
+              <Sparkles className="h-4 w-4 text-blue-500 mr-2" />
+              <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                Nigeria's #1 CBT Platform
+              </span>
+            </div>
+            
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              AI-Powered{" "}
+              Master Your{" "}
               <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                CBT Platform
+                Exams with AI
               </span>{" "}
-              for Nigeria
+              Intelligence
             </h1>
+            
             <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              Master JAMB, WAEC, NECO and more with our intelligent Computer-Based Testing platform. 
-              Get 24/7 AI tutoring, personalized feedback, and comprehensive exam preparation.
+              Join thousands of students who've achieved their dreams with our AI-powered CBT platform. 
+              Get personalized learning paths, instant feedback, and comprehensive exam preparation for 
+              JAMB, WAEC, NECO, and more.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
-              <Link href="/signup">
-                <Button 
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-4"
-                >
-                  <ArrowRight className="mr-2 h-5 w-5" />
-                  Start Learning Free
-                </Button>
-              </Link>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-lg px-8 py-4"
-              >
+              {user ? (
+                <Link href="/dashboard">
+                  <Button3D variant="primary" size="lg">
+                    <ArrowRight className="mr-2 h-5 w-5" />
+                    Go to Dashboard
+                  </Button3D>
+                </Link>
+              ) : (
+                <Link href="/signup">
+                  <Button3D variant="primary" size="lg">
+                    <ArrowRight className="mr-2 h-5 w-5" />
+                    Start Learning Free
+                  </Button3D>
+                </Link>
+              )}
+              <Button3D variant="outline" size="lg">
                 <Play className="mr-2 h-5 w-5" />
                 Watch Demo
-              </Button>
+              </Button3D>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {achievements.map((achievement, index) => (
+                <div key={index} className="text-center p-4 bg-white/50 dark:bg-white/10 rounded-xl backdrop-blur-sm">
+                  <achievement.icon className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{achievement.number}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{achievement.title}</div>
+                </div>
+              ))}
             </div>
 
             <div className="flex items-center justify-center lg:justify-start space-x-6 text-sm text-gray-500 dark:text-gray-400">
@@ -273,55 +387,58 @@ export default function Landing() {
           </div>
 
           <div className="relative">
-            {/* Glassmorphic Dashboard Preview */}
-            <Card className="backdrop-blur-lg bg-white/10 dark:bg-white/5 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105">
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full"></div>
-                    <span className="text-gray-800 dark:text-white font-semibold">Student Dashboard</span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                    <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="bg-white/20 dark:bg-white/10 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-700 dark:text-gray-300 text-sm">JAMB Preparation</span>
-                      <span className="text-green-500 font-semibold">85%</span>
+            {/* 3D Dashboard Preview */}
+            <div className="relative group">
+              <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
+              <Card className="relative backdrop-blur-lg bg-white/10 dark:bg-white/5 border-white/20 dark:border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 transform perspective-1000 hover:rotateY-5">
+                <CardContent className="p-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-blue-500 rounded-full animate-pulse"></div>
+                      <span className="text-gray-800 dark:text-white font-semibold">Student Dashboard</span>
                     </div>
-                    <div className="w-full bg-gray-200/50 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full" style={{ width: "85%" }}></div>
+                    <div className="flex space-x-2">
+                      <div className="w-3 h-3 bg-red-400 rounded-full animate-pulse"></div>
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: "0.5s" }}></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: "1s" }}></div>
                     </div>
                   </div>
                   
-                  <div className="bg-white/20 dark:bg-white/10 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-gray-700 dark:text-gray-300 text-sm">WAEC Practice</span>
-                      <span className="text-blue-500 font-semibold">92%</span>
+                  <div className="space-y-4">
+                    <div className="bg-white/20 dark:bg-white/10 rounded-lg p-4 hover:bg-white/30 dark:hover:bg-white/20 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-700 dark:text-gray-300 text-sm">JAMB Preparation</span>
+                        <span className="text-green-500 font-semibold">85%</span>
+                      </div>
+                      <div className="w-full bg-gray-200/50 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-1000" style={{ width: "85%" }}></div>
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200/50 rounded-full h-2">
-                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full" style={{ width: "92%" }}></div>
+                    
+                    <div className="bg-white/20 dark:bg-white/10 rounded-lg p-4 hover:bg-white/30 dark:hover:bg-white/20 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-gray-700 dark:text-gray-300 text-sm">WAEC Practice</span>
+                        <span className="text-blue-500 font-semibold">92%</span>
+                      </div>
+                      <div className="w-full bg-gray-200/50 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-1000" style={{ width: "92%" }}></div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-white/20 dark:bg-white/10 rounded-lg p-3 text-center hover:bg-white/30 dark:hover:bg-white/20 transition-colors">
+                        <div className="text-2xl font-bold text-gray-800 dark:text-white">47</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">Tests Taken</div>
+                      </div>
+                      <div className="bg-white/20 dark:bg-white/10 rounded-lg p-3 text-center hover:bg-white/30 dark:hover:bg-white/20 transition-colors">
+                        <div className="text-2xl font-bold text-gray-800 dark:text-white">8.5</div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">Avg Score</div>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white/20 dark:bg-white/10 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-gray-800 dark:text-white">47</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Tests Taken</div>
-                    </div>
-                    <div className="bg-white/20 dark:bg-white/10 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-gray-800 dark:text-white">8.5</div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Avg Score</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
@@ -338,15 +455,28 @@ export default function Landing() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="backdrop-blur-lg bg-white/80 dark:bg-white/10 border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-                <CardContent className="p-6">
-                  <div className={`w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-4`}>
-                    <feature.icon className="text-white text-xl" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">{feature.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <div key={index} className="relative group perspective-1000">
+                <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                <Card className="relative backdrop-blur-lg bg-white/80 dark:bg-white/10 border-white/20 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 transform hover:rotateY-5 group-hover:bg-white/90 dark:group-hover:bg-white/20">
+                  <CardContent className="p-6">
+                    <div className={`w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <feature.icon className="text-white text-xl" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {feature.title}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                      {feature.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <Badge variant="secondary" className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400">
+                        {feature.stats}
+                      </Badge>
+                      <Zap className="h-4 w-4 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
         </div>

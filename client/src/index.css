@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 3D Animation CSS */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform {
+  transform-style: preserve-3d;
+}
+
+.hover\:rotateY-5:hover {
+  transform: rotateY(5deg);
+}
+
+.hover\:rotateY-10:hover {
+  transform: rotateY(10deg);
+}
+
+.hover\:rotateX-5:hover {
+  transform: rotateX(5deg);
+}
+
+/* Glassmorphism effects */
+.backdrop-blur-custom {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Gradient animations */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  animation: gradient-shift 6s ease infinite;
+  background-size: 200% 200%;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);

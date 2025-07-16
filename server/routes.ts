@@ -292,11 +292,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const base64 = req.file.buffer.toString('base64');
       const avatarUrl = `data:${req.file.mimetype};base64,${base64}`;
 
-      const [updatedUser] = await db
-        .update(users)
-        .set({ avatar: avatarUrl })
-        .where(eq(users.id, userId))
-        .returning();
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        avatar: avatarUrl
+      });
 
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
