@@ -146,6 +146,10 @@ Preferred communication style: Simple, everyday language.
 - ✅ Replaced dialog-based question creation with dedicated page implementation
 - ✅ Added scrollable sidebar navigation with "Create Questions" link
 - ✅ Enhanced sequential question creation: "Select quantity → Question 1 of 5 → Add Question 1 → Continue"
+- ✅ Implemented multi-step question creation workflow: Target Selection → Method Selection → Count Selection → Question Creation
+- ✅ Removed redundant fields from question form (Subject, Topic, Difficulty, Exam Type now pre-selected)
+- ✅ Made topic selection optional in the workflow
+- ✅ Added bulk upload functionality with sample template download
 - ✅ All components fully integrated and functional across the platform
 
 ## July 15, 2025 - Migration from Replit Agent to Replit

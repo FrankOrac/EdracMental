@@ -159,7 +159,7 @@ export default function CreateQuestions() {
         difficulty: 'medium',
         topicId: currentQuestion.topicId,
         subjectId: currentQuestion.subjectId,
-        examType: 'jamb',
+        examType: currentQuestion.examType,
         points: 1
       });
     } else {
@@ -186,7 +186,7 @@ export default function CreateQuestions() {
         difficulty: 'medium',
         topicId: currentQuestion.topicId,
         subjectId: currentQuestion.subjectId,
-        examType: 'jamb',
+        examType: currentQuestion.examType,
         points: 1
       });
     }
@@ -223,6 +223,13 @@ export default function CreateQuestions() {
       setCurrentQuestion(prev => ({
         ...prev,
         subjectId: parseInt(selectedTarget.id)
+      }));
+    }
+    // Set exam type based on target type
+    if (targetType === 'exam') {
+      setCurrentQuestion(prev => ({
+        ...prev,
+        examType: 'custom'
       }));
     }
   };
@@ -504,62 +511,6 @@ export default function CreateQuestions() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Subject and Topic Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject *</Label>
-                  <Select
-                    value={currentQuestion.subjectId.toString()}
-                    onValueChange={(value) => setCurrentQuestion(prev => ({ 
-                      ...prev, 
-                      subjectId: parseInt(value),
-                      topicId: 0 
-                    }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select subject" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subjects?.map(subject => (
-                        <SelectItem key={subject.id} value={subject.id.toString()}>
-                          {subject.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.subjectId && (
-                    <p className="text-sm text-red-600">{errors.subjectId}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="topic">Topic (Optional)</Label>
-                  <Select
-                    value={currentQuestion.topicId.toString()}
-                    onValueChange={(value) => setCurrentQuestion(prev => ({ 
-                      ...prev, 
-                      topicId: parseInt(value) 
-                    }))}
-                    disabled={!currentQuestion.subjectId}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select topic (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0">No specific topic</SelectItem>
-                      {filteredTopics.map(topic => (
-                        <SelectItem key={topic.id} value={topic.id.toString()}>
-                          {topic.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.topicId && (
-                    <p className="text-sm text-red-600">{errors.topicId}</p>
-                  )}
-                </div>
-              </div>
-
               {/* Question Text */}
               <div className="space-y-2">
                 <Label htmlFor="question">Question Text *</Label>
@@ -654,50 +605,7 @@ export default function CreateQuestions() {
                 )}
               </div>
 
-              {/* Difficulty and Exam Type */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="difficulty">Difficulty Level</Label>
-                  <Select
-                    value={currentQuestion.difficulty}
-                    onValueChange={(value) => setCurrentQuestion(prev => ({ 
-                      ...prev, 
-                      difficulty: value 
-                    }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select difficulty" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="exam-type">Exam Type</Label>
-                  <Select
-                    value={currentQuestion.examType}
-                    onValueChange={(value) => setCurrentQuestion(prev => ({ 
-                      ...prev, 
-                      examType: value 
-                    }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select exam type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="jamb">JAMB</SelectItem>
-                      <SelectItem value="waec">WAEC</SelectItem>
-                      <SelectItem value="neco">NECO</SelectItem>
-                      <SelectItem value="gce">GCE</SelectItem>
-                      <SelectItem value="custom">Custom</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
