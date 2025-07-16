@@ -60,6 +60,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
   await setupGoogleAuth(app);
 
+  // Demo login endpoint for testing
+  app.post('/api/auth/demo-login', async (req: any, res) => {
+    try {
+      const { email } = req.body;
+      
+      // Find user by email
+      const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      
+      if (!user || user.length === 0) {
+        return res.status(400).json({ message: "Demo account not found" });
+      }
+      
+      // Create session
+      req.session.user = {
+        id: user[0].id,
+        email: user[0].email,
+        role: user[0].role
+      };
+      
+      res.json({ message: "Login successful", user: user[0] });
+    } catch (error) {
+      console.error("Demo login error:", error);
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  // Demo logout endpoint
+  app.post('/api/auth/logout', async (req: any, res) => {
+    try {
+      req.session.destroy((err: any) => {
+        if (err) {
+          console.error("Session destroy error:", err);
+          return res.status(500).json({ message: "Logout failed" });
+        }
+        res.json({ message: "Logout successful" });
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ message: "Logout failed" });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', async (req: any, res) => {
     try {
