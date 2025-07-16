@@ -28,6 +28,7 @@ import QuestionValidator from "@/components/QuestionValidator";
 import Profile from "@/pages/Profile";
 import CreateQuestions from "@/pages/CreateQuestions";
 import EdracPreloader from "@/components/EdracPreloader";
+import StudentAITutor from "@/components/ai/StudentAITutor";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -95,7 +96,7 @@ function Router() {
               <Route path="/exams" component={ExamManager} />
               <Route path="/subjects" component={AdminSubjects} />
               <Route path="/progress" component={Analytics} />
-              <Route path="/tutor" component={LiveChat} />
+              <Route path="/tutor" component={StudentAITutor} />
             </>
           )}
         </>

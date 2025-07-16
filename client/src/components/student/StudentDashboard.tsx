@@ -65,7 +65,7 @@ export default function StudentDashboard() {
     ...(userStats || {})
   };
 
-  const availableExams = (exams || []).filter((exam: any) => exam.isActive && exam.isPublic) || [];
+  const availableExams = Array.isArray(exams) ? exams.filter((exam: any) => exam.isActive && exam.isPublic) : [];
   const completedExams = stats.recentSessions?.length || 0;
   const progressPercentage = Math.min((completedExams / Math.max(availableExams.length, 1)) * 100, 100);
 
@@ -308,7 +308,7 @@ export default function StudentDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {(subjects || []).map((subject: any) => (
+                    {Array.isArray(subjects) ? subjects.map((subject: any) => (
                       <Card key={subject.id} className="hover:shadow-md transition-shadow">
                         <CardContent className="p-4">
                           <div className="flex items-center gap-3 mb-3">
@@ -333,7 +333,7 @@ export default function StudentDashboard() {
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    )) : []}
                   </div>
                 </CardContent>
               </Card>
