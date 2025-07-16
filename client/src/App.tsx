@@ -23,7 +23,7 @@ import ExamManager from "@/components/admin/ExamManager";
 import ExamShare from "@/components/ExamShare";
 import LiveChat from "@/components/LiveChat";
 import QuestionValidator from "@/components/QuestionValidator";
-import ProfileManager from "@/components/profile/ProfileManager";
+import Profile from "@/pages/Profile";
 import CreateQuestions from "@/pages/CreateQuestions";
 
 function Router() {
@@ -58,7 +58,7 @@ function Router() {
           <Route path="/admin/question-validator" component={QuestionValidator} />
           <Route path="/admin/institutions" component={AdminInstitutions} />
           <Route path="/admin/system" component={AdminSystem} />
-          <Route path="/profile" component={ProfileManager} />
+          <Route path="/profile" component={Profile} />
           <Route path="/create-questions" component={CreateQuestions} />
         </>
       )}
