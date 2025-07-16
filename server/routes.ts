@@ -419,6 +419,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/questions', async (req, res) => {
+    try {
+      const { subjectIds, topicIds, difficulty, examType, limit = 50 } = req.query;
+      
+      const params = {
+        subjectIds: subjectIds ? (subjectIds as string).split(',').map(Number) : undefined,
+        topicIds: topicIds ? (topicIds as string).split(',').map(Number) : undefined,
+        difficulty: difficulty as string,
+        examType: examType as string,
+        limit: parseInt(limit as string) || 50,
+      };
+      
+      const questions = await storage.getRandomQuestions(params);
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+      res.status(500).json({ message: "Failed to fetch questions" });
+    }
+  });
+
   app.get('/api/questions/random', async (req, res) => {
     try {
       const { subjectIds, topicIds, difficulty, examType, limit = 10 } = req.query;
@@ -852,7 +872,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       'seperate': 'separate',
       'occured': 'occurred',
       'definately': 'definitely',
-      'neccessary': 'necessary'
+      'neccessary': 'necessary',
+      'wht': 'what',
+      'wat': 'what',
+      'photosintesis': 'photosynthesis',
+      'photosyntesis': 'photosynthesis',
+      'resperation': 'respiration',
+      'mitocondria': 'mitochondria',
+      'chloroplast': 'chloroplast',
+      'equasion': 'equation',
+      'addtion': 'addition',
+      'subtration': 'subtraction',
+      'multipication': 'multiplication',
+      'divisoin': 'division',
+      'calculte': 'calculate',
+      'anwser': 'answer',
+      'questoin': 'question',
+      'explaination': 'explanation',
+      'differnt': 'different',
+      'similer': 'similar',
+      'wich': 'which',
+      'becuase': 'because',
+      'beacuse': 'because'
     };
     
     const words = text.toLowerCase().split(/\s+/);
@@ -862,7 +903,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         corrections.push({
           original: cleanWord,
           corrected: commonTypos[cleanWord],
-          confidence: 0.8
+          confidence: 0.9
         });
       }
     });
@@ -879,7 +920,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Text is required" });
       }
       
+      console.log("Checking typos in text:", text);
       const corrections = detectBasicTypos(text);
+      console.log("Found corrections:", corrections);
       res.json({ corrections });
     } catch (error) {
       console.error("Error checking typos:", error);
@@ -967,7 +1010,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           issues.push({
             id: `typo-${Date.now()}`,
             type: 'warning',
-            category: 'grammar',
+            category: 'spelling',
             message: `Found ${typos.length} potential typo(s)`,
             originalText: question.text,
             suggestedFix: typos.map(t => `"${t.original}" → "${t.corrected}"`).join(', '),

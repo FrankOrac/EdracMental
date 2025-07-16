@@ -81,7 +81,14 @@ Return the response as a JSON array with this structure:
 }
 
 export async function explainQuestion(questionText: string, correctAnswer: string, studentAnswer?: string): Promise<TutorResponse> {
+  // Generate smart fallback first
+  const fallbackResponse = generateQuestionExplanationFallback(questionText, correctAnswer, studentAnswer);
+  
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      return fallbackResponse;
+    }
+
     const prompt = `As an AI tutor, explain this exam question to a Nigerian student:
 
 Question: ${questionText}
@@ -122,19 +129,43 @@ Respond in JSON format:
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
     return {
-      explanation: result.explanation || "I couldn't generate an explanation for this question.",
-      examples: result.examples || [],
-      relatedTopics: result.relatedTopics || [],
-      confidence: result.confidence || 0.5,
+      explanation: result.explanation || fallbackResponse.explanation,
+      examples: result.examples || fallbackResponse.examples,
+      relatedTopics: result.relatedTopics || fallbackResponse.relatedTopics,
+      confidence: result.confidence || 0.8,
     };
   } catch (error) {
     console.error("Error explaining question:", error);
-    throw new Error("Failed to explain question");
+    return fallbackResponse;
   }
 }
 
+function generateQuestionExplanationFallback(questionText: string, correctAnswer: string, studentAnswer?: string): TutorResponse {
+  let explanation = `The correct answer is ${correctAnswer}. `;
+  
+  if (studentAnswer && studentAnswer !== correctAnswer) {
+    explanation += `You selected ${studentAnswer}, which is incorrect. `;
+  }
+  
+  explanation += "To understand this better, review the key concepts related to this topic and practice similar questions.";
+  
+  return {
+    explanation,
+    examples: ["Review your textbook for similar examples", "Practice more questions on this topic"],
+    relatedTopics: ["Core concepts", "Practice exercises", "Exam techniques"],
+    confidence: 0.6
+  };
+}
+
 export async function provideTutoring(question: string, context?: string): Promise<TutorResponse> {
+  // First try with fallback response if API is not available
+  const fallbackResponse = generateSmartFallback(question, context);
+  
   try {
+    if (!process.env.OPENAI_API_KEY) {
+      return fallbackResponse;
+    }
+
     const prompt = `A Nigerian student is asking for help with their studies:
 
 Student Question: ${question}
@@ -174,15 +205,62 @@ Respond in JSON format:
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
     return {
-      explanation: result.explanation || "I'd be happy to help! Could you provide more details about what you're studying?",
-      examples: result.examples || [],
-      relatedTopics: result.relatedTopics || [],
-      confidence: result.confidence || 0.5,
+      explanation: result.explanation || fallbackResponse.explanation,
+      examples: result.examples || fallbackResponse.examples,
+      relatedTopics: result.relatedTopics || fallbackResponse.relatedTopics,
+      confidence: result.confidence || 0.8,
     };
   } catch (error) {
     console.error("Error providing tutoring:", error);
-    throw new Error("Failed to provide tutoring response");
+    return fallbackResponse;
   }
+}
+
+function generateSmartFallback(question: string, context?: string): TutorResponse {
+  const lowerQuestion = question.toLowerCase();
+  
+  // Detect subject areas
+  let subject = "general";
+  let examples: string[] = [];
+  let relatedTopics: string[] = [];
+  
+  if (lowerQuestion.includes("math") || lowerQuestion.includes("algebra") || lowerQuestion.includes("equation") || /\d+/.test(question)) {
+    subject = "mathematics";
+    examples = ["Start with basic examples", "Practice step-by-step solutions", "Use visual aids like graphs"];
+    relatedTopics = ["Problem solving", "Mathematical reasoning", "Basic calculations"];
+  } else if (lowerQuestion.includes("physics") || lowerQuestion.includes("force") || lowerQuestion.includes("motion")) {
+    subject = "physics";
+    examples = ["Real-world applications", "Laboratory experiments", "Formula applications"];
+    relatedTopics = ["Scientific method", "Mathematical physics", "Applied sciences"];
+  } else if (lowerQuestion.includes("chemistry") || lowerQuestion.includes("reaction") || lowerQuestion.includes("element")) {
+    subject = "chemistry";
+    examples = ["Chemical equations", "Laboratory procedures", "Molecular structures"];
+    relatedTopics = ["Periodic table", "Chemical bonding", "Reaction mechanisms"];
+  } else if (lowerQuestion.includes("biology") || lowerQuestion.includes("cell") || lowerQuestion.includes("organism")) {
+    subject = "biology";
+    examples = ["Living examples", "Biological processes", "Ecosystem interactions"];
+    relatedTopics = ["Life processes", "Evolution", "Ecology"];
+  } else if (lowerQuestion.includes("english") || lowerQuestion.includes("essay") || lowerQuestion.includes("grammar")) {
+    subject = "english";
+    examples = ["Reading comprehension", "Essay structure", "Grammar rules"];
+    relatedTopics = ["Literature analysis", "Writing skills", "Communication"];
+  }
+  
+  const explanations = {
+    mathematics: "For math problems, break them into smaller steps. Identify what you know and what you need to find. Practice similar problems and check your work.",
+    physics: "Physics concepts are easier when you connect them to real-world examples. Focus on understanding the principles behind formulas.",
+    chemistry: "Chemistry is about understanding how substances interact. Learn the patterns and practice balancing equations.",
+    biology: "Biology is the study of life. Connect concepts to living examples around you and understand the processes.",
+    english: "For English, focus on understanding the context and main ideas. Practice reading regularly and expand your vocabulary.",
+    general: "Great question! Break it down into smaller parts and connect it to what you already know. Practice regularly and don't hesitate to ask for clarification."
+  };
+  
+  return {
+    explanation: explanations[subject] || explanations.general,
+    examples,
+    relatedTopics,
+    confidence: 0.7
+  };
 }
 
 export async function generateStudyPlan(subjects: string[], examType: string, timeFrame: number): Promise<{
