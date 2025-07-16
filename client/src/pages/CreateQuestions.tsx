@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { BookOpen, FileText, Plus, Upload, Download, ChevronLeft, ChevronRight, Save, Sparkles, X } from "lucide-react";
+import { BookOpen, FileText, Plus, Upload, Download, ChevronLeft, ChevronRight, Save, Sparkles, X, Image as ImageIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -60,6 +60,8 @@ export default function CreateQuestions() {
     examType: 'jamb',
     points: 1
   });
+  const [questionImage, setQuestionImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Fetch subjects, topics, and exams
@@ -82,7 +84,10 @@ export default function CreateQuestions() {
       for (const question of questionsData) {
         const result = await apiRequest('/api/questions', {
           method: 'POST',
-          body: question
+          body: JSON.stringify(question),
+          headers: {
+            'Content-Type': 'application/json'
+          }
         });
         results.push(result);
       }
@@ -162,9 +167,23 @@ export default function CreateQuestions() {
         examType: currentQuestion.examType,
         points: 1
       });
+      setQuestionImage(null);
+      setImagePreview(null);
     } else {
-      // All questions completed
-      createQuestionsMutation.mutate([...updatedQuestions]);
+      // All questions completed - prepare data for API
+      const questionsForAPI = updatedQuestions.map(q => ({
+        text: q.text,
+        type: q.type,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        difficulty: q.difficulty,
+        topicId: q.topicId || null,
+        subjectId: q.subjectId,
+        examType: q.examType,
+        points: q.points
+      }));
+      createQuestionsMutation.mutate(questionsForAPI);
     }
   };
 
@@ -212,6 +231,8 @@ export default function CreateQuestions() {
       examType: 'jamb',
       points: 1
     });
+    setQuestionImage(null);
+    setImagePreview(null);
     setErrors({});
   };
 
@@ -256,6 +277,31 @@ export default function CreateQuestions() {
         description: "Bulk upload functionality will be implemented soon.",
       });
     }
+  };
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type.startsWith('image/')) {
+        setQuestionImage(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setImagePreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        toast({
+          title: "Invalid file type",
+          description: "Please select an image file (PNG, JPG, GIF, etc.)",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const removeImage = () => {
+    setQuestionImage(null);
+    setImagePreview(null);
   };
 
   const filteredTopics = topics?.filter(topic => topic.subjectId === currentQuestion.subjectId) || [];
@@ -527,6 +573,58 @@ export default function CreateQuestions() {
                 {errors.text && (
                   <p className="text-sm text-red-600">{errors.text}</p>
                 )}
+              </div>
+
+              {/* Question Image */}
+              <div className="space-y-2">
+                <Label>Question Image (Optional)</Label>
+                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4">
+                  {imagePreview ? (
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <img 
+                          src={imagePreview} 
+                          alt="Question preview" 
+                          className="max-w-full h-auto max-h-40 mx-auto rounded"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={removeImage}
+                          className="absolute top-2 right-2"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+                        {questionImage?.name}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="question-image"
+                      />
+                      <label
+                        htmlFor="question-image"
+                        className="cursor-pointer flex flex-col items-center gap-2 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded"
+                      >
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          Click to upload question image
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          PNG, JPG, GIF up to 10MB
+                        </span>
+                      </label>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Options */}

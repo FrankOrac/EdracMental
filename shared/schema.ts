@@ -312,6 +312,8 @@ export const insertQuestionSchema = createInsertSchema(questions).pick({
   subjectId: true,
   examType: true,
   points: true,
+}).extend({
+  topicId: z.number().nullable().optional(),
 });
 
 export const insertExamSchema = createInsertSchema(exams).pick({

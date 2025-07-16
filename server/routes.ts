@@ -406,9 +406,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/questions', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const questionData = insertQuestionSchema.parse(req.body);
-      const question = await storage.createQuestion({ ...questionData, createdBy: userId });
-      res.status(201).json(question);
+      try {
+        const questionData = insertQuestionSchema.parse(req.body);
+        const question = await storage.createQuestion({ ...questionData, createdBy: userId });
+        res.status(201).json(question);
+      } catch (validationError) {
+        console.error("Validation error:", validationError);
+        res.status(400).json({ message: "Invalid question data", error: validationError.message });
+      }
     } catch (error) {
       console.error("Error creating question:", error);
       res.status(500).json({ message: "Failed to create question" });
