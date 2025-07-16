@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import DashboardLayout from "@/components/layout/DashboardLayout";
+// import DashboardLayout from "@/components/layout/DashboardLayout"; // Already wrapped in Profile.tsx
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -111,13 +111,16 @@ export default function ProfileManager() {
       
       return await apiRequest('/api/auth/profile', {
         method: 'PUT',
-        body: {
+        body: JSON.stringify({
           firstName,
           lastName,
           phone: data.phone,
           bio: data.bio,
           location: data.location,
           institution: data.institution
+        }),
+        headers: {
+          'Content-Type': 'application/json'
         }
       });
     },
@@ -143,7 +146,10 @@ export default function ProfileManager() {
     mutationFn: async (data: PasswordChangeData) => {
       return await apiRequest('/api/auth/change-password', {
         method: 'POST',
-        body: data
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
     },
     onSuccess: () => {
