@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -441,16 +441,15 @@ export default function QuestionManager() {
                 
                 createQuestionMutation.mutate(questionData, {
                   onSuccess: () => {
-                    toast({
-                      title: "Question Added!",
-                      description: `Question ${currentQuestionIndex + 1} of ${questionCount} created successfully.`,
-                    });
-                    
                     if (currentQuestionIndex < questionCount - 1) {
-                      // Continue to next question
+                      // Continue to next question - stay in dialog
                       setCurrentQuestionIndex(prev => prev + 1);
+                      toast({
+                        title: "Question Added!",
+                        description: `Question ${currentQuestionIndex + 1} of ${questionCount} created. Continue with question ${currentQuestionIndex + 2}.`,
+                      });
                     } else {
-                      // All questions completed
+                      // All questions completed - close dialog
                       setIsAddDialogOpen(false);
                       setCurrentQuestionIndex(0);
                       setQuestionCount(1);
@@ -644,8 +643,11 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(formData);
-    // Reset form for next question
-    if (questionNumber < totalQuestions) {
+  };
+
+  // Reset form when question number changes (for multi-question flow)
+  useEffect(() => {
+    if (questionNumber > 1) {
       setFormData({
         text: '',
         type: 'multiple_choice',
@@ -662,7 +664,7 @@ function QuestionForm({ question, subjects, topics, exams, onSubmit, isLoading, 
       setImageFile(null);
       setImagePreview(null);
     }
-  };
+  }, [questionNumber]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
