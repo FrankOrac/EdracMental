@@ -41,7 +41,10 @@ export default function CreateQuestions() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [step, setStep] = useState<'select-count' | 'create'>('select-count');
+  const [step, setStep] = useState<'select-target' | 'select-method' | 'select-count' | 'create'>('select-target');
+  const [targetType, setTargetType] = useState<'subject' | 'exam' | null>(null);
+  const [selectedTarget, setSelectedTarget] = useState<{id: string, name: string, type: 'subject' | 'exam'} | null>(null);
+  const [creationMethod, setCreationMethod] = useState<'online' | 'bulk' | null>(null);
   const [questionCount, setQuestionCount] = useState(5);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -59,13 +62,17 @@ export default function CreateQuestions() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch subjects and topics
+  // Fetch subjects, topics, and exams
   const { data: subjects } = useQuery<Subject[]>({
     queryKey: ['/api/subjects']
   });
 
   const { data: topics } = useQuery<Topic[]>({
     queryKey: ['/api/topics']
+  });
+
+  const { data: exams } = useQuery({
+    queryKey: ['/api/exams']
   });
 
   // Create questions mutation
@@ -109,9 +116,7 @@ export default function CreateQuestions() {
       errors.subjectId = "Subject is required";
     }
     
-    if (!question.topicId) {
-      errors.topicId = "Topic is required";
-    }
+    // Topic is now optional
     
     if (question.type === 'multiple_choice') {
       const filledOptions = question.options.filter(opt => opt.trim());
@@ -188,7 +193,10 @@ export default function CreateQuestions() {
   };
 
   const handleReset = () => {
-    setStep('select-count');
+    setStep('select-target');
+    setTargetType(null);
+    setSelectedTarget(null);
+    setCreationMethod(null);
     setQuestionCount(5);
     setCurrentQuestionIndex(0);
     setQuestions([]);
@@ -210,56 +218,252 @@ export default function CreateQuestions() {
   const handleStartCreating = () => {
     setStep('create');
     setQuestions(new Array(questionCount).fill(null));
+    // Set the subject if adding to subject
+    if (targetType === 'subject' && selectedTarget) {
+      setCurrentQuestion(prev => ({
+        ...prev,
+        subjectId: parseInt(selectedTarget.id)
+      }));
+    }
+  };
+
+  const downloadSampleTemplate = () => {
+    const csvContent = `Question,Option A,Option B,Option C,Option D,Correct Answer,Explanation,Subject,Topic,Difficulty,Type
+"What is 2 + 2?","3","4","5","6","B","Basic addition: 2 + 2 = 4","Mathematics","Arithmetic","easy","multiple_choice"
+"What is the capital of Nigeria?","Lagos","Abuja","Kano","Port Harcourt","B","Abuja is the capital city of Nigeria","General Knowledge","Geography","easy","multiple_choice"`;
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'question_template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      toast({
+        title: "File Upload",
+        description: "Bulk upload functionality will be implemented soon.",
+      });
+    }
   };
 
   const filteredTopics = topics?.filter(topic => topic.subjectId === currentQuestion.subjectId) || [];
 
-  if (step === 'select-count') {
-    return (
-      <DashboardLayout>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 p-6">
-          <div className="max-w-2xl mx-auto">
-            <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create Questions</h1>
-              <p className="text-gray-600 dark:text-gray-400">How many questions would you like to create?</p>
+  const renderStepContent = () => {
+    switch (step) {
+      case 'select-target':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">Where do you want to add questions?</h2>
+              <p className="text-gray-600 dark:text-gray-400">Choose whether to add questions to a subject or exam</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => {
+                setTargetType('subject');
+              }}>
+                <CardContent className="p-6 text-center">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                  <h3 className="text-lg font-semibold mb-2">To Subject</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Add questions to a specific subject for general use</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => {
+                setTargetType('exam');
+              }}>
+                <CardContent className="p-6 text-center">
+                  <FileText className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                  <h3 className="text-lg font-semibold mb-2">To Exam</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Add questions directly to a specific exam</p>
+                </CardContent>
+              </Card>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">Select Question Count</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="question-count">Number of Questions</Label>
-                  <Select
-                    value={questionCount.toString()}
-                    onValueChange={(value) => setQuestionCount(parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select quantity" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 Question</SelectItem>
-                      <SelectItem value="2">2 Questions</SelectItem>
-                      <SelectItem value="3">3 Questions</SelectItem>
-                      <SelectItem value="4">4 Questions</SelectItem>
-                      <SelectItem value="5">5 Questions</SelectItem>
-                      <SelectItem value="10">10 Questions</SelectItem>
-                      <SelectItem value="15">15 Questions</SelectItem>
-                      <SelectItem value="20">20 Questions</SelectItem>
-                      <SelectItem value="25">25 Questions</SelectItem>
-                      <SelectItem value="30">30 Questions</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            {targetType && (
+              <Card className="max-w-2xl mx-auto">
+                <CardHeader>
+                  <CardTitle>Select {targetType === 'subject' ? 'Subject' : 'Exam'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid gap-2 max-h-60 overflow-y-auto">
+                      {(targetType === 'subject' ? subjects : exams)?.map((item: any) => (
+                        <Button
+                          key={item.id}
+                          variant={selectedTarget?.id === item.id.toString() ? "default" : "outline"}
+                          className="w-full justify-start h-auto p-4"
+                          onClick={() => {
+                            setSelectedTarget({
+                              id: item.id.toString(),
+                              name: item.name || item.title,
+                              type: targetType
+                            });
+                          }}
+                        >
+                          <div className="text-left">
+                            <div className="font-medium">{item.name || item.title}</div>
+                            {targetType === 'subject' && (
+                              <div className="text-xs text-gray-500">{item.code}</div>
+                            )}
+                            {targetType === 'exam' && (
+                              <div className="text-xs text-gray-500">{item.description}</div>
+                            )}
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    {selectedTarget && (
+                      <div className="flex justify-end">
+                        <Button onClick={() => setStep('select-method')}>
+                          Continue
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        );
+
+      case 'select-method':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">Add Questions</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Choose where to add your questions and how you want to add them.
+              </p>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                <span className="font-semibold">Adding to:</span> {selectedTarget?.name} ({targetType === 'subject' ? 'Subject' : 'Exam'})
+              </p>
+            </div>
+            
+            <div className="max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold mb-4 text-center">How would you like to add questions?</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => {
+                  setCreationMethod('online');
+                  setStep('select-count');
+                }}>
+                  <CardContent className="p-6 text-center">
+                    <Plus className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                    <h4 className="text-lg font-semibold mb-2">Online</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Create manually</p>
+                  </CardContent>
+                </Card>
                 
-                <div className="flex justify-center">
-                  <Button onClick={handleStartCreating} className="w-full">
-                    Start Creating Questions
-                  </Button>
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => {
+                  setCreationMethod('bulk');
+                  document.getElementById('file-upload')?.click();
+                }}>
+                  <CardContent className="p-6 text-center">
+                    <Upload className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                    <h4 className="text-lg font-semibold mb-2">Bulk Upload</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Excel/CSV file</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="text-center mt-6">
+                <Button variant="outline" onClick={downloadSampleTemplate}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Sample Template
+                </Button>
+              </div>
+
+              <div className="flex justify-center gap-4 mt-6">
+                <Button variant="outline" onClick={() => setStep('select-target')}>
+                  Back
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'select-count':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">How many questions?</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Select the number of questions you want to create for <span className="font-semibold">{selectedTarget?.name}</span>
+              </p>
+            </div>
+            
+            <Card className="max-w-md mx-auto">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="question-count">Number of Questions</Label>
+                    <Select
+                      value={questionCount.toString()}
+                      onValueChange={(value) => setQuestionCount(parseInt(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select quantity" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 Question</SelectItem>
+                        <SelectItem value="2">2 Questions</SelectItem>
+                        <SelectItem value="3">3 Questions</SelectItem>
+                        <SelectItem value="4">4 Questions</SelectItem>
+                        <SelectItem value="5">5 Questions</SelectItem>
+                        <SelectItem value="10">10 Questions</SelectItem>
+                        <SelectItem value="15">15 Questions</SelectItem>
+                        <SelectItem value="20">20 Questions</SelectItem>
+                        <SelectItem value="25">25 Questions</SelectItem>
+                        <SelectItem value="30">30 Questions</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex justify-between gap-4">
+                    <Button variant="outline" onClick={() => setStep('select-method')}>
+                      Back
+                    </Button>
+                    <Button onClick={handleStartCreating}>
+                      Start Creating
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  if (step !== 'create') {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-900 p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create Questions</h1>
+              <p className="text-gray-600 dark:text-gray-400">Add questions to your question bank</p>
+            </div>
+
+            {renderStepContent()}
+
+            {/* Hidden file input for bulk upload */}
+            <input
+              id="file-upload"
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              className="hidden"
+              onChange={handleFileUpload}
+            />
           </div>
         </div>
       </DashboardLayout>
@@ -329,7 +533,7 @@ export default function CreateQuestions() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="topic">Topic *</Label>
+                  <Label htmlFor="topic">Topic (Optional)</Label>
                   <Select
                     value={currentQuestion.topicId.toString()}
                     onValueChange={(value) => setCurrentQuestion(prev => ({ 
@@ -339,9 +543,10 @@ export default function CreateQuestions() {
                     disabled={!currentQuestion.subjectId}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select topic" />
+                      <SelectValue placeholder="Select topic (optional)" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="0">No specific topic</SelectItem>
                       {filteredTopics.map(topic => (
                         <SelectItem key={topic.id} value={topic.id.toString()}>
                           {topic.name}
