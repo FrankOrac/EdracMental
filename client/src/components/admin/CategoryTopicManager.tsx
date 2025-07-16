@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   BookOpen, Plus, Edit, Trash2, Search, FolderOpen, FileText,
-  ChevronRight, ChevronDown, Grid, List
+  ChevronRight, ChevronDown, Grid, List, PlusCircle, Upload
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
@@ -58,6 +58,7 @@ export default function CategoryTopicManager() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isAddingSubject, setIsAddingSubject] = useState(false);
   const [isAddingTopic, setIsAddingTopic] = useState(false);
+  const [isCreatingQuestions, setIsCreatingQuestions] = useState(false);
   const [editingItem, setEditingItem] = useState<{ type: 'subject' | 'topic', item: Subject | Topic } | null>(null);
   const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, type: '', itemId: 0, itemName: "" });
   
@@ -267,6 +268,14 @@ export default function CategoryTopicManager() {
           >
             <Plus className="h-4 w-4" />
             Add Topic
+          </Button>
+          <Button 
+            onClick={() => setIsCreatingQuestions(true)}
+            variant="default"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+          >
+            <PlusCircle className="h-4 w-4" />
+            Create Questions
           </Button>
         </div>
       </div>
@@ -643,6 +652,384 @@ export default function CategoryTopicManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create Questions Dialog */}
+      {isCreatingQuestions && <CreateQuestionsDialog />}
     </div>
   );
+
+  // Create Questions Dialog Component
+  function CreateQuestionsDialog() {
+    const [step, setStep] = useState<'select-method' | 'create-online' | 'bulk-upload'>('select-method');
+    const [selectedSubject, setSelectedSubject] = useState<number>(0);
+    const [selectedTopic, setSelectedTopic] = useState<number>(0);
+    const [questionCount, setQuestionCount] = useState(5);
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+    const [currentQuestion, setCurrentQuestion] = useState({
+      text: '',
+      type: 'multiple_choice',
+      options: ['', '', '', ''],
+      correctAnswer: '',
+      explanation: '',
+      difficulty: 'medium',
+      examType: 'jamb',
+      points: 1
+    });
+
+    const createQuestionMutation = useMutation({
+      mutationFn: async (questionData: any) => {
+        return apiRequest('POST', '/api/questions', questionData);
+      },
+      onSuccess: () => {
+        toast({
+          title: "Success",
+          description: "Question created successfully!",
+        });
+        
+        if (currentQuestionIndex + 1 < questionCount) {
+          setCurrentQuestionIndex(prev => prev + 1);
+          setCurrentQuestion({
+            text: '',
+            type: 'multiple_choice',
+            options: ['', '', '', ''],
+            correctAnswer: '',
+            explanation: '',
+            difficulty: 'medium',
+            examType: 'jamb',
+            points: 1
+          });
+        } else {
+          // All questions created
+          setIsCreatingQuestions(false);
+          setStep('select-method');
+          setCurrentQuestionIndex(0);
+          queryClient.invalidateQueries({ queryKey: ["/api/subjects"] });
+        }
+      },
+      onError: () => {
+        toast({
+          title: "Error",
+          description: "Failed to create question",
+          variant: "destructive",
+        });
+      },
+    });
+
+    const handleCreateQuestion = () => {
+      if (!currentQuestion.text || !currentQuestion.correctAnswer || !selectedSubject) {
+        toast({
+          title: "Validation Error",
+          description: "Please fill in all required fields",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const questionData = {
+        ...currentQuestion,
+        subjectId: selectedSubject,
+        topicId: selectedTopic || undefined,
+        options: currentQuestion.type === 'multiple_choice' ? currentQuestion.options.filter(opt => opt.trim()) : [],
+      };
+
+      createQuestionMutation.mutate(questionData);
+    };
+
+    return (
+      <Dialog open={isCreatingQuestions} onOpenChange={setIsCreatingQuestions}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PlusCircle className="h-5 w-5" />
+              Create Questions
+            </DialogTitle>
+            <DialogDescription>
+              Add new questions to your question bank with multiple creation methods
+            </DialogDescription>
+          </DialogHeader>
+
+          {step === 'select-method' && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <Card 
+                  className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-blue-500"
+                  onClick={() => setStep('create-online')}
+                >
+                  <CardContent className="p-6 text-center">
+                    <PlusCircle className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                    <h3 className="font-semibold text-lg mb-2">Create Online</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Create questions one by one using our online form
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card 
+                  className="cursor-pointer hover:shadow-md transition-shadow border-2 hover:border-green-500"
+                  onClick={() => setStep('bulk-upload')}
+                >
+                  <CardContent className="p-6 text-center">
+                    <Upload className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                    <h3 className="font-semibold text-lg mb-2">Bulk Upload</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Upload multiple questions using CSV/Excel files
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {step === 'create-online' && (
+            <div className="space-y-6">
+              {/* Target Selection */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Question Target & Settings</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="subject">Subject *</Label>
+                      <select
+                        className="w-full p-2 border rounded-md"
+                        value={selectedSubject}
+                        onChange={(e) => setSelectedSubject(Number(e.target.value))}
+                      >
+                        <option value={0}>Select Subject</option>
+                        {subjects?.map((subject) => (
+                          <option key={subject.id} value={subject.id}>
+                            {subject.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="topic">Topic (Optional)</Label>
+                      <select
+                        className="w-full p-2 border rounded-md"
+                        value={selectedTopic}
+                        onChange={(e) => setSelectedTopic(Number(e.target.value))}
+                      >
+                        <option value={0}>Select Topic</option>
+                        {subjects?.find(s => s.id === selectedSubject)?.topics?.map((topic) => (
+                          <option key={topic.id} value={topic.id}>
+                            {topic.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="count">Number of Questions</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="50"
+                        value={questionCount}
+                        onChange={(e) => setQuestionCount(Number(e.target.value))}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="difficulty">Difficulty</Label>
+                      <select
+                        className="w-full p-2 border rounded-md"
+                        value={currentQuestion.difficulty}
+                        onChange={(e) => setCurrentQuestion(prev => ({...prev, difficulty: e.target.value}))}
+                      >
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="examType">Exam Type</Label>
+                      <select
+                        className="w-full p-2 border rounded-md"
+                        value={currentQuestion.examType}
+                        onChange={(e) => setCurrentQuestion(prev => ({...prev, examType: e.target.value}))}
+                      >
+                        <option value="jamb">JAMB</option>
+                        <option value="waec">WAEC</option>
+                        <option value="neco">NECO</option>
+                        <option value="custom">Custom</option>
+                      </select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Progress */}
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">
+                    Question {currentQuestionIndex + 1} of {questionCount}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {Math.round(((currentQuestionIndex + 1) / questionCount) * 100)}% Complete
+                  </span>
+                </div>
+                <Progress value={((currentQuestionIndex + 1) / questionCount) * 100} />
+              </div>
+
+              {/* Question Form */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Question Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="questionText">Question Text *</Label>
+                    <Textarea
+                      placeholder="Enter your question here..."
+                      value={currentQuestion.text}
+                      onChange={(e) => setCurrentQuestion(prev => ({...prev, text: e.target.value}))}
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Options for Multiple Choice */}
+                  {currentQuestion.type === 'multiple_choice' && (
+                    <div>
+                      <Label>Answer Options *</Label>
+                      <div className="space-y-2">
+                        {currentQuestion.options.map((option, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <span className="min-w-[20px] text-sm font-medium">
+                              {String.fromCharCode(65 + index)}.
+                            </span>
+                            <Input
+                              placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                              value={option}
+                              onChange={(e) => {
+                                const newOptions = [...currentQuestion.options];
+                                newOptions[index] = e.target.value;
+                                setCurrentQuestion(prev => ({...prev, options: newOptions}));
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <Label htmlFor="correctAnswer">Correct Answer *</Label>
+                    {currentQuestion.type === 'multiple_choice' ? (
+                      <select
+                        className="w-full p-2 border rounded-md"
+                        value={currentQuestion.correctAnswer}
+                        onChange={(e) => setCurrentQuestion(prev => ({...prev, correctAnswer: e.target.value}))}
+                      >
+                        <option value="">Select correct answer</option>
+                        {currentQuestion.options.map((option, index) => (
+                          option.trim() && (
+                            <option key={index} value={option}>
+                              {String.fromCharCode(65 + index)}. {option}
+                            </option>
+                          )
+                        ))}
+                      </select>
+                    ) : (
+                      <Textarea
+                        placeholder="Enter the correct answer..."
+                        value={currentQuestion.correctAnswer}
+                        onChange={(e) => setCurrentQuestion(prev => ({...prev, correctAnswer: e.target.value}))}
+                      />
+                    )}
+                  </div>
+
+                  <div>
+                    <Label htmlFor="explanation">Explanation (Optional)</Label>
+                    <Textarea
+                      placeholder="Explain why this is the correct answer..."
+                      value={currentQuestion.explanation}
+                      onChange={(e) => setCurrentQuestion(prev => ({...prev, explanation: e.target.value}))}
+                      rows={2}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep('select-method')}
+                >
+                  Back to Methods
+                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleCreateQuestion}
+                    disabled={createQuestionMutation.isPending}
+                  >
+                    {createQuestionMutation.isPending ? 'Creating...' : 
+                     currentQuestionIndex + 1 === questionCount ? 'Create Final Question' : 
+                     `Create & Continue (${currentQuestionIndex + 1}/${questionCount})`}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 'bulk-upload' && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Bulk Question Upload</CardTitle>
+                  <CardDescription>
+                    Upload multiple questions using CSV or Excel files
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                    <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <p className="text-lg font-medium mb-2">Upload Question File</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Supports CSV and Excel (.xlsx) files up to 10MB
+                    </p>
+                    <Input type="file" accept=".csv,.xlsx" className="max-w-xs mx-auto" />
+                  </div>
+                  
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                    <h4 className="font-medium mb-2">File Format Requirements:</h4>
+                    <ul className="text-sm space-y-1 text-muted-foreground">
+                      <li>• Columns: Question, Option A, Option B, Option C, Option D, Correct Answer, Explanation</li>
+                      <li>• First row should contain headers</li>
+                      <li>• Correct Answer should match one of the options exactly</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      Download Template
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      View Sample File
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep('select-method')}
+                >
+                  Back to Methods
+                </Button>
+                <Button>
+                  Upload Questions
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    );
+  }
 }

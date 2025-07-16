@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { 
   BookOpen, 
   Clock, 
@@ -45,9 +46,11 @@ export default function StudentDashboard() {
 
   if (statsLoading || subjectsLoading || examsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-      </div>
+      <DashboardLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+        </div>
+      </DashboardLayout>
     );
   }
 
@@ -56,317 +59,297 @@ export default function StudentDashboard() {
     averageScore: 0,
     studyTime: 0,
     recentSessions: [],
-    ...userStats
+    ...(userStats || {})
   };
 
-  const availableExams = exams?.filter(exam => exam.isActive && exam.isPublic) || [];
+  const availableExams = (exams || []).filter((exam: any) => exam.isActive && exam.isPublic) || [];
   const completedExams = stats.recentSessions?.length || 0;
   const progressPercentage = Math.min((completedExams / Math.max(availableExams.length, 1)) * 100, 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">E</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">EDRAC CBT</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Student Dashboard</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">
-                    {user?.firstName?.[0] || user?.email?.[0] || 'U'}
-                  </span>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user?.firstName} {user?.lastName}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {user?.subscriptionPlan || 'Free'} Plan
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Welcome Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Welcome back, {(user as any)?.firstName || 'Student'}!
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300">
+              Ready to continue your learning journey? Let's ace those exams!
+            </p>
+          </motion.div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome back, {user?.firstName}!
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Ready to continue your learning journey? Let's ace those exams!
-          </p>
-        </motion.div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
+              <TabsTrigger 
+                value="overview" 
+                className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="exams" 
+                className="flex items-center gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white"
+              >
+                <BookOpen className="h-4 w-4" />
+                Exams
+              </TabsTrigger>
+              <TabsTrigger 
+                value="subjects" 
+                className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
+              >
+                <Brain className="h-4 w-4" />
+                Subjects
+              </TabsTrigger>
+              <TabsTrigger 
+                value="practice" 
+                className="flex items-center gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
+              >
+                <Target className="h-4 w-4" />
+                Practice
+              </TabsTrigger>
+            </TabsList>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
-            <TabsTrigger 
-              value="overview" 
-              className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-            >
-              <BarChart3 className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger 
-              value="exams" 
-              className="flex items-center gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white"
-            >
-              <BookOpen className="h-4 w-4" />
-              Exams
-            </TabsTrigger>
-            <TabsTrigger 
-              value="subjects" 
-              className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
-            >
-              <Brain className="h-4 w-4" />
-              Subjects
-            </TabsTrigger>
-            <TabsTrigger 
-              value="progress" 
-              className="flex items-center gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
-            >
-              <Trophy className="h-4 w-4" />
-              Progress
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-blue-100 text-sm font-medium">Exams Taken</p>
-                      <p className="text-2xl font-bold">{stats.totalExams}</p>
-                    </div>
-                    <BookOpen className="h-8 w-8 text-blue-200" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-green-100 text-sm font-medium">Average Score</p>
-                      <p className="text-2xl font-bold">{stats.averageScore}%</p>
-                    </div>
-                    <Target className="h-8 w-8 text-green-200" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-purple-100 text-sm font-medium">Study Time</p>
-                      <p className="text-2xl font-bold">{Math.round(stats.studyTime / 60)}h</p>
-                    </div>
-                    <Clock className="h-8 w-8 text-purple-200" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-orange-100 text-sm font-medium">Progress</p>
-                      <p className="text-2xl font-bold">{Math.round(progressPercentage)}%</p>
-                    </div>
-                    <TrendingUp className="h-8 w-8 text-orange-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Play className="h-5 w-5 text-blue-500" />
-                    Quick Start
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3">
-                    <Link href="/exam">
-                      <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Take Practice Exam
-                      </Button>
-                    </Link>
-                    <Link href="/subjects">
-                      <Button variant="outline" className="w-full">
-                        <Brain className="h-4 w-4 mr-2" />
-                        Browse Subjects
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-green-500" />
-                    Achievements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">First Exam Completed</span>
+            <TabsContent value="overview" className="space-y-6">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <motion.div whileHover={{ scale: 1.02 }}>
+                  <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-blue-100 text-sm">Total Exams</p>
+                          <p className="text-3xl font-bold">{availableExams.length}</p>
+                        </div>
+                        <BookOpen className="h-8 w-8 text-blue-200" />
                       </div>
-                      <Badge variant={stats.totalExams > 0 ? "default" : "outline"}>
-                        {stats.totalExams > 0 ? "Earned" : "Pending"}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        <span className="text-sm">High Scorer</span>
-                      </div>
-                      <Badge variant={stats.averageScore >= 80 ? "default" : "outline"}>
-                        {stats.averageScore >= 80 ? "Earned" : "Pending"}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+                    </CardContent>
+                  </Card>
+                </motion.div>
 
-          <TabsContent value="exams" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {availableExams.map((exam) => (
-                <Card key={exam.id} className="hover:shadow-lg transition-shadow">
+                <motion.div whileHover={{ scale: 1.02 }}>
+                  <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-green-100 text-sm">Completed</p>
+                          <p className="text-3xl font-bold">{completedExams}</p>
+                        </div>
+                        <CheckCircle2 className="h-8 w-8 text-green-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }}>
+                  <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-purple-100 text-sm">Average Score</p>
+                          <p className="text-3xl font-bold">{stats.averageScore}%</p>
+                        </div>
+                        <Trophy className="h-8 w-8 text-purple-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }}>
+                  <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-orange-100 text-sm">Study Time</p>
+                          <p className="text-3xl font-bold">{stats.studyTime}h</p>
+                        </div>
+                        <Clock className="h-8 w-8 text-orange-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+
+              {/* Progress Section */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg">{exam.title}</CardTitle>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {exam.description}
-                    </p>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-blue-500" />
+                      Progress Overview
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>Exam Completion</span>
+                          <span>{Math.round(progressPercentage)}%</span>
+                        </div>
+                        <Progress value={progressPercentage} className="h-2" />
+                      </div>
+                      
+                      {stats.recentSessions && stats.recentSessions.length > 0 && (
+                        <div>
+                          <h4 className="font-medium mb-3">Recent Sessions</h4>
+                          <div className="space-y-2">
+                            {stats.recentSessions.slice(0, 5).map((session: any, index: number) => (
+                              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <div>
+                                  <p className="font-medium">{session.examTitle}</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    {new Date(session.completedAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <Badge variant={session.score >= 70 ? "default" : "destructive"}>
+                                  {session.score}%
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-green-500" />
+                      Quick Actions
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Duration:</span>
-                        <span className="font-medium">{exam.duration} mins</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Questions:</span>
-                        <span className="font-medium">{exam.totalQuestions}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Subjects:</span>
-                        <span className="font-medium">{exam.subjects?.join(', ')}</span>
-                      </div>
-                      <Link href={`/exam/${exam.id}`}>
-                        <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
+                      <Link href="/practice">
+                        <Button className="w-full justify-start" variant="outline">
                           <Play className="h-4 w-4 mr-2" />
-                          Start Exam
+                          Practice Questions
                         </Button>
                       </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="subjects" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {subjects?.map((subject) => (
-                <Card key={subject.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{subject.name}</CardTitle>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {subject.description}
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">Category:</span>
-                        <Badge variant="outline">{subject.category}</Badge>
-                      </div>
-                      <Button variant="outline" className="w-full">
-                        <BookOpen className="h-4 w-4 mr-2" />
-                        Study {subject.name}
+                      <Link href="/exam">
+                        <Button className="w-full justify-start" variant="outline">
+                          <BookOpen className="h-4 w-4 mr-2" />
+                          Take Exam
+                        </Button>
+                      </Link>
+                      <Button className="w-full justify-start" variant="outline">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Schedule Study
+                      </Button>
+                      <Button className="w-full justify-start" variant="outline">
+                        <BarChart3 className="h-4 w-4 mr-2" />
+                        View Analytics
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          </TabsContent>
+              </div>
+            </TabsContent>
 
-          <TabsContent value="progress" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Learning Progress</CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Track your performance across different subjects
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Overall Progress</span>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {Math.round(progressPercentage)}%
-                      </span>
-                    </div>
-                    <Progress value={progressPercentage} className="h-2" />
-                  </div>
-                  
-                  {stats.recentSessions?.length > 0 && (
-                    <div>
-                      <h4 className="font-medium mb-3">Recent Sessions</h4>
-                      <div className="space-y-2">
-                        {stats.recentSessions.slice(0, 5).map((session, index) => (
-                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <div>
-                              <p className="font-medium">{session.examTitle}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">
-                                {new Date(session.completedAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <Badge variant={session.score >= 70 ? "default" : "destructive"}>
-                              {session.score}%
-                            </Badge>
+            <TabsContent value="exams" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Available Exams</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {availableExams.map((exam: any) => (
+                      <Card key={exam.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold mb-2">{exam.title}</h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            {exam.description}
+                          </p>
+                          <div className="flex items-center justify-between mb-3">
+                            <Badge variant="outline">{exam.duration} min</Badge>
+                            <span className="text-sm text-gray-500">
+                              {exam.questionCount} questions
+                            </span>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                          <Link href={`/exam/${exam.id}`}>
+                            <Button className="w-full" size="sm">
+                              Start Exam
+                            </Button>
+                          </Link>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="subjects" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Study Subjects</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {(subjects || []).map((subject: any) => (
+                      <Card key={subject.id} className="hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                              <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold">{subject.name}</h3>
+                              <p className="text-sm text-gray-500">{subject.code}</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            {subject.description}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <Badge variant="outline">{subject.category}</Badge>
+                            <Link href={`/practice?subject=${subject.id}`}>
+                              <Button size="sm" variant="outline">
+                                Practice
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="practice" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Practice Mode</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8">
+                    <Brain className="h-16 w-16 text-blue-500 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Practice Questions</h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">
+                      Sharpen your skills with practice questions across various subjects
+                    </p>
+                    <Link href="/practice">
+                      <Button size="lg">
+                        <Play className="h-5 w-5 mr-2" />
+                        Start Practice Session
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
