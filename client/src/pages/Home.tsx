@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
-import EnhancedAdminDashboard from "@/components/admin/EnhancedAdminDashboard";
-import EnhancedInstitutionDashboard from "@/components/institution/EnhancedInstitutionDashboard";
-import EnhancedStudentDashboard from "@/components/student/EnhancedStudentDashboard";
+import AdminDashboard from "@/components/admin/AdminDashboard";
+import InstitutionDashboard from "@/components/institution/InstitutionDashboard";
+import StudentDashboard from "@/components/student/StudentDashboard";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
 export default function Home() {
@@ -17,15 +17,15 @@ export default function Home() {
     );
   }
 
-  // Route to appropriate enhanced dashboard based on user role
+  // Route to appropriate dashboard based on user role
   if (user?.role === 'admin') {
-    return <EnhancedAdminDashboard />;
+    return <AdminDashboard />;
   }
   
   if (user?.role === 'institution') {
-    return <EnhancedInstitutionDashboard />;
+    return <InstitutionDashboard />;
   }
   
-  // Default to enhanced student dashboard
-  return <EnhancedStudentDashboard />;
+  // Default to student dashboard
+  return <StudentDashboard />;
 }
