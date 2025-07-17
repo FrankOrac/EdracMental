@@ -2202,10 +2202,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create AI interaction record
       await storage.createAiInteraction({
         userId: req.session.user.id,
-        query: message,
+        question: message,
         response: response,
         type: 'chat',
-        context: context || 'general'
+        metadata: { context: context || 'general' }
       });
 
       res.json({ response, context: 'edrac-cbt-platform' });
