@@ -12,6 +12,8 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import RobustAITutor from "@/components/ai/RobustAITutor";
 import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
 import CBTExamInterface from "@/components/student/CBTExamInterface";
+import { StudyGroupsManager } from "./StudyGroupsManager";
+import { AIStudyMatchmaker } from "./AIStudyMatchmaker";
 import { 
   BookOpen, 
   Clock, 
@@ -26,7 +28,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Star,
-  MessageSquare
+  MessageSquare,
+  Users,
+  Sparkles
 } from "lucide-react";
 
 export default function StudentDashboard() {
@@ -90,7 +94,7 @@ export default function StudentDashboard() {
           </motion.div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
               <TabsTrigger 
                 value="overview" 
                 className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
@@ -118,6 +122,20 @@ export default function StudentDashboard() {
               >
                 <Target className="h-4 w-4" />
                 Practice
+              </TabsTrigger>
+              <TabsTrigger 
+                value="study-groups" 
+                className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
+              >
+                <Users className="h-4 w-4" />
+                Study Groups
+              </TabsTrigger>
+              <TabsTrigger 
+                value="ai-matchmaker" 
+                className="flex items-center gap-2 data-[state=active]:bg-pink-500 data-[state=active]:text-white"
+              >
+                <Sparkles className="h-4 w-4" />
+                AI Matcher
               </TabsTrigger>
               <TabsTrigger 
                 value="ai-tutor" 
@@ -429,6 +447,34 @@ export default function StudentDashboard() {
                     context="Student dashboard - general tutoring"
                     userId={(user as any)?.id}
                   />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="study-groups" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-6 w-6 text-indigo-500" />
+                    Collaborative Study Groups
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <StudyGroupsManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="ai-matchmaker" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-6 w-6 text-pink-500" />
+                    AI Study Matchmaker
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AIStudyMatchmaker />
                 </CardContent>
               </Card>
             </TabsContent>

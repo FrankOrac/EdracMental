@@ -16,6 +16,12 @@ import {
   aiWebResources,
   monthlyReviews,
   userSubjects,
+  studyGroups,
+  studyGroupMembers,
+  userStudyPreferences,
+  studySessions,
+  studySessionParticipants,
+  aiMatchmaking,
   type User,
   type UpsertUser,
   type Institution,
@@ -45,6 +51,15 @@ import {
   type MonthlyReview,
   type UserSubject,
   type InsertUserSubject,
+  type StudyGroup,
+  type StudyGroupMember,
+  type UserStudyPreferences,
+  type StudySession,
+  type StudySessionParticipant,
+  type AiMatchmaking,
+  type InsertStudyGroup,
+  type InsertUserStudyPreferences,
+  type InsertStudySession,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, count, avg, sum, inArray } from "drizzle-orm";
@@ -173,6 +188,39 @@ export interface IStorage {
   getUserSubjects(userId: string): Promise<UserSubject[]>;
   updateUserSubject(id: number, data: Partial<InsertUserSubject>): Promise<UserSubject>;
   deleteUserSubject(id: number): Promise<void>;
+  
+  // Study group operations
+  createStudyGroup(studyGroup: InsertStudyGroup & { createdBy: string }): Promise<StudyGroup>;
+  getStudyGroup(id: string): Promise<StudyGroup | undefined>;
+  getStudyGroups(filters?: { subjects?: string[]; difficulty?: string; status?: string }): Promise<StudyGroup[]>;
+  getUserStudyGroups(userId: string): Promise<StudyGroup[]>;
+  updateStudyGroup(id: string, data: Partial<InsertStudyGroup>): Promise<StudyGroup>;
+  deleteStudyGroup(id: string): Promise<void>;
+  joinStudyGroup(groupId: string, userId: string): Promise<StudyGroupMember>;
+  leaveStudyGroup(groupId: string, userId: string): Promise<void>;
+  getStudyGroupMembers(groupId: string): Promise<StudyGroupMember[]>;
+  updateMemberRole(groupId: string, userId: string, role: string): Promise<StudyGroupMember>;
+  
+  // User study preferences
+  createUserStudyPreferences(preferences: InsertUserStudyPreferences & { userId: string }): Promise<UserStudyPreferences>;
+  getUserStudyPreferences(userId: string): Promise<UserStudyPreferences | undefined>;
+  updateUserStudyPreferences(userId: string, preferences: Partial<InsertUserStudyPreferences>): Promise<UserStudyPreferences>;
+  
+  // Study sessions
+  createStudySession(session: InsertStudySession & { hostId: string }): Promise<StudySession>;
+  getStudySession(id: string): Promise<StudySession | undefined>;
+  getStudySessionsByGroup(groupId: string): Promise<StudySession[]>;
+  getUpcomingStudySessions(userId: string): Promise<StudySession[]>;
+  updateStudySession(id: string, data: Partial<InsertStudySession>): Promise<StudySession>;
+  deleteStudySession(id: string): Promise<void>;
+  joinStudySession(sessionId: string, userId: string): Promise<StudySessionParticipant>;
+  leaveStudySession(sessionId: string, userId: string): Promise<void>;
+  getStudySessionParticipants(sessionId: string): Promise<StudySessionParticipant[]>;
+  
+  // AI matchmaking
+  createMatchmaking(userId: string, criteria: any): Promise<AiMatchmaking>;
+  getMatchmakingSuggestions(userId: string): Promise<StudyGroup[]>;
+  updateMatchmaking(userId: string, criteria: any): Promise<AiMatchmaking>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -808,6 +856,346 @@ export class DatabaseStorage implements IStorage {
       .update(userSubjects)
       .set({ isActive: false, updatedAt: new Date() })
       .where(eq(userSubjects.id, id));
+  }
+
+  // Study Group operations
+  async createStudyGroup(groupData: InsertStudyGroup & { createdBy: string }): Promise<StudyGroup> {
+    const joinCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const [groupResult] = await db
+      .insert(studyGroups)
+      .values({ ...groupData, joinCode })
+      .returning();
+    
+    // Add creator as admin member
+    await db
+      .insert(studyGroupMembers)
+      .values({
+        groupId: groupResult.id,
+        userId: groupData.createdBy,
+        role: 'admin',
+        lastActive: new Date(),
+      });
+    
+    return groupResult;
+  }
+
+  async getStudyGroup(id: string): Promise<StudyGroup | undefined> {
+    const [groupResult] = await db
+      .select()
+      .from(studyGroups)
+      .where(eq(studyGroups.id, id));
+    return groupResult;
+  }
+
+  async getStudyGroups(filters?: { subjects?: string[]; difficulty?: string; status?: string }): Promise<StudyGroup[]> {
+    let query = db.select().from(studyGroups);
+    
+    if (filters?.status) {
+      query = query.where(eq(studyGroups.status, filters.status));
+    }
+    
+    return await query.orderBy(desc(studyGroups.createdAt));
+  }
+
+  async getUserStudyGroups(userId: string): Promise<StudyGroup[]> {
+    return await db
+      .select({
+        id: studyGroups.id,
+        name: studyGroups.name,
+        description: studyGroups.description,
+        createdBy: studyGroups.createdBy,
+        subjects: studyGroups.subjects,
+        difficulty: studyGroups.difficulty,
+        maxMembers: studyGroups.maxMembers,
+        currentMembers: studyGroups.currentMembers,
+        isPrivate: studyGroups.isPrivate,
+        joinCode: studyGroups.joinCode,
+        status: studyGroups.status,
+        meetingSchedule: studyGroups.meetingSchedule,
+        studyGoals: studyGroups.studyGoals,
+        tags: studyGroups.tags,
+        createdAt: studyGroups.createdAt,
+        updatedAt: studyGroups.updatedAt,
+      })
+      .from(studyGroups)
+      .innerJoin(studyGroupMembers, eq(studyGroups.id, studyGroupMembers.groupId))
+      .where(eq(studyGroupMembers.userId, userId))
+      .orderBy(desc(studyGroups.createdAt));
+  }
+
+  async updateStudyGroup(id: string, data: Partial<InsertStudyGroup>): Promise<StudyGroup> {
+    const [groupResult] = await db
+      .update(studyGroups)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(studyGroups.id, id))
+      .returning();
+    return groupResult;
+  }
+
+  async deleteStudyGroup(id: string): Promise<void> {
+    await db
+      .update(studyGroups)
+      .set({ status: 'archived', updatedAt: new Date() })
+      .where(eq(studyGroups.id, id));
+  }
+
+  async joinStudyGroup(groupId: string, userId: string): Promise<StudyGroupMember> {
+    // Update current members count
+    await db
+      .update(studyGroups)
+      .set({ 
+        currentMembers: sql`${studyGroups.currentMembers} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(studyGroups.id, groupId));
+
+    const [memberResult] = await db
+      .insert(studyGroupMembers)
+      .values({
+        groupId,
+        userId,
+        role: 'member',
+        lastActive: new Date(),
+      })
+      .returning();
+    return memberResult;
+  }
+
+  async leaveStudyGroup(groupId: string, userId: string): Promise<void> {
+    await db
+      .delete(studyGroupMembers)
+      .where(and(
+        eq(studyGroupMembers.groupId, groupId),
+        eq(studyGroupMembers.userId, userId)
+      ));
+
+    // Update current members count
+    await db
+      .update(studyGroups)
+      .set({ 
+        currentMembers: sql`${studyGroups.currentMembers} - 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(studyGroups.id, groupId));
+  }
+
+  async getStudyGroupMembers(groupId: string): Promise<StudyGroupMember[]> {
+    return await db
+      .select()
+      .from(studyGroupMembers)
+      .where(eq(studyGroupMembers.groupId, groupId))
+      .orderBy(desc(studyGroupMembers.joinedAt));
+  }
+
+  async updateMemberRole(groupId: string, userId: string, role: string): Promise<StudyGroupMember> {
+    const [memberResult] = await db
+      .update(studyGroupMembers)
+      .set({ role })
+      .where(and(
+        eq(studyGroupMembers.groupId, groupId),
+        eq(studyGroupMembers.userId, userId)
+      ))
+      .returning();
+    return memberResult;
+  }
+
+  // User Study Preferences operations
+  async createUserStudyPreferences(preferencesData: InsertUserStudyPreferences & { userId: string }): Promise<UserStudyPreferences> {
+    const [preferencesResult] = await db
+      .insert(userStudyPreferences)
+      .values(preferencesData)
+      .returning();
+    return preferencesResult;
+  }
+
+  async getUserStudyPreferences(userId: string): Promise<UserStudyPreferences | undefined> {
+    const [preferencesResult] = await db
+      .select()
+      .from(userStudyPreferences)
+      .where(eq(userStudyPreferences.userId, userId));
+    return preferencesResult;
+  }
+
+  async updateUserStudyPreferences(userId: string, preferences: Partial<InsertUserStudyPreferences>): Promise<UserStudyPreferences> {
+    const [preferencesResult] = await db
+      .update(userStudyPreferences)
+      .set({ ...preferences, updatedAt: new Date() })
+      .where(eq(userStudyPreferences.userId, userId))
+      .returning();
+    return preferencesResult;
+  }
+
+  // Study Session operations
+  async createStudySession(sessionData: InsertStudySession & { hostId: string }): Promise<StudySession> {
+    const [sessionResult] = await db
+      .insert(studySessions)
+      .values(sessionData)
+      .returning();
+    
+    // Add host as first participant
+    await db
+      .insert(studySessionParticipants)
+      .values({
+        sessionId: sessionResult.id,
+        userId: sessionData.hostId,
+        status: 'registered',
+      });
+    
+    return sessionResult;
+  }
+
+  async getStudySession(id: string): Promise<StudySession | undefined> {
+    const [sessionResult] = await db
+      .select()
+      .from(studySessions)
+      .where(eq(studySessions.id, id));
+    return sessionResult;
+  }
+
+  async getStudySessionsByGroup(groupId: string): Promise<StudySession[]> {
+    return await db
+      .select()
+      .from(studySessions)
+      .where(eq(studySessions.groupId, groupId))
+      .orderBy(desc(studySessions.scheduledFor));
+  }
+
+  async getUpcomingStudySessions(userId: string): Promise<StudySession[]> {
+    const now = new Date();
+    return await db
+      .select({
+        id: studySessions.id,
+        groupId: studySessions.groupId,
+        title: studySessions.title,
+        description: studySessions.description,
+        scheduledFor: studySessions.scheduledFor,
+        duration: studySessions.duration,
+        sessionType: studySessions.sessionType,
+        subjects: studySessions.subjects,
+        materials: studySessions.materials,
+        hostId: studySessions.hostId,
+        maxParticipants: studySessions.maxParticipants,
+        currentParticipants: studySessions.currentParticipants,
+        status: studySessions.status,
+        recordingEnabled: studySessions.recordingEnabled,
+        notesEnabled: studySessions.notesEnabled,
+        createdAt: studySessions.createdAt,
+        updatedAt: studySessions.updatedAt,
+      })
+      .from(studySessions)
+      .innerJoin(studySessionParticipants, eq(studySessions.id, studySessionParticipants.sessionId))
+      .where(and(
+        eq(studySessionParticipants.userId, userId),
+        sql`${studySessions.scheduledFor} > ${now}`,
+        eq(studySessions.status, 'scheduled')
+      ))
+      .orderBy(studySessions.scheduledFor);
+  }
+
+  async updateStudySession(id: string, data: Partial<InsertStudySession>): Promise<StudySession> {
+    const [sessionResult] = await db
+      .update(studySessions)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(studySessions.id, id))
+      .returning();
+    return sessionResult;
+  }
+
+  async deleteStudySession(id: string): Promise<void> {
+    await db
+      .update(studySessions)
+      .set({ status: 'cancelled', updatedAt: new Date() })
+      .where(eq(studySessions.id, id));
+  }
+
+  async joinStudySession(sessionId: string, userId: string): Promise<StudySessionParticipant> {
+    // Update current participants count
+    await db
+      .update(studySessions)
+      .set({ 
+        currentParticipants: sql`${studySessions.currentParticipants} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(studySessions.id, sessionId));
+
+    const [participantResult] = await db
+      .insert(studySessionParticipants)
+      .values({
+        sessionId,
+        userId,
+        status: 'registered',
+      })
+      .returning();
+    return participantResult;
+  }
+
+  async leaveStudySession(sessionId: string, userId: string): Promise<void> {
+    await db
+      .update(studySessionParticipants)
+      .set({ status: 'left_early', leftAt: new Date() })
+      .where(and(
+        eq(studySessionParticipants.sessionId, sessionId),
+        eq(studySessionParticipants.userId, userId)
+      ));
+
+    // Update current participants count
+    await db
+      .update(studySessions)
+      .set({ 
+        currentParticipants: sql`${studySessions.currentParticipants} - 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(studySessions.id, sessionId));
+  }
+
+  async getStudySessionParticipants(sessionId: string): Promise<StudySessionParticipant[]> {
+    return await db
+      .select()
+      .from(studySessionParticipants)
+      .where(eq(studySessionParticipants.sessionId, sessionId))
+      .orderBy(desc(studySessionParticipants.joinedAt));
+  }
+
+  // AI Matchmaking operations
+  async createMatchmaking(userId: string, criteria: any): Promise<AiMatchmaking> {
+    const [matchmakingResult] = await db
+      .insert(aiMatchmaking)
+      .values({
+        userId,
+        matchingCriteria: JSON.stringify(criteria),
+        isActive: true,
+      })
+      .returning();
+    return matchmakingResult;
+  }
+
+  async getMatchmakingSuggestions(userId: string): Promise<StudyGroup[]> {
+    // Get user preferences first
+    const userPrefs = await this.getUserStudyPreferences(userId);
+    if (!userPrefs) return [];
+
+    // Find groups that match user preferences
+    return await db
+      .select()
+      .from(studyGroups)
+      .where(and(
+        eq(studyGroups.status, 'active'),
+        sql`${studyGroups.currentMembers} < ${studyGroups.maxMembers}`
+      ))
+      .limit(10)
+      .orderBy(desc(studyGroups.createdAt));
+  }
+
+  async updateMatchmaking(userId: string, criteria: any): Promise<AiMatchmaking> {
+    const [matchmakingResult] = await db
+      .update(aiMatchmaking)
+      .set({
+        matchingCriteria: JSON.stringify(criteria),
+        lastUpdated: new Date(),
+      })
+      .where(eq(aiMatchmaking.userId, userId))
+      .returning();
+    return matchmakingResult;
   }
 }
 

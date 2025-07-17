@@ -652,3 +652,129 @@ export type InsertUserPackage = z.infer<typeof insertUserPackageSchema>;
 export type InsertAiTutorSession = z.infer<typeof insertAiTutorSessionSchema>;
 export type InsertLearningHistory = z.infer<typeof insertLearningHistorySchema>;
 export type InsertUserSubject = z.infer<typeof insertUserSubjectSchema>;
+
+// Study Groups and Collaboration Tables
+export const studyGroups = pgTable("study_groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  createdBy: varchar("created_by").notNull(),
+  subjects: text("subjects").array().notNull(), // Array of subject names
+  difficulty: varchar("difficulty", { enum: ["beginner", "intermediate", "advanced", "mixed"] }).notNull(),
+  maxMembers: integer("max_members").default(8).notNull(),
+  currentMembers: integer("current_members").default(1).notNull(),
+  isPrivate: boolean("is_private").default(false).notNull(),
+  joinCode: varchar("join_code").unique(),
+  status: varchar("status", { enum: ["active", "inactive", "archived"] }).default("active").notNull(),
+  meetingSchedule: text("meeting_schedule"), // JSON string for recurring meetings
+  studyGoals: text("study_goals").array(),
+  tags: text("tags").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const studyGroupMembers = pgTable("study_group_members", {
+  id: serial("id").primaryKey(),
+  groupId: uuid("group_id").notNull().references(() => studyGroups.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull(),
+  role: varchar("role", { enum: ["admin", "moderator", "member"] }).default("member").notNull(),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  lastActive: timestamp("last_active").defaultNow(),
+  studyStreak: integer("study_streak").default(0),
+  contributionScore: integer("contribution_score").default(0),
+  preferences: text("preferences"), // JSON string for member preferences
+});
+
+export const userStudyPreferences = pgTable("user_study_preferences", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().unique(),
+  preferredSubjects: text("preferred_subjects").array().notNull(),
+  studyTimeSlots: text("study_time_slots").array(), // "morning", "afternoon", "evening", "night"
+  timezone: varchar("timezone").default("Africa/Lagos"),
+  studyStyle: text("study_style").array(), // "visual", "auditory", "kinesthetic", "reading"
+  difficultyLevel: varchar("difficulty_level", { enum: ["beginner", "intermediate", "advanced"] }).default("intermediate"),
+  goalType: text("goal_type").array(), // "exam_prep", "skill_building", "homework_help", "concept_review"
+  availabilityDays: text("availability_days").array(), // Days of week
+  maxGroupSize: integer("max_group_size").default(6),
+  preferredLanguage: varchar("preferred_language").default("english"),
+  isOpenToMentoring: boolean("is_open_to_mentoring").default(false),
+  isLookingForMentor: boolean("is_looking_for_mentor").default(false),
+  academicLevel: varchar("academic_level", { enum: ["secondary", "university", "professional"] }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const studySessions = pgTable("study_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  groupId: uuid("group_id").notNull().references(() => studyGroups.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  scheduledFor: timestamp("scheduled_for").notNull(),
+  duration: integer("duration").notNull(), // minutes
+  sessionType: varchar("session_type", { enum: ["group_study", "quiz_session", "discussion", "presentation"] }).notNull(),
+  subjects: text("subjects").array(),
+  materials: text("materials"), // JSON string for study materials
+  hostId: varchar("host_id").notNull(),
+  maxParticipants: integer("max_participants").default(8),
+  currentParticipants: integer("current_participants").default(0),
+  status: varchar("status", { enum: ["scheduled", "active", "completed", "cancelled"] }).default("scheduled").notNull(),
+  recordingEnabled: boolean("recording_enabled").default(false),
+  notesEnabled: boolean("notes_enabled").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const studySessionParticipants = pgTable("study_session_participants", {
+  id: serial("id").primaryKey(),
+  sessionId: uuid("session_id").notNull().references(() => studySessions.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull(),
+  status: varchar("status", { enum: ["registered", "attended", "absent", "left_early"] }).default("registered").notNull(),
+  joinedAt: timestamp("joined_at"),
+  leftAt: timestamp("left_at"),
+  contributionScore: integer("contribution_score").default(0),
+  notes: text("notes"), // Personal notes from the session
+  feedback: text("feedback"), // JSON string for session feedback
+});
+
+export const aiMatchmaking = pgTable("ai_matchmaking", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  matchingCriteria: text("matching_criteria").notNull(), // JSON string with matching preferences
+  compatibilityScores: text("compatibility_scores"), // JSON string with user compatibility scores
+  suggestedGroups: text("suggested_groups").array(),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true),
+});
+
+// Schema validation for collaborative features
+export const insertStudyGroupSchema = createInsertSchema(studyGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  currentMembers: true,
+});
+
+export const insertUserStudyPreferencesSchema = createInsertSchema(userStudyPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStudySessionSchema = createInsertSchema(studySessions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  currentParticipants: true,
+});
+
+// Types for collaborative features
+export type StudyGroup = typeof studyGroups.$inferSelect;
+export type StudyGroupMember = typeof studyGroupMembers.$inferSelect;
+export type UserStudyPreferences = typeof userStudyPreferences.$inferSelect;
+export type StudySession = typeof studySessions.$inferSelect;
+export type StudySessionParticipant = typeof studySessionParticipants.$inferSelect;
+export type AiMatchmaking = typeof aiMatchmaking.$inferSelect;
+
+export type InsertStudyGroup = z.infer<typeof insertStudyGroupSchema>;
+export type InsertUserStudyPreferences = z.infer<typeof insertUserStudyPreferencesSchema>;
+export type InsertStudySession = z.infer<typeof insertStudySessionSchema>;

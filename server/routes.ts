@@ -2507,5 +2507,225 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Study Groups API
+  app.post('/api/study-groups', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const groupData = req.body;
+      
+      const group = await storage.createStudyGroup({
+        ...groupData,
+        createdBy: userId,
+      });
+      
+      res.status(201).json(group);
+    } catch (error) {
+      console.error("Error creating study group:", error);
+      res.status(500).json({ message: "Failed to create study group" });
+    }
+  });
+
+  app.get('/api/study-groups', requireAuth, async (req: any, res) => {
+    try {
+      const { subjects, difficulty, status } = req.query;
+      const filters = { subjects, difficulty, status };
+      
+      const groups = await storage.getStudyGroups(filters);
+      res.json(groups);
+    } catch (error) {
+      console.error("Error fetching study groups:", error);
+      res.status(500).json({ message: "Failed to fetch study groups" });
+    }
+  });
+
+  app.get('/api/study-groups/my-groups', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const groups = await storage.getUserStudyGroups(userId);
+      res.json(groups);
+    } catch (error) {
+      console.error("Error fetching user study groups:", error);
+      res.status(500).json({ message: "Failed to fetch user study groups" });
+    }
+  });
+
+  app.get('/api/study-groups/:id', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const group = await storage.getStudyGroup(id);
+      
+      if (!group) {
+        return res.status(404).json({ message: "Study group not found" });
+      }
+      
+      res.json(group);
+    } catch (error) {
+      console.error("Error fetching study group:", error);
+      res.status(500).json({ message: "Failed to fetch study group" });
+    }
+  });
+
+  app.post('/api/study-groups/:id/join', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.user.id;
+      
+      const membership = await storage.joinStudyGroup(id, userId);
+      res.json(membership);
+    } catch (error) {
+      console.error("Error joining study group:", error);
+      res.status(500).json({ message: "Failed to join study group" });
+    }
+  });
+
+  app.delete('/api/study-groups/:id/leave', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.user.id;
+      
+      await storage.leaveStudyGroup(id, userId);
+      res.json({ message: "Left study group successfully" });
+    } catch (error) {
+      console.error("Error leaving study group:", error);
+      res.status(500).json({ message: "Failed to leave study group" });
+    }
+  });
+
+  app.get('/api/study-groups/:id/members', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const members = await storage.getStudyGroupMembers(id);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching study group members:", error);
+      res.status(500).json({ message: "Failed to fetch study group members" });
+    }
+  });
+
+  // Study Preferences API
+  app.post('/api/study-preferences', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const preferences = req.body;
+      
+      const userPrefs = await storage.createUserStudyPreferences({
+        ...preferences,
+        userId,
+      });
+      
+      res.status(201).json(userPrefs);
+    } catch (error) {
+      console.error("Error creating study preferences:", error);
+      res.status(500).json({ message: "Failed to create study preferences" });
+    }
+  });
+
+  app.get('/api/study-preferences', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const preferences = await storage.getUserStudyPreferences(userId);
+      
+      if (!preferences) {
+        return res.status(404).json({ message: "Study preferences not found" });
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching study preferences:", error);
+      res.status(500).json({ message: "Failed to fetch study preferences" });
+    }
+  });
+
+  app.put('/api/study-preferences', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const preferences = req.body;
+      
+      const updatedPrefs = await storage.updateUserStudyPreferences(userId, preferences);
+      res.json(updatedPrefs);
+    } catch (error) {
+      console.error("Error updating study preferences:", error);
+      res.status(500).json({ message: "Failed to update study preferences" });
+    }
+  });
+
+  // Study Sessions API
+  app.post('/api/study-sessions', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const sessionData = req.body;
+      
+      const session = await storage.createStudySession({
+        ...sessionData,
+        hostId: userId,
+      });
+      
+      res.status(201).json(session);
+    } catch (error) {
+      console.error("Error creating study session:", error);
+      res.status(500).json({ message: "Failed to create study session" });
+    }
+  });
+
+  app.get('/api/study-sessions/upcoming', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const sessions = await storage.getUpcomingStudySessions(userId);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching upcoming study sessions:", error);
+      res.status(500).json({ message: "Failed to fetch upcoming study sessions" });
+    }
+  });
+
+  app.get('/api/study-groups/:groupId/sessions', requireAuth, async (req: any, res) => {
+    try {
+      const { groupId } = req.params;
+      const sessions = await storage.getStudySessionsByGroup(groupId);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching study sessions:", error);
+      res.status(500).json({ message: "Failed to fetch study sessions" });
+    }
+  });
+
+  app.post('/api/study-sessions/:id/join', requireAuth, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.session.user.id;
+      
+      const participation = await storage.joinStudySession(id, userId);
+      res.json(participation);
+    } catch (error) {
+      console.error("Error joining study session:", error);
+      res.status(500).json({ message: "Failed to join study session" });
+    }
+  });
+
+  // AI Matchmaking API
+  app.get('/api/ai-matchmaking/suggestions', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const suggestions = await storage.getMatchmakingSuggestions(userId);
+      res.json(suggestions);
+    } catch (error) {
+      console.error("Error fetching matchmaking suggestions:", error);
+      res.status(500).json({ message: "Failed to fetch matchmaking suggestions" });
+    }
+  });
+
+  app.post('/api/ai-matchmaking', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user.id;
+      const criteria = req.body;
+      
+      const matchmaking = await storage.createMatchmaking(userId, criteria);
+      res.json(matchmaking);
+    } catch (error) {
+      console.error("Error creating matchmaking:", error);
+      res.status(500).json({ message: "Failed to create matchmaking" });
+    }
+  });
+
   return httpServer;
 }
