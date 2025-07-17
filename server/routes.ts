@@ -2605,7 +2605,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Study Preferences API
   app.post('/api/study-preferences', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.session.user.id;
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const preferences = req.body;
       
       const userPrefs = await storage.createUserStudyPreferences({
@@ -2622,7 +2627,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/study-preferences', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.session.user.id;
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const preferences = await storage.getUserStudyPreferences(userId);
       
       if (!preferences) {
@@ -2638,7 +2648,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/study-preferences', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.session.user.id;
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
       const preferences = req.body;
       
       const updatedPrefs = await storage.updateUserStudyPreferences(userId, preferences);

@@ -466,7 +466,7 @@ export function StudyGroupsManager() {
 
         <TabsContent value="my-groups" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {myGroups.map((group: StudyGroup) => (
+            {Array.isArray(myGroups) && myGroups.map((group: StudyGroup) => (
               <Card key={group.id} className="border-purple-200 dark:border-purple-800">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">

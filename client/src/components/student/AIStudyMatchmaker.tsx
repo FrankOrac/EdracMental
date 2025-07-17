@@ -26,7 +26,8 @@ import {
   UserCheck,
   Calendar,
   MessageSquare,
-  Settings
+  Settings,
+  CheckCircle
 } from "lucide-react";
 
 interface StudyPreferences {
