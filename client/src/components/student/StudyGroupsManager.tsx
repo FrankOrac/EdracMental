@@ -172,12 +172,12 @@ export function StudyGroupsManager() {
     createGroupMutation.mutate(groupData);
   };
 
-  const filteredGroups = studyGroups.filter((group: StudyGroup) => {
+  const filteredGroups = Array.isArray(studyGroups) ? studyGroups.filter((group: StudyGroup) => {
     const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          group.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDifficulty = !selectedDifficulty || group.difficulty === selectedDifficulty;
     return matchesSearch && matchesDifficulty;
-  });
+  }) : [];
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {

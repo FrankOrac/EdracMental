@@ -25,7 +25,8 @@ import {
   TrendingUp,
   UserCheck,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  Settings
 } from "lucide-react";
 
 interface StudyPreferences {
