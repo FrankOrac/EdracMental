@@ -2354,5 +2354,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CBT Exam Session Management
+  app.post('/api/exams/:id/start', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const examId = req.params.id;
+      
+      // Check if user has an active session
+      const activeSession = await storage.getUserActiveSession(userId);
+      if (activeSession) {
+        return res.status(400).json({ message: "You already have an active exam session" });
+      }
+      
+      const exam = await storage.getExam(examId);
+      if (!exam) {
+        return res.status(404).json({ message: "Exam not found" });
+      }
+      
+      const session = await storage.createExamSession({
+        examId,
+        userId,
+        startTime: new Date(),
+        answers: {},
+        status: 'active',
+        timeRemaining: exam.duration * 60, // Convert minutes to seconds
+      });
+      
+      res.json(session);
+    } catch (error) {
+      console.error("Error starting exam:", error);
+      res.status(500).json({ message: "Failed to start exam" });
+    }
+  });
+
+  // Submit exam session
+  app.post('/api/exam-sessions/:id/submit', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sessionId = req.params.id;
+      const { answers } = req.body;
+      
+      const session = await storage.getExamSession(sessionId);
+      if (!session) {
+        return res.status(404).json({ message: "Exam session not found" });
+      }
+      
+      if (session.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const exam = await storage.getExam(session.examId);
+      if (!exam) {
+        return res.status(404).json({ message: "Exam not found" });
+      }
+      
+      // Calculate score (simplified for demo)
+      const totalQuestions = exam.totalQuestions;
+      const answeredQuestions = Object.keys(answers).length;
+      const score = Math.round((answeredQuestions / totalQuestions) * 100);
+      
+      const updatedSession = await storage.updateExamSession(sessionId, {
+        answers,
+        score,
+        endTime: new Date(),
+        status: 'completed',
+      });
+      
+      res.json({
+        session: updatedSession,
+        score,
+        totalQuestions,
+        answeredQuestions,
+      });
+    } catch (error) {
+      console.error("Error submitting exam:", error);
+      res.status(500).json({ message: "Failed to submit exam" });
+    }
+  });
+
+  // Get practice questions for CBT
+  app.get('/api/questions/practice', async (req, res) => {
+    try {
+      const { subjectIds, difficulty, limit = 20 } = req.query;
+      
+      const params = {
+        subjectIds: subjectIds ? (subjectIds as string).split(',').map(Number) : undefined,
+        difficulty: difficulty as string,
+        limit: parseInt(limit as string) || 20,
+      };
+      
+      const questions = await storage.getRandomQuestions(params);
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching practice questions:", error);
+      res.status(500).json({ message: "Failed to fetch practice questions" });
+    }
+  });
+
   return httpServer;
 }
