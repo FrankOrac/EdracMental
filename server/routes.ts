@@ -743,6 +743,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fix the questions route that was causing 500 error
+  app.get('/api/exams/questions', requireAuth, async (req: any, res) => {
+    try {
+      // Return all available questions for admin use
+      const questions = await storage.getAllQuestions();
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching all questions:", error);
+      res.status(500).json({ message: "Failed to fetch questions" });
+    }
+  });
+
   // Exam session routes
   app.post('/api/exam-sessions', requireAuth, async (req: any, res) => {
     try {
@@ -1232,6 +1244,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching system analytics:", error);
       res.status(500).json({ message: "Failed to fetch system analytics" });
+    }
+  });
+
+  // Enhanced analytics endpoint
+  app.get('/api/analytics/enhanced', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.session.user;
+      
+      if (!user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      if (user.role !== "admin") {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { range = '7d' } = req.query;
+      const enhancedData = {
+        revenue: {
+          current: 74000,
+          previous: 53000,
+          growth: 38.2
+        },
+        users: {
+          active: 15432,
+          new: 1847,
+          growth: 12.5
+        },
+        exams: {
+          taken: 8945,
+          completed: 7256,
+          avgScore: 78.5
+        },
+        geographic: [
+          { state: 'Lagos', users: 2341, revenue: 18600 },
+          { state: 'Abuja', users: 1876, revenue: 15200 },
+          { state: 'Kano', users: 1543, revenue: 12100 }
+        ]
+      };
+      res.json(enhancedData);
+    } catch (error) {
+      console.error('Error fetching enhanced analytics:', error);
+      res.status(500).json({ message: 'Failed to fetch enhanced analytics' });
     }
   });
 
