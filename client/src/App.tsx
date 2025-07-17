@@ -69,6 +69,7 @@ function Router() {
           <Route path="/exam/:examId?" component={Exam} />
           <Route path="/practice/:subjectId?" component={Practice} />
           <Route path="/profile" component={Profile} />
+          <Route path="/tutor" component={StudentAITutor} />
           
           {/* Admin-only routes */}
           {user?.role === 'admin' && (

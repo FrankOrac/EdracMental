@@ -8,6 +8,7 @@ import { MessageSquare, Send, Brain, Lightbulb, BookOpen, Target } from "lucide-
 import { motion } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 interface Message {
   id: string;
@@ -108,29 +109,30 @@ export default function StudentAITutor() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-              <Brain className="h-6 w-6 text-white" />
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900 p-6">
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
+          >
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                <Brain className="h-6 w-6 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Tutor</h1>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AI Tutor</h1>
-          </div>
-          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Get instant help with your studies! Ask questions, get explanations, and master any subject with your personal AI tutor.
-          </p>
-        </motion.div>
+            <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Get instant help with your studies! Ask questions, get explanations, and master any subject with your personal AI tutor.
+            </p>
+          </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Quick Actions Sidebar */}
-          <div className="lg:col-span-1 space-y-4">
-            <Card>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Quick Actions Sidebar */}
+            <div className="lg:col-span-1 space-y-4">
+              <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Lightbulb className="h-5 w-5 text-yellow-500" />
@@ -151,11 +153,11 @@ export default function StudentAITutor() {
                   </Button>
                 ))}
               </CardContent>
-            </Card>
+              </Card>
 
-            {/* Subjects Quick Access */}
-            {Array.isArray(subjects) && subjects.length > 0 && (
-              <Card>
+              {/* Subjects Quick Access */}
+              {Array.isArray(subjects) && subjects.length > 0 && (
+                <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-blue-500" />
@@ -178,25 +180,25 @@ export default function StudentAITutor() {
                     </Button>
                   ))}
                 </CardContent>
-              </Card>
-            )}
-          </div>
+                </Card>
+              )}
+            </div>
 
-          {/* Chat Interface */}
-          <div className="lg:col-span-3">
-            <Card className="h-[600px] flex flex-col">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5 text-blue-500" />
-                  Chat with AI Tutor
-                </CardTitle>
-              </CardHeader>
+            {/* Chat Interface */}
+            <div className="lg:col-span-3">
+              <Card className="h-[600px] flex flex-col">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="h-5 w-5 text-blue-500" />
+                    Chat with AI Tutor
+                  </CardTitle>
+                </CardHeader>
               
-              <CardContent className="flex-1 flex flex-col p-0">
-                {/* Messages Area */}
-                <ScrollArea className="flex-1 p-4">
-                  <div className="space-y-4">
-                    {messages.map((message) => (
+                <CardContent className="flex-1 flex flex-col p-0">
+                  {/* Messages Area */}
+                  <ScrollArea className="flex-1 p-4">
+                    <div className="space-y-4">
+                      {messages.map((message) => (
                       <motion.div
                         key={message.id}
                         initial={{ opacity: 0, y: 10 }}
@@ -233,38 +235,39 @@ export default function StudentAITutor() {
                           )}
                         </div>
                       </motion.div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                      ))}
+                    </div>
+                  </ScrollArea>
 
-                {/* Input Area */}
-                <div className="border-t p-4">
-                  <div className="flex gap-2">
-                    <Input
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      placeholder="Ask me anything about your studies..."
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                      disabled={isLoading}
-                      className="flex-1"
-                    />
-                    <Button 
-                      onClick={handleSendMessage} 
-                      disabled={isLoading || !inputMessage.trim()}
-                      size="icon"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
+                  {/* Input Area */}
+                  <div className="border-t p-4">
+                    <div className="flex gap-2">
+                      <Input
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        placeholder="Ask me anything about your studies..."
+                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                        disabled={isLoading}
+                        className="flex-1"
+                      />
+                      <Button 
+                        onClick={handleSendMessage} 
+                        disabled={isLoading || !inputMessage.trim()}
+                        size="icon"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Press Enter to send • AI Tutor is here to help with all subjects
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Press Enter to send • AI Tutor is here to help with all subjects
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
