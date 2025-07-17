@@ -159,7 +159,7 @@ export default function CBTExamInterface() {
       options: ["Option A", "Option B", "Option C", "Option D"],
       correctAnswer: Math.floor(Math.random() * 4),
       explanation: `This is the explanation for question ${index + 1}`,
-      subject: exam.subjects[0] || "General",
+      subject: (exam.subjects && exam.subjects.length > 0) ? exam.subjects[0] : "General",
       topic: "Sample Topic",
       difficulty: exam.difficulty,
     }));
