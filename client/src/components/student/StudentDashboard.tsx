@@ -10,6 +10,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import RobustAITutor from "@/components/ai/RobustAITutor";
+import CBTExamInterface from "@/components/student/CBTExamInterface";
 import { 
   BookOpen, 
   Clock, 
@@ -88,7 +89,7 @@ export default function StudentDashboard() {
           </motion.div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
               <TabsTrigger 
                 value="overview" 
                 className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
@@ -123,6 +124,13 @@ export default function StudentDashboard() {
               >
                 <MessageSquare className="h-4 w-4" />
                 AI Tutor
+              </TabsTrigger>
+              <TabsTrigger 
+                value="cbt-exam" 
+                className="flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white"
+              >
+                <Play className="h-4 w-4" />
+                CBT Exam
               </TabsTrigger>
             </TabsList>
 
@@ -420,6 +428,20 @@ export default function StudentDashboard() {
                     context="Student dashboard - general tutoring"
                     userId={(user as any)?.id}
                   />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="cbt-exam" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Play className="h-6 w-6 text-red-500" />
+                    CBT Exam Center
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CBTExamInterface />
                 </CardContent>
               </Card>
             </TabsContent>
