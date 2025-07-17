@@ -159,7 +159,7 @@ export const payments = pgTable("payments", {
   currency: varchar("currency").notNull().default("NGN"),
   planType: varchar("plan_type", { enum: ["premium", "institution"] }).notNull(),
   duration: integer("duration").notNull(), // in months
-  paymentMethod: varchar("payment_method", { enum: ["paystack", "flutterwave", "stripe"] }).notNull(),
+  paymentMethod: varchar("payment_method", { enum: ["paystack", "flutterwave", "stripe", "bank_transfer"] }).notNull(),
   transactionId: varchar("transaction_id").unique().notNull(),
   paymentReference: varchar("payment_reference").unique().notNull(),
   status: varchar("status", { enum: ["pending", "successful", "failed", "refunded"] }).notNull().default("pending"),
@@ -179,6 +179,128 @@ export const notifications = pgTable("notifications", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Learning packages for bundled study materials
+export const learningPackages = pgTable("learning_packages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  category: varchar("category", { enum: ["jamb", "waec", "neco", "gce", "custom"] }).notNull(),
+  subjectIds: jsonb("subject_ids").notNull(), // Array of subject IDs
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  currency: varchar("currency").notNull().default("NGN"),
+  duration: integer("duration").notNull(), // access duration in days
+  content: jsonb("content"), // Questions, materials, videos, etc.
+  difficulty: varchar("difficulty", { enum: ["beginner", "intermediate", "advanced", "mixed"] }).notNull().default("mixed"),
+  prerequisites: jsonb("prerequisites"), // Array of required knowledge
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User package purchases
+export const userPackages = pgTable("user_packages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: varchar("user_id").notNull(),
+  packageId: varchar("package_id").notNull(),
+  purchaseDate: timestamp("purchase_date").defaultNow(),
+  expiryDate: timestamp("expiry_date").notNull(),
+  paymentReference: varchar("payment_reference").notNull(),
+  progress: decimal("progress", { precision: 5, scale: 2 }).notNull().default("0.00"), // 0-100%
+  status: varchar("status", { enum: ["active", "expired", "refunded"] }).notNull().default("active"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// AI Tutor sessions and learning history
+export const aiTutorSessions = pgTable("ai_tutor_sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: varchar("user_id").notNull(),
+  sessionName: varchar("session_name").notNull(),
+  subjectId: integer("subject_id"),
+  topicId: integer("topic_id"),
+  sessionType: varchar("session_type", { enum: ["explanation", "lesson", "practice", "qa"] }).notNull(),
+  difficulty: varchar("difficulty", { enum: ["beginner", "intermediate", "advanced"] }).notNull().default("beginner"),
+  messages: jsonb("messages").notNull(), // Array of conversation messages
+  learningPath: jsonb("learning_path"), // Structured learning progression
+  completionStatus: varchar("completion_status", { enum: ["in_progress", "completed", "abandoned"] }).notNull().default("in_progress"),
+  startTime: timestamp("start_time").defaultNow(),
+  endTime: timestamp("end_time"),
+  duration: integer("duration"), // in minutes
+  rating: integer("rating"), // 1-5 stars
+  feedback: text("feedback"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Learning history and progress tracking
+export const learningHistory = pgTable("learning_history", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  subjectId: integer("subject_id").notNull(),
+  topicId: integer("topic_id"),
+  activityType: varchar("activity_type", { enum: ["study", "practice", "exam", "tutor_session"] }).notNull(),
+  timeSpent: integer("time_spent").notNull(), // in minutes
+  score: decimal("score", { precision: 5, scale: 2 }),
+  correctAnswers: integer("correct_answers"),
+  totalQuestions: integer("total_questions"),
+  date: timestamp("date").defaultNow(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Web resources cached by AI
+export const aiWebResources = pgTable("ai_web_resources", {
+  id: serial("id").primaryKey(),
+  query: text("query").notNull(),
+  subjectId: integer("subject_id"),
+  topicId: integer("topic_id"),
+  title: varchar("title").notNull(),
+  url: varchar("url").notNull(),
+  content: text("content").notNull(),
+  summary: text("summary"),
+  relevanceScore: decimal("relevance_score", { precision: 3, scale: 2 }),
+  isVerified: boolean("is_verified").notNull().default(false),
+  addedBy: varchar("added_by"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Monthly review data for active users
+export const monthlyReviews = pgTable("monthly_reviews", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  month: integer("month").notNull(),
+  year: integer("year").notNull(),
+  totalStudyTime: integer("total_study_time"), // in minutes
+  examsCompleted: integer("exams_completed").notNull().default(0),
+  averageScore: decimal("average_score", { precision: 5, scale: 2 }),
+  subjectsStudied: jsonb("subjects_studied"), // Array of subject IDs
+  topicsCompleted: jsonb("topics_completed"), // Array of topic IDs
+  achievements: jsonb("achievements"), // Array of achievement IDs
+  strengths: jsonb("strengths"), // Array of strong subjects/topics
+  weaknesses: jsonb("weaknesses"), // Array of weak subjects/topics
+  recommendations: jsonb("recommendations"), // AI-generated study recommendations
+  isActive: boolean("is_active").notNull().default(true), // Only for active users
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User subject preferences
+export const userSubjects = pgTable("user_subjects", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  subjectId: integer("subject_id").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  difficultyLevel: varchar("difficulty_level", { enum: ["beginner", "intermediate", "advanced"] }).notNull().default("beginner"),
+  priority: integer("priority").notNull().default(1), // 1-10
+  lastStudied: timestamp("last_studied"),
+  totalStudyTime: integer("total_study_time").notNull().default(0), // in minutes
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   institution: one(institutions, {
@@ -189,6 +311,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   aiInteractions: many(aiInteractions),
   payments: many(payments),
   notifications: many(notifications),
+  userPackages: many(userPackages),
+  aiTutorSessions: many(aiTutorSessions),
+  learningHistory: many(learningHistory),
+  monthlyReviews: many(monthlyReviews),
+  userSubjects: many(userSubjects),
 }));
 
 export const institutionsRelations = relations(institutions, ({ one, many }) => ({
@@ -278,6 +405,84 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, {
     fields: [notifications.userId],
     references: [users.id],
+  }),
+}));
+
+export const learningPackagesRelations = relations(learningPackages, ({ one, many }) => ({
+  creator: one(users, {
+    fields: [learningPackages.createdBy],
+    references: [users.id],
+  }),
+  userPackages: many(userPackages),
+}));
+
+export const userPackagesRelations = relations(userPackages, ({ one }) => ({
+  user: one(users, {
+    fields: [userPackages.userId],
+    references: [users.id],
+  }),
+  package: one(learningPackages, {
+    fields: [userPackages.packageId],
+    references: [learningPackages.id],
+  }),
+}));
+
+export const aiTutorSessionsRelations = relations(aiTutorSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [aiTutorSessions.userId],
+    references: [users.id],
+  }),
+  subject: one(subjects, {
+    fields: [aiTutorSessions.subjectId],
+    references: [subjects.id],
+  }),
+  topic: one(topics, {
+    fields: [aiTutorSessions.topicId],
+    references: [topics.id],
+  }),
+}));
+
+export const learningHistoryRelations = relations(learningHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [learningHistory.userId],
+    references: [users.id],
+  }),
+  subject: one(subjects, {
+    fields: [learningHistory.subjectId],
+    references: [subjects.id],
+  }),
+  topic: one(topics, {
+    fields: [learningHistory.topicId],
+    references: [topics.id],
+  }),
+}));
+
+export const aiWebResourcesRelations = relations(aiWebResources, ({ one }) => ({
+  subject: one(subjects, {
+    fields: [aiWebResources.subjectId],
+    references: [subjects.id],
+  }),
+  topic: one(topics, {
+    fields: [aiWebResources.topicId],
+    references: [topics.id],
+  }),
+}));
+
+export const monthlyReviewsRelations = relations(monthlyReviews, ({ one }) => ({
+  user: one(users, {
+    fields: [monthlyReviews.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userSubjectsRelations = relations(userSubjects, ({ one }) => ({
+  user: one(users, {
+    fields: [userSubjects.userId],
+    references: [users.id],
+  }),
+  subject: one(subjects, {
+    fields: [userSubjects.subjectId],
+    references: [subjects.id],
   }),
 }));
 
@@ -386,3 +591,64 @@ export type InsertExam = z.infer<typeof insertExamSchema>;
 export type InsertExamSession = z.infer<typeof insertExamSessionSchema>;
 export type InsertAiInteraction = z.infer<typeof insertAiInteractionSchema>;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+
+// Additional insert schemas for new tables
+export const insertLearningPackageSchema = createInsertSchema(learningPackages).pick({
+  title: true,
+  description: true,
+  category: true,
+  subjectIds: true,
+  price: true,
+  currency: true,
+  duration: true,
+  content: true,
+  difficulty: true,
+  prerequisites: true,
+});
+
+export const insertUserPackageSchema = createInsertSchema(userPackages).pick({
+  packageId: true,
+  expiryDate: true,
+  paymentReference: true,
+});
+
+export const insertAiTutorSessionSchema = createInsertSchema(aiTutorSessions).pick({
+  sessionName: true,
+  subjectId: true,
+  topicId: true,
+  sessionType: true,
+  difficulty: true,
+  messages: true,
+  learningPath: true,
+});
+
+export const insertLearningHistorySchema = createInsertSchema(learningHistory).pick({
+  subjectId: true,
+  topicId: true,
+  activityType: true,
+  timeSpent: true,
+  score: true,
+  correctAnswers: true,
+  totalQuestions: true,
+});
+
+export const insertUserSubjectSchema = createInsertSchema(userSubjects).pick({
+  subjectId: true,
+  difficultyLevel: true,
+  priority: true,
+});
+
+// Additional types for new tables
+export type LearningPackage = typeof learningPackages.$inferSelect;
+export type UserPackage = typeof userPackages.$inferSelect;
+export type AiTutorSession = typeof aiTutorSessions.$inferSelect;
+export type LearningHistory = typeof learningHistory.$inferSelect;
+export type AiWebResource = typeof aiWebResources.$inferSelect;
+export type MonthlyReview = typeof monthlyReviews.$inferSelect;
+export type UserSubject = typeof userSubjects.$inferSelect;
+
+export type InsertLearningPackage = z.infer<typeof insertLearningPackageSchema>;
+export type InsertUserPackage = z.infer<typeof insertUserPackageSchema>;
+export type InsertAiTutorSession = z.infer<typeof insertAiTutorSessionSchema>;
+export type InsertLearningHistory = z.infer<typeof insertLearningHistorySchema>;
+export type InsertUserSubject = z.infer<typeof insertUserSubjectSchema>;

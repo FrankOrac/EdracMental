@@ -1299,6 +1299,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Learning Package routes
+  app.get('/api/learning-packages', async (req, res) => {
+    try {
+      const packages = await storage.getAllLearningPackages();
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching learning packages:", error);
+      res.status(500).json({ message: "Failed to fetch learning packages" });
+    }
+  });
+
+  app.get('/api/learning-packages/category/:category', async (req, res) => {
+    try {
+      const packages = await storage.getLearningPackagesByCategory(req.params.category);
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching learning packages by category:", error);
+      res.status(500).json({ message: "Failed to fetch learning packages" });
+    }
+  });
+
+  app.post('/api/learning-packages', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const packageData = req.body;
+      
+      const newPackage = await storage.createLearningPackage({
+        ...packageData,
+        createdBy: userId,
+      });
+      
+      res.status(201).json(newPackage);
+    } catch (error) {
+      console.error("Error creating learning package:", error);
+      res.status(500).json({ message: "Failed to create learning package" });
+    }
+  });
+
+  // AI Tutor Session routes
+  app.post('/api/ai-tutor/sessions', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sessionData = req.body;
+      
+      const session = await storage.createAiTutorSession({
+        ...sessionData,
+        userId,
+      });
+      
+      res.status(201).json(session);
+    } catch (error) {
+      console.error("Error creating AI tutor session:", error);
+      res.status(500).json({ message: "Failed to create AI tutor session" });
+    }
+  });
+
+  app.get('/api/ai-tutor/sessions', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sessions = await storage.getAiTutorSessionsByUser(userId);
+      res.json(sessions);
+    } catch (error) {
+      console.error("Error fetching AI tutor sessions:", error);
+      res.status(500).json({ message: "Failed to fetch AI tutor sessions" });
+    }
+  });
+
+  app.patch('/api/ai-tutor/sessions/:id', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const sessionId = req.params.id;
+      const updates = req.body;
+      
+      // Verify session belongs to user
+      const session = await storage.getAiTutorSession(sessionId);
+      if (!session || session.userId !== userId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const updatedSession = await storage.updateAiTutorSession(sessionId, updates);
+      res.json(updatedSession);
+    } catch (error) {
+      console.error("Error updating AI tutor session:", error);
+      res.status(500).json({ message: "Failed to update AI tutor session" });
+    }
+  });
+
+  // Learning History routes
+  app.get('/api/learning-history', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const history = await storage.getLearningHistoryByUser(userId);
+      res.json(history);
+    } catch (error) {
+      console.error("Error fetching learning history:", error);
+      res.status(500).json({ message: "Failed to fetch learning history" });
+    }
+  });
+
+  // Monthly Reviews routes
+  app.get('/api/monthly-reviews', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const reviews = await storage.getMonthlyReviewsByUser(userId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching monthly reviews:", error);
+      res.status(500).json({ message: "Failed to fetch monthly reviews" });
+    }
+  });
+
+  // User Subjects routes
+  app.get('/api/user-subjects', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const subjects = await storage.getUserSubjects(userId);
+      res.json(subjects);
+    } catch (error) {
+      console.error("Error fetching user subjects:", error);
+      res.status(500).json({ message: "Failed to fetch user subjects" });
+    }
+  });
+
+  app.post('/api/user-subjects', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const subjectData = req.body;
+      
+      const userSubject = await storage.createUserSubject({
+        ...subjectData,
+        userId,
+      });
+      
+      res.status(201).json(userSubject);
+    } catch (error) {
+      console.error("Error creating user subject:", error);
+      res.status(500).json({ message: "Failed to create user subject" });
+    }
+  });
+
   // Admin routes for users management
   app.get('/api/users', requireAuth, async (req: any, res) => {
     try {

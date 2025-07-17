@@ -9,6 +9,13 @@ import {
   aiInteractions,
   payments,
   notifications,
+  learningPackages,
+  userPackages,
+  aiTutorSessions,
+  learningHistory,
+  aiWebResources,
+  monthlyReviews,
+  userSubjects,
   type User,
   type UpsertUser,
   type Institution,
@@ -26,6 +33,18 @@ import {
   type Payment,
   type InsertPayment,
   type Notification,
+  type LearningPackage,
+  type InsertLearningPackage,
+  type UserPackage,
+  type InsertUserPackage,
+  type AiTutorSession,
+  type InsertAiTutorSession,
+  type LearningHistory,
+  type InsertLearningHistory,
+  type AiWebResource,
+  type MonthlyReview,
+  type UserSubject,
+  type InsertUserSubject,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, count, avg, sum, inArray } from "drizzle-orm";
@@ -112,6 +131,48 @@ export interface IStorage {
     totalInstitutions: number;
     dailyActiveUsers: number;
   }>;
+  
+  // Learning Package operations
+  createLearningPackage(packageData: InsertLearningPackage & { createdBy: string }): Promise<LearningPackage>;
+  getLearningPackage(id: string): Promise<LearningPackage | undefined>;
+  getLearningPackagesByCategory(category: string): Promise<LearningPackage[]>;
+  getAllLearningPackages(): Promise<LearningPackage[]>;
+  updateLearningPackage(id: string, data: Partial<InsertLearningPackage>): Promise<LearningPackage>;
+  deleteLearningPackage(id: string): Promise<void>;
+  
+  // User Package operations
+  createUserPackage(packageData: InsertUserPackage & { userId: string }): Promise<UserPackage>;
+  getUserPackages(userId: string): Promise<UserPackage[]>;
+  getUserActivePackages(userId: string): Promise<UserPackage[]>;
+  updateUserPackage(id: string, data: Partial<InsertUserPackage>): Promise<UserPackage>;
+  
+  // AI Tutor Session operations
+  createAiTutorSession(sessionData: InsertAiTutorSession & { userId: string }): Promise<AiTutorSession>;
+  getAiTutorSession(id: string): Promise<AiTutorSession | undefined>;
+  getAiTutorSessionsByUser(userId: string): Promise<AiTutorSession[]>;
+  updateAiTutorSession(id: string, data: Partial<InsertAiTutorSession>): Promise<AiTutorSession>;
+  deleteAiTutorSession(id: string): Promise<void>;
+  
+  // Learning History operations
+  createLearningHistory(historyData: InsertLearningHistory & { userId: string }): Promise<LearningHistory>;
+  getLearningHistoryByUser(userId: string): Promise<LearningHistory[]>;
+  getLearningHistoryBySubject(userId: string, subjectId: number): Promise<LearningHistory[]>;
+  
+  // AI Web Resource operations
+  createAiWebResource(resourceData: Omit<AiWebResource, 'id' | 'createdAt' | 'updatedAt'>): Promise<AiWebResource>;
+  getAiWebResourcesByQuery(query: string): Promise<AiWebResource[]>;
+  getAiWebResourcesBySubject(subjectId: number): Promise<AiWebResource[]>;
+  
+  // Monthly Review operations
+  createMonthlyReview(reviewData: Omit<MonthlyReview, 'id' | 'createdAt' | 'updatedAt'>): Promise<MonthlyReview>;
+  getMonthlyReviewsByUser(userId: string): Promise<MonthlyReview[]>;
+  getMonthlyReview(userId: string, month: number, year: number): Promise<MonthlyReview | undefined>;
+  
+  // User Subject operations
+  createUserSubject(subjectData: InsertUserSubject & { userId: string }): Promise<UserSubject>;
+  getUserSubjects(userId: string): Promise<UserSubject[]>;
+  updateUserSubject(id: number, data: Partial<InsertUserSubject>): Promise<UserSubject>;
+  deleteUserSubject(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -499,6 +560,254 @@ export class DatabaseStorage implements IStorage {
       totalInstitutions: institutionsResult.count,
       dailyActiveUsers: 0, // Calculate from recent sessions
     };
+  }
+
+  // Learning Package operations
+  async createLearningPackage(packageData: InsertLearningPackage & { createdBy: string }): Promise<LearningPackage> {
+    const [packageResult] = await db
+      .insert(learningPackages)
+      .values(packageData)
+      .returning();
+    return packageResult;
+  }
+
+  async getLearningPackage(id: string): Promise<LearningPackage | undefined> {
+    const [packageResult] = await db
+      .select()
+      .from(learningPackages)
+      .where(eq(learningPackages.id, id));
+    return packageResult;
+  }
+
+  async getLearningPackagesByCategory(category: string): Promise<LearningPackage[]> {
+    return await db
+      .select()
+      .from(learningPackages)
+      .where(and(eq(learningPackages.category, category as any), eq(learningPackages.isActive, true)))
+      .orderBy(desc(learningPackages.createdAt));
+  }
+
+  async getAllLearningPackages(): Promise<LearningPackage[]> {
+    return await db
+      .select()
+      .from(learningPackages)
+      .where(eq(learningPackages.isActive, true))
+      .orderBy(desc(learningPackages.createdAt));
+  }
+
+  async updateLearningPackage(id: string, data: Partial<InsertLearningPackage>): Promise<LearningPackage> {
+    const [packageResult] = await db
+      .update(learningPackages)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(learningPackages.id, id))
+      .returning();
+    return packageResult;
+  }
+
+  async deleteLearningPackage(id: string): Promise<void> {
+    await db
+      .update(learningPackages)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(learningPackages.id, id));
+  }
+
+  // User Package operations
+  async createUserPackage(packageData: InsertUserPackage & { userId: string }): Promise<UserPackage> {
+    const [userPackageResult] = await db
+      .insert(userPackages)
+      .values(packageData)
+      .returning();
+    return userPackageResult;
+  }
+
+  async getUserPackages(userId: string): Promise<UserPackage[]> {
+    return await db
+      .select()
+      .from(userPackages)
+      .where(eq(userPackages.userId, userId))
+      .orderBy(desc(userPackages.createdAt));
+  }
+
+  async getUserActivePackages(userId: string): Promise<UserPackage[]> {
+    return await db
+      .select()
+      .from(userPackages)
+      .where(and(
+        eq(userPackages.userId, userId),
+        eq(userPackages.status, "active")
+      ))
+      .orderBy(desc(userPackages.createdAt));
+  }
+
+  async updateUserPackage(id: string, data: Partial<InsertUserPackage>): Promise<UserPackage> {
+    const [userPackageResult] = await db
+      .update(userPackages)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(userPackages.id, id))
+      .returning();
+    return userPackageResult;
+  }
+
+  // AI Tutor Session operations
+  async createAiTutorSession(sessionData: InsertAiTutorSession & { userId: string }): Promise<AiTutorSession> {
+    const [sessionResult] = await db
+      .insert(aiTutorSessions)
+      .values(sessionData)
+      .returning();
+    return sessionResult;
+  }
+
+  async getAiTutorSession(id: string): Promise<AiTutorSession | undefined> {
+    const [sessionResult] = await db
+      .select()
+      .from(aiTutorSessions)
+      .where(eq(aiTutorSessions.id, id));
+    return sessionResult;
+  }
+
+  async getAiTutorSessionsByUser(userId: string): Promise<AiTutorSession[]> {
+    return await db
+      .select()
+      .from(aiTutorSessions)
+      .where(eq(aiTutorSessions.userId, userId))
+      .orderBy(desc(aiTutorSessions.createdAt));
+  }
+
+  async updateAiTutorSession(id: string, data: Partial<InsertAiTutorSession>): Promise<AiTutorSession> {
+    const [sessionResult] = await db
+      .update(aiTutorSessions)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(aiTutorSessions.id, id))
+      .returning();
+    return sessionResult;
+  }
+
+  async deleteAiTutorSession(id: string): Promise<void> {
+    await db
+      .delete(aiTutorSessions)
+      .where(eq(aiTutorSessions.id, id));
+  }
+
+  // Learning History operations
+  async createLearningHistory(historyData: InsertLearningHistory & { userId: string }): Promise<LearningHistory> {
+    const [historyResult] = await db
+      .insert(learningHistory)
+      .values(historyData)
+      .returning();
+    return historyResult;
+  }
+
+  async getLearningHistoryByUser(userId: string): Promise<LearningHistory[]> {
+    return await db
+      .select()
+      .from(learningHistory)
+      .where(eq(learningHistory.userId, userId))
+      .orderBy(desc(learningHistory.date));
+  }
+
+  async getLearningHistoryBySubject(userId: string, subjectId: number): Promise<LearningHistory[]> {
+    return await db
+      .select()
+      .from(learningHistory)
+      .where(and(
+        eq(learningHistory.userId, userId),
+        eq(learningHistory.subjectId, subjectId)
+      ))
+      .orderBy(desc(learningHistory.date));
+  }
+
+  // AI Web Resource operations
+  async createAiWebResource(resourceData: Omit<AiWebResource, 'id' | 'createdAt' | 'updatedAt'>): Promise<AiWebResource> {
+    const [resourceResult] = await db
+      .insert(aiWebResources)
+      .values(resourceData)
+      .returning();
+    return resourceResult;
+  }
+
+  async getAiWebResourcesByQuery(query: string): Promise<AiWebResource[]> {
+    return await db
+      .select()
+      .from(aiWebResources)
+      .where(eq(aiWebResources.query, query))
+      .orderBy(desc(aiWebResources.relevanceScore));
+  }
+
+  async getAiWebResourcesBySubject(subjectId: number): Promise<AiWebResource[]> {
+    return await db
+      .select()
+      .from(aiWebResources)
+      .where(eq(aiWebResources.subjectId, subjectId))
+      .orderBy(desc(aiWebResources.relevanceScore));
+  }
+
+  // Monthly Review operations
+  async createMonthlyReview(reviewData: Omit<MonthlyReview, 'id' | 'createdAt' | 'updatedAt'>): Promise<MonthlyReview> {
+    const [reviewResult] = await db
+      .insert(monthlyReviews)
+      .values(reviewData)
+      .returning();
+    return reviewResult;
+  }
+
+  async getMonthlyReviewsByUser(userId: string): Promise<MonthlyReview[]> {
+    return await db
+      .select()
+      .from(monthlyReviews)
+      .where(and(
+        eq(monthlyReviews.userId, userId),
+        eq(monthlyReviews.isActive, true)
+      ))
+      .orderBy(desc(monthlyReviews.year), desc(monthlyReviews.month));
+  }
+
+  async getMonthlyReview(userId: string, month: number, year: number): Promise<MonthlyReview | undefined> {
+    const [reviewResult] = await db
+      .select()
+      .from(monthlyReviews)
+      .where(and(
+        eq(monthlyReviews.userId, userId),
+        eq(monthlyReviews.month, month),
+        eq(monthlyReviews.year, year),
+        eq(monthlyReviews.isActive, true)
+      ));
+    return reviewResult;
+  }
+
+  // User Subject operations
+  async createUserSubject(subjectData: InsertUserSubject & { userId: string }): Promise<UserSubject> {
+    const [subjectResult] = await db
+      .insert(userSubjects)
+      .values(subjectData)
+      .returning();
+    return subjectResult;
+  }
+
+  async getUserSubjects(userId: string): Promise<UserSubject[]> {
+    return await db
+      .select()
+      .from(userSubjects)
+      .where(and(
+        eq(userSubjects.userId, userId),
+        eq(userSubjects.isActive, true)
+      ))
+      .orderBy(desc(userSubjects.priority));
+  }
+
+  async updateUserSubject(id: number, data: Partial<InsertUserSubject>): Promise<UserSubject> {
+    const [subjectResult] = await db
+      .update(userSubjects)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(userSubjects.id, id))
+      .returning();
+    return subjectResult;
+  }
+
+  async deleteUserSubject(id: number): Promise<void> {
+    await db
+      .update(userSubjects)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(userSubjects.id, id));
   }
 }
 

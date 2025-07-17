@@ -10,6 +10,8 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/components/Landing";
 import LoginPage from "@/components/auth/LoginPage";
 import SignupPage from "@/components/auth/SignupPage";
+import Login from "@/pages/Login";
+import Dashboard from "@/pages/Dashboard";
 import Home from "@/pages/Home";
 import Exam from "@/pages/Exam";
 import Practice from "@/pages/Practice";
@@ -56,12 +58,14 @@ function Router() {
       {!isAuthenticated ? (
         <>
           <Route path="/" component={Landing} />
-          <Route path="/login" component={LoginPage} />
+          <Route path="/login" component={Login} />
           <Route path="/signup" component={SignupPage} />
         </>
       ) : (
         <>
-          <Route path="/" component={Home} />
+          <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/home" component={Home} />
           <Route path="/exam/:examId?" component={Exam} />
           <Route path="/practice/:subjectId?" component={Practice} />
           <Route path="/profile" component={Profile} />
