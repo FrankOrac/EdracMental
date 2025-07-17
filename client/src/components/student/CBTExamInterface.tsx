@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
 
 interface Question {
   id: number;

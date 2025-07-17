@@ -122,14 +122,23 @@ export default function EnhancedAITutor({ context, userId, questionData }: Enhan
   const aiTutoringMutation = useMutation({
     mutationFn: async (question: string) => {
       setConnectionStatus('connecting');
-      const response = await apiRequest('/api/ai/tutor', {
+      const response = await fetch('/api/ai/tutor', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ 
           question, 
           context,
           questionData
-        })
+        }),
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        throw new Error('AI tutoring request failed');
+      }
+      
       return response.json();
     },
     onSuccess: (data: TutorResponse) => {
