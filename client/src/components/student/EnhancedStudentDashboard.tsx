@@ -11,7 +11,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { 
   BookOpen, 
@@ -65,6 +65,7 @@ export default function EnhancedStudentDashboard() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -72,6 +73,80 @@ export default function EnhancedStudentDashboard() {
     phone: user?.phone || '',
     institution: user?.institution || ''
   });
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    },
+    hover: {
+      y: -5,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
+    }
+  };
+
+  const buttonVariants = {
+    hover: {
+      scale: 1.02,
+      transition: {
+        duration: 0.2,
+        ease: "easeInOut"
+      }
+    },
+    tap: {
+      scale: 0.98,
+      transition: {
+        duration: 0.1
+      }
+    }
+  };
+
+  const tabVariants = {
+    inactive: {
+      scale: 1,
+      opacity: 0.7
+    },
+    active: {
+      scale: 1.05,
+      opacity: 1,
+      transition: {
+        duration: 0.2,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const statsVariants = {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
 
   const { data: userStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/analytics/user"],
@@ -117,7 +192,25 @@ export default function EnhancedStudentDashboard() {
   if (statsLoading || subjectsLoading || examsLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+        <motion.div 
+          className="flex flex-col items-center gap-4"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div 
+            className="w-32 h-32 border-4 border-blue-500 border-t-transparent rounded-full"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+          <motion.p 
+            className="text-gray-600 dark:text-gray-400"
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            Loading your dashboard...
+          </motion.p>
+        </motion.div>
       </div>
     );
   }
@@ -164,7 +257,12 @@ export default function EnhancedStudentDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+    <motion.div 
+      className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+    >
       {/* Enhanced Header */}
       <div className="bg-white dark:bg-gray-800 shadow-lg border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -206,22 +304,33 @@ export default function EnhancedStudentDashboard() {
                         ].map((item) => {
                           const Icon = item.icon;
                           return (
-                            <Button
+                            <motion.div
                               key={item.id}
-                              variant={activeTab === item.id ? "default" : "ghost"}
-                              className={`w-full justify-start gap-3 h-12 ${
-                                activeTab === item.id 
-                                  ? "bg-blue-500 text-white hover:bg-blue-600" 
-                                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                              }`}
-                              onClick={() => {
-                                setActiveTab(item.id);
-                                setSidebarOpen(false);
-                              }}
+                              whileHover={{ x: 5 }}
+                              whileTap={{ scale: 0.98 }}
+                              transition={{ duration: 0.2 }}
                             >
-                              <Icon className={`h-5 w-5 ${activeTab === item.id ? "text-white" : item.color}`} />
-                              {item.label}
-                            </Button>
+                              <Button
+                                variant={activeTab === item.id ? "default" : "ghost"}
+                                className={`w-full justify-start gap-3 h-12 transition-all duration-200 ${
+                                  activeTab === item.id 
+                                    ? "bg-blue-500 text-white hover:bg-blue-600 shadow-lg" 
+                                    : "hover:bg-gray-100 dark:hover:bg-gray-700 hover:shadow-md"
+                                }`}
+                                onClick={() => {
+                                  setActiveTab(item.id);
+                                  setSidebarOpen(false);
+                                }}
+                              >
+                                <motion.div
+                                  animate={activeTab === item.id ? { rotate: [0, 10, 0] } : {}}
+                                  transition={{ duration: 0.3 }}
+                                >
+                                  <Icon className={`h-5 w-5 ${activeTab === item.id ? "text-white" : item.color}`} />
+                                </motion.div>
+                                {item.label}
+                              </Button>
+                            </motion.div>
                           );
                         })}
                       </nav>
@@ -332,64 +441,56 @@ export default function EnhancedStudentDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           {/* Desktop Navigation */}
-          <TabsList className="hidden lg:grid w-full grid-cols-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
-            <TabsTrigger 
-              value="overview" 
-              className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
-            >
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden xl:inline">Overview</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="exams" 
-              className="flex items-center gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white"
-            >
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden xl:inline">Exams</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="practice" 
-              className="flex items-center gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
-            >
-              <Brain className="h-4 w-4" />
-              <span className="hidden xl:inline">Practice</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="study-groups" 
-              className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
-            >
-              <Users className="h-4 w-4" />
-              <span className="hidden xl:inline">Groups</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="ai-matchmaker" 
-              className="flex items-center gap-2 data-[state=active]:bg-pink-500 data-[state=active]:text-white"
-            >
-              <Sparkles className="h-4 w-4" />
-              <span className="hidden xl:inline">AI Match</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="ai-tutor" 
-              className="flex items-center gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span className="hidden xl:inline">AI Tutor</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="progress" 
-              className="flex items-center gap-2 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
-            >
-              <TrendingUp className="h-4 w-4" />
-              <span className="hidden xl:inline">Progress</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="profile" 
-              className="flex items-center gap-2 data-[state=active]:bg-gray-700 data-[state=active]:text-white"
-            >
-              <User className="h-4 w-4" />
-              <span className="hidden xl:inline">Profile</span>
-            </TabsTrigger>
-          </TabsList>
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <TabsList className="hidden lg:grid w-full grid-cols-8 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
+              {[
+                { value: "overview", icon: BarChart3, label: "Overview", color: "blue" },
+                { value: "exams", icon: BookOpen, label: "Exams", color: "green" },
+                { value: "practice", icon: Brain, label: "Practice", color: "orange" },
+                { value: "study-groups", icon: Users, label: "Groups", color: "indigo" },
+                { value: "ai-matchmaker", icon: Sparkles, label: "AI Match", color: "pink" },
+                { value: "ai-tutor", icon: MessageSquare, label: "AI Tutor", color: "purple" },
+                { value: "progress", icon: TrendingUp, label: "Progress", color: "teal" },
+                { value: "profile", icon: User, label: "Profile", color: "gray" }
+              ].map((tab, index) => {
+                const Icon = tab.icon;
+                return (
+                  <motion.div
+                    key={tab.value}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <TabsTrigger 
+                      value={tab.value}
+                      className={`flex items-center gap-2 transition-all duration-200 ${
+                        activeTab === tab.value 
+                          ? `bg-${tab.color}-500 text-white shadow-lg transform scale-105` 
+                          : "hover:shadow-md hover:scale-102"
+                      }`}
+                    >
+                      <motion.div
+                        animate={activeTab === tab.value ? { 
+                          rotate: [0, 5, -5, 0],
+                          scale: [1, 1.1, 1]
+                        } : {}}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </motion.div>
+                      <span className="hidden xl:inline">{tab.label}</span>
+                    </TabsTrigger>
+                  </motion.div>
+                );
+              })}
+            </TabsList>
+          </motion.div>
 
           {/* Mobile Navigation Indicator */}
           <div className="lg:hidden bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
@@ -683,21 +784,26 @@ export default function EnhancedStudentDashboard() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          <Select
-                            onValueChange={(difficulty) => 
-                              handleCreateCustomExam(subject.id.toString(), [], difficulty)
-                            }
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Choose difficulty" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="easy">Easy (20 questions)</SelectItem>
-                              <SelectItem value="medium">Medium (30 questions)</SelectItem>
-                              <SelectItem value="hard">Hard (40 questions)</SelectItem>
-                              <SelectItem value="mixed">Mixed (50 questions)</SelectItem>
-                            </SelectContent>
-                          </Select>
+                            <Select
+                              onValueChange={(difficulty) => 
+                                handleCreateCustomExam(subject.id.toString(), [], difficulty)
+                              }
+                            >
+                              <SelectTrigger className="transition-all duration-200 hover:shadow-md">
+                                <SelectValue placeholder="Choose difficulty" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="easy">Easy (20 questions)</SelectItem>
+                                <SelectItem value="medium">Medium (30 questions)</SelectItem>
+                                <SelectItem value="hard">Hard (40 questions)</SelectItem>
+                                <SelectItem value="mixed">Mixed (50 questions)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </motion.div>
                         </div>
                       </CardContent>
                     </Card>
@@ -736,16 +842,38 @@ export default function EnhancedStudentDashboard() {
                           </p>
                           <div className="flex gap-2">
                             <Link href={`/practice/${subject.id}?mode=instant`} className="flex-1">
-                              <Button className="w-full" variant="outline">
-                                <Zap className="h-4 w-4 mr-2" />
-                                Instant Feedback
-                              </Button>
+                              <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <Button className="w-full transition-all duration-200 hover:shadow-md" variant="outline">
+                                  <motion.div 
+                                    className="flex items-center"
+                                    animate={{ rotate: [0, 5, -5, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                                  >
+                                    <Zap className="h-4 w-4 mr-2" />
+                                    Instant Feedback
+                                  </motion.div>
+                                </Button>
+                              </motion.div>
                             </Link>
                             <Link href={`/practice/${subject.id}?mode=ai`} className="flex-1">
-                              <Button className="w-full">
-                                <Brain className="h-4 w-4 mr-2" />
-                                AI Tutor
-                              </Button>
+                              <motion.div
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <Button className="w-full transition-all duration-200 hover:shadow-md">
+                                  <motion.div 
+                                    className="flex items-center"
+                                    animate={{ y: [0, -2, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
+                                  >
+                                    <Brain className="h-4 w-4 mr-2" />
+                                    AI Tutor
+                                  </motion.div>
+                                </Button>
+                              </motion.div>
                             </Link>
                           </div>
                         </div>
@@ -933,14 +1061,25 @@ export default function EnhancedStudentDashboard() {
                         />
                       </div>
                       <div className="flex gap-2">
-                        <Button onClick={updateProfile} className="flex-1">
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Changes
-                        </Button>
-                        <Button variant="outline" onClick={() => setEditingProfile(false)}>
-                          <X className="h-4 w-4 mr-2" />
-                          Cancel
-                        </Button>
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className="flex-1"
+                        >
+                          <Button onClick={updateProfile} className="w-full transition-all duration-200 hover:shadow-md">
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Changes
+                          </Button>
+                        </motion.div>
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Button variant="outline" onClick={() => setEditingProfile(false)} className="transition-all duration-200 hover:shadow-md">
+                            <X className="h-4 w-4 mr-2" />
+                            Cancel
+                          </Button>
+                        </motion.div>
                       </div>
                     </>
                   ) : (
@@ -972,10 +1111,21 @@ export default function EnhancedStudentDashboard() {
                           </div>
                         </div>
                       </div>
-                      <Button onClick={() => setEditingProfile(true)} className="w-full">
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Edit Profile
-                      </Button>
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Button onClick={() => setEditingProfile(true)} className="w-full transition-all duration-200 hover:shadow-md">
+                          <motion.div 
+                            className="flex items-center"
+                            animate={{ x: [0, 3, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 4 }}
+                          >
+                            <Edit3 className="h-4 w-4 mr-2" />
+                            Edit Profile
+                          </motion.div>
+                        </Button>
+                      </motion.div>
                     </>
                   )}
                 </CardContent>
@@ -1094,6 +1244,6 @@ export default function EnhancedStudentDashboard() {
           </div>
         </div>
       </footer>
-    </div>
+    </motion.div>
   );
 }
