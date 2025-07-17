@@ -10,6 +10,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import RobustAITutor from "@/components/ai/RobustAITutor";
+import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
 import CBTExamInterface from "@/components/student/CBTExamInterface";
 import { 
   BookOpen, 
@@ -424,7 +425,7 @@ export default function StudentDashboard() {
                       </Card>
                     </div>
                   </div>
-                  <RobustAITutor
+                  <EnhancedAITutor
                     context="Student dashboard - general tutoring"
                     userId={(user as any)?.id}
                   />

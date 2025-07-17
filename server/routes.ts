@@ -819,9 +819,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI tutor routes
-  app.post('/api/ai/explain', isAuthenticated, async (req: any, res) => {
+  app.post('/api/ai/explain', requireAuth, async (req: any, res) => {
     try {
-      const userId = req.user.claims?.sub;
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
       const { questionText, correctAnswer, studentAnswer } = req.body;
 
       const explanation = await explainQuestion(questionText, correctAnswer, studentAnswer);
@@ -841,7 +841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai/tutor', async (req: any, res) => {
+  app.post('/api/ai/tutor', requireAuth, async (req: any, res) => {
     try {
       const { question, context, questionData } = req.body;
       
@@ -868,10 +868,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Save AI interaction if user is authenticated
-      if (req.user?.claims?.sub) {
+      const userId = req.user?.claims?.sub || req.session?.user?.id;
+      if (userId) {
         try {
           await storage.createAiInteraction({
-            userId: req.user.claims.sub,
+            userId,
             type: "tutor_chat",
             question,
             response: response.explanation,
