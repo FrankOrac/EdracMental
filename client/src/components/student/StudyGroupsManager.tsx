@@ -175,7 +175,7 @@ export function StudyGroupsManager() {
   const filteredGroups = Array.isArray(studyGroups) ? studyGroups.filter((group: StudyGroup) => {
     const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          group.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDifficulty = !selectedDifficulty || group.difficulty === selectedDifficulty;
+    const matchesDifficulty = !selectedDifficulty || selectedDifficulty === "all" || group.difficulty === selectedDifficulty;
     return matchesSearch && matchesDifficulty;
   }) : [];
 
@@ -353,7 +353,7 @@ export function StudyGroupsManager() {
                 <SelectValue placeholder="Filter by difficulty" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Levels</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
                 <SelectItem value="beginner">Beginner</SelectItem>
                 <SelectItem value="intermediate">Intermediate</SelectItem>
                 <SelectItem value="advanced">Advanced</SelectItem>

@@ -2568,7 +2568,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/study-groups/:id/join', requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.session.user.id;
+      const userId = req.session?.user?.id || req.user?.claims?.sub;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      // Validate UUID format
+      if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(id)) {
+        return res.status(400).json({ message: "Invalid study group ID format" });
+      }
       
       const membership = await storage.joinStudyGroup(id, userId);
       res.json(membership);
