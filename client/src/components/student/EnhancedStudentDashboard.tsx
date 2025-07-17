@@ -34,8 +34,16 @@ import {
   Settings,
   PlusCircle,
   Filter,
-  Search
+  Search,
+  MessageSquare,
+  Sparkles
 } from "lucide-react";
+
+// Import the components from the old dashboard
+import { StudyGroupsManager } from "./StudyGroupsManager";
+import { AIStudyMatchmaker } from "./AIStudyMatchmaker";
+import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
+import CBTExamInterface from "./CBTExamInterface";
 
 export default function EnhancedStudentDashboard() {
   const { user } = useAuth();
@@ -204,7 +212,7 @@ export default function EnhancedStudentDashboard() {
         </motion.div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
+          <TabsList className="grid w-full grid-cols-7 bg-white dark:bg-gray-800 shadow-lg rounded-lg p-1">
             <TabsTrigger 
               value="overview" 
               className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
@@ -217,28 +225,42 @@ export default function EnhancedStudentDashboard() {
               className="flex items-center gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white"
             >
               <BookOpen className="h-4 w-4" />
-              Available Exams
-            </TabsTrigger>
-            <TabsTrigger 
-              value="create" 
-              className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
-            >
-              <PlusCircle className="h-4 w-4" />
-              Create Exam
+              Exams
             </TabsTrigger>
             <TabsTrigger 
               value="practice" 
               className="flex items-center gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
             >
               <Brain className="h-4 w-4" />
-              CBT Practice
+              Practice
+            </TabsTrigger>
+            <TabsTrigger 
+              value="study-groups" 
+              className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
+            >
+              <Users className="h-4 w-4" />
+              Study Groups
+            </TabsTrigger>
+            <TabsTrigger 
+              value="ai-matchmaker" 
+              className="flex items-center gap-2 data-[state=active]:bg-pink-500 data-[state=active]:text-white"
+            >
+              <Sparkles className="h-4 w-4" />
+              AI Matcher
+            </TabsTrigger>
+            <TabsTrigger 
+              value="ai-tutor" 
+              className="flex items-center gap-2 data-[state=active]:bg-purple-600 data-[state=active]:text-white"
+            >
+              <MessageSquare className="h-4 w-4" />
+              AI Tutor
             </TabsTrigger>
             <TabsTrigger 
               value="progress" 
-              className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
+              className="flex items-center gap-2 data-[state=active]:bg-teal-500 data-[state=active]:text-white"
             >
               <TrendingUp className="h-4 w-4" />
-              My Progress
+              Progress
             </TabsTrigger>
           </TabsList>
 
@@ -659,6 +681,60 @@ export default function EnhancedStudentDashboard() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Study Groups Tab */}
+          <TabsContent value="study-groups" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-6 w-6 text-indigo-500" />
+                  Collaborative Study Groups
+                </CardTitle>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Join or create study groups with fellow students for collaborative learning.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <StudyGroupsManager />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* AI Study Matchmaker Tab */}
+          <TabsContent value="ai-matchmaker" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-6 w-6 text-pink-500" />
+                  AI Study Matchmaker
+                </CardTitle>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Get AI-powered recommendations for study groups based on your preferences and learning style.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <AIStudyMatchmaker />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* AI Tutor Tab */}
+          <TabsContent value="ai-tutor" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-6 w-6 text-purple-600" />
+                  AI Tutor Assistant
+                </CardTitle>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Get instant help, explanations, and tutoring from our advanced AI assistant.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <EnhancedAITutor />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
