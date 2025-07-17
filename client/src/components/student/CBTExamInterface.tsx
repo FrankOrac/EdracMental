@@ -265,11 +265,17 @@ export default function CBTExamInterface() {
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Subjects:</p>
                   <div className="flex flex-wrap gap-1">
-                    {exam.subjects.map((subject: string, index: number) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {subject}
+                    {exam.subjects && exam.subjects.length > 0 ? (
+                      exam.subjects.map((subject: string, index: number) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {subject}
+                        </Badge>
+                      ))
+                    ) : (
+                      <Badge variant="outline" className="text-xs">
+                        General
                       </Badge>
-                    ))}
+                    )}
                   </div>
                 </div>
 
