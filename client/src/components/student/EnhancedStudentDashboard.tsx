@@ -48,7 +48,9 @@ import {
   MapPin,
   Edit3,
   Save,
-  X
+  X,
+  Sun,
+  Moon
 } from "lucide-react";
 
 // Import the components from the old dashboard
@@ -56,10 +58,12 @@ import { StudyGroupsManager } from "./StudyGroupsManager";
 import { AIStudyMatchmaker } from "./AIStudyMatchmaker";
 import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
 import CBTExamInterface from "./CBTExamInterface";
+import { useTheme } from "@/components/ThemeProvider";
 
 export default function EnhancedStudentDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
@@ -234,6 +238,27 @@ export default function EnhancedStudentDashboard() {
     return true;
   });
 
+  // Logout function
+  const handleLogout = async () => {
+    try {
+      await apiRequest('/api/auth/logout', {
+        method: 'POST'
+      });
+      // Redirect to login
+      window.location.href = '/login';
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account."
+      });
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging you out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleCreateCustomExam = async (subjectId: string, topicIds: string[], difficulty: string) => {
     try {
       const examData = {
@@ -353,18 +378,61 @@ export default function EnhancedStudentDashboard() {
                           </div>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                        onClick={() => {
-                          setActiveTab("profile");
-                          setSidebarOpen(false);
-                        }}
-                      >
-                        <User className="h-4 w-4 mr-2" />
-                        Manage Profile
-                      </Button>
+                      <div className="space-y-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => {
+                            setActiveTab("profile");
+                            setSidebarOpen(false);
+                          }}
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Manage Profile
+                        </Button>
+                        
+                        {/* Theme Toggle in Sidebar */}
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full"
+                            onClick={toggleTheme}
+                          >
+                            {theme === 'dark' ? (
+                              <>
+                                <Sun className="h-4 w-4 mr-2" />
+                                Light Mode
+                              </>
+                            ) : (
+                              <>
+                                <Moon className="h-4 w-4 mr-2" />
+                                Dark Mode
+                              </>
+                            )}
+                          </Button>
+                        </motion.div>
+                        
+                        {/* Logout Button in Sidebar */}
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="w-full"
+                            onClick={handleLogout}
+                          >
+                            <LogOut className="h-4 w-4 mr-2" />
+                            Logout
+                          </Button>
+                        </motion.div>
+                      </div>
                     </div>
                   </div>
                 </SheetContent>
@@ -412,6 +480,32 @@ export default function EnhancedStudentDashboard() {
                     {user?.subscriptionPlan || 'Free'} Plan
                   </div>
                 </div>
+                {/* Theme Toggle Button */}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="relative"
+                  >
+                    <motion.div
+                      initial={false}
+                      animate={{ rotate: theme === 'dark' ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {theme === 'dark' ? (
+                        <Sun className="h-4 w-4" />
+                      ) : (
+                        <Moon className="h-4 w-4" />
+                      )}
+                    </motion.div>
+                  </Button>
+                </motion.div>
+                
+                {/* Settings Button */}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -419,6 +513,21 @@ export default function EnhancedStudentDashboard() {
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
+                
+                {/* Logout Button */}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </motion.div>
               </div>
             </div>
           </div>
