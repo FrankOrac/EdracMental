@@ -1218,6 +1218,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Institution-specific routes
+  app.get('/api/institutions/:institutionId/students', requireAuth, async (req: any, res) => {
+    try {
+      const { institutionId } = req.params;
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      // Check if user has access to this institution
+      if (currentUser?.role !== 'admin' && currentUser?.institutionId !== institutionId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const students = await storage.getUsersByInstitution(institutionId);
+      res.json(students);
+    } catch (error) {
+      console.error("Error fetching institution students:", error);
+      res.status(500).json({ message: "Failed to fetch students" });
+    }
+  });
+
+  app.get('/api/institutions/:institutionId/exams', requireAuth, async (req: any, res) => {
+    try {
+      const { institutionId } = req.params;
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      // Check if user has access to this institution
+      if (currentUser?.role !== 'admin' && currentUser?.institutionId !== institutionId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const exams = await storage.getExamsByInstitution(institutionId);
+      res.json(exams);
+    } catch (error) {
+      console.error("Error fetching institution exams:", error);
+      res.status(500).json({ message: "Failed to fetch exams" });
+    }
+  });
+
+  app.get('/api/institutions/students', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== 'institution' && currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const institutionId = currentUser.institutionId || currentUser.id;
+      const students = await storage.getUsersByInstitution(institutionId);
+      res.json(students);
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      res.status(500).json({ message: "Failed to fetch students" });
+    }
+  });
+
+  app.get('/api/institutions/exams', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== 'institution' && currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const institutionId = currentUser.institutionId || currentUser.id;
+      const exams = await storage.getExamsByInstitution(institutionId);
+      res.json(exams);
+    } catch (error) {
+      console.error("Error fetching exams:", error);
+      res.status(500).json({ message: "Failed to fetch exams" });
+    }
+  });
+
+  app.post('/api/institutions/invite-student', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== 'institution' && currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const { email, firstName, lastName } = req.body;
+      const institutionId = currentUser.institutionId || currentUser.id;
+      
+      // For demo purposes, create a placeholder student invitation
+      // In production, you'd send an email invitation
+      const inviteId = `invite_${Date.now()}`;
+      
+      res.json({ 
+        message: "Student invitation sent successfully",
+        inviteId,
+        email,
+        institutionId
+      });
+    } catch (error) {
+      console.error("Error inviting student:", error);
+      res.status(500).json({ message: "Failed to invite student" });
+    }
+  });
+
   // Analytics routes
   app.get('/api/analytics/user', requireAuth, async (req: any, res) => {
     try {

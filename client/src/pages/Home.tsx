@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import AdminDashboard from "@/components/admin/AdminDashboard";
-import InstitutionDashboard from "@/components/institution/InstitutionDashboard";
+import EnhancedInstitutionDashboard from "@/components/institution/EnhancedInstitutionDashboard";
 import EnhancedStudentDashboard from "@/components/student/EnhancedStudentDashboard";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
@@ -23,7 +23,7 @@ export default function Home() {
   }
   
   if (user?.role === 'institution') {
-    return <InstitutionDashboard />;
+    return <EnhancedInstitutionDashboard />;
   }
   
   // Default to student dashboard
