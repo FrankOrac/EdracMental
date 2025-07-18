@@ -111,7 +111,7 @@ export default function EdracPreloader({ onComplete, duration = 3000 }: EdracPre
             ))}
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 font-medium">
-            AI-Powered Learning Platform
+            AI-Powered Learning Platform.
           </p>
         </div>
 
