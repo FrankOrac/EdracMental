@@ -6,9 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { Link } from "wouter";
 import { 
   Users, 
   BookOpen, 
@@ -20,17 +24,44 @@ import {
   Plus,
   Edit,
   Eye,
+  Trash2,
   UserPlus,
   FileText,
   Award,
   Clock,
   Target,
   Search,
+  Filter,
   Mail,
   Phone,
-  Calendar
+  Calendar,
+  Globe,
+  Brain,
+  MessageSquare,
+  Share2,
+  Download,
+  Upload,
+  Copy,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Star,
+  Zap,
+  PlayCircle,
+  StopCircle,
+  RotateCcw
 } from "lucide-react";
 import { motion } from "framer-motion";
+
+// Import existing components
+import ExamManager from "@/components/admin/ExamManager";
+import QuestionManager from "@/components/admin/QuestionManager";
+import UserManagement from "@/components/admin/UserManagement";
+import CategoryTopicManager from "@/components/admin/CategoryTopicManager";
+import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
+import { StudyGroupsManager } from "@/components/student/StudyGroupsManager";
+import ProfileManager from "@/components/profile/ProfileManager";
+import MultiQuestionCreator from "@/components/admin/MultiQuestionCreator";
 
 export default function EnhancedInstitutionDashboard() {
   const { user } = useAuth();
@@ -38,8 +69,12 @@ export default function EnhancedInstitutionDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
+  const [examDialog, setExamDialog] = useState(false);
+  const [selectedExam, setSelectedExam] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
 
-  // Fetch institution data
+  // Fetch data
   const { data: institutionStats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/analytics/institution"],
     retry: false,
@@ -60,7 +95,12 @@ export default function EnhancedInstitutionDashboard() {
     retry: false,
   });
 
-  // Invite student mutation
+  const { data: questions } = useQuery({
+    queryKey: ["/api/questions"],
+    retry: false,
+  });
+
+  // Mutations
   const inviteStudentMutation = useMutation({
     mutationFn: async (studentData: any) => {
       return await apiRequest("POST", "/api/institutions/invite-student", studentData);
@@ -76,6 +116,40 @@ export default function EnhancedInstitutionDashboard() {
     }
   });
 
+  const createExamMutation = useMutation({
+    mutationFn: async (examData: any) => {
+      return await apiRequest("POST", "/api/exams", {
+        ...examData,
+        institutionId: user?.institutionId
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/institutions/exams"] });
+      toast({ title: "Exam created successfully" });
+      setExamDialog(false);
+    },
+  });
+
+  const toggleExamStatusMutation = useMutation({
+    mutationFn: async ({ examId, isActive }: { examId: string; isActive: boolean }) => {
+      return await apiRequest("PATCH", `/api/exams/${examId}`, { isActive });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/institutions/exams"] });
+      toast({ title: "Exam status updated successfully" });
+    },
+  });
+
+  const deleteExamMutation = useMutation({
+    mutationFn: async (examId: string) => {
+      return await apiRequest("DELETE", `/api/exams/${examId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/institutions/exams"] });
+      toast({ title: "Exam deleted successfully" });
+    },
+  });
+
   const handleInviteStudent = () => {
     if (!inviteEmail || !inviteName) {
       toast({ title: "Please provide both email and name", variant: "destructive" });
@@ -89,192 +163,222 @@ export default function EnhancedInstitutionDashboard() {
     });
   };
 
+  const handleCreateExam = (examData: any) => {
+    createExamMutation.mutate(examData);
+  };
+
   if (statsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
-      </div>
+      <DashboardLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+        </div>
+      </DashboardLayout>
     );
   }
 
   const stats = institutionStats || { totalStudents: 0, totalExams: 0, averageScore: 0 };
   const institutionExams = exams || [];
   const institutionStudents = students || [];
+  const institutionQuestions = questions || [];
+
+  // Filter functions
+  const filteredExams = institutionExams.filter((exam: any) => {
+    const matchesSearch = exam.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || 
+      (filterStatus === "active" && exam.isActive) ||
+      (filterStatus === "inactive" && !exam.isActive);
+    return matchesSearch && matchesStatus;
+  });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Building className="h-5 w-5 text-white" />
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900 p-6">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <Building className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Institution Management</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {user?.firstName} {user?.lastName} • {user?.email}
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Institution Management</h1>
+                <p className="text-gray-600 dark:text-gray-300">
+                  Complete management system for {user?.firstName} {user?.lastName}
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <Badge variant="outline" className="hidden sm:inline-flex">
-                {user?.subscriptionPlan || 'Free'} Plan
-              </Badge>
-            </div>
-          </div>
-        </div>
-      </div>
+          </motion.div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Dashboard Overview
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300">
-            Manage your students, create exams, and track performance
-          </p>
-        </motion.div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-8">
+              <TabsTrigger value="overview" className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="students" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Students
+              </TabsTrigger>
+              <TabsTrigger value="exams" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Exams
+              </TabsTrigger>
+              <TabsTrigger value="questions" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Questions
+              </TabsTrigger>
+              <TabsTrigger value="subjects" className="flex items-center gap-2">
+                <Brain className="h-4 w-4" />
+                Subjects
+              </TabsTrigger>
+              <TabsTrigger value="groups" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Study Groups
+              </TabsTrigger>
+              <TabsTrigger value="ai-tutor" className="flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                AI Tutor
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <SettingsIcon className="h-4 w-4" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="students" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Students
-            </TabsTrigger>
-            <TabsTrigger value="exams" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              Exams
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <SettingsIcon className="h-4 w-4" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-blue-100 text-sm font-medium">Total Students</p>
-                      <p className="text-3xl font-bold">{institutionStudents.length}</p>
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-6">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm font-medium">Total Students</p>
+                        <p className="text-3xl font-bold">{institutionStudents.length}</p>
+                      </div>
+                      <Users className="h-8 w-8 text-blue-200" />
                     </div>
-                    <Users className="h-8 w-8 text-blue-200" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-green-100 text-sm font-medium">Active Exams</p>
-                      <p className="text-3xl font-bold">{institutionExams.length}</p>
+                <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm font-medium">Active Exams</p>
+                        <p className="text-3xl font-bold">{institutionExams.length}</p>
+                      </div>
+                      <BookOpen className="h-8 w-8 text-green-200" />
                     </div>
-                    <BookOpen className="h-8 w-8 text-green-200" />
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-purple-100 text-sm font-medium">Average Score</p>
-                      <p className="text-3xl font-bold">{stats.averageScore || 0}%</p>
+                <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-purple-100 text-sm font-medium">Questions Bank</p>
+                        <p className="text-3xl font-bold">{institutionQuestions.length}</p>
+                      </div>
+                      <FileText className="h-8 w-8 text-purple-200" />
                     </div>
-                    <TrendingUp className="h-8 w-8 text-purple-200" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
 
-            {/* Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="h-5 w-5" />
-                    Recent Student Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {institutionStudents.length > 0 ? (
-                    <div className="space-y-3">
-                      {institutionStudents.slice(0, 5).map((student: any, index: number) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-sm font-medium">
-                                {student.firstName?.[0] || student.email?.[0]}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="font-medium">{student.firstName} {student.lastName}</p>
-                              <p className="text-sm text-gray-600 dark:text-gray-400">{student.email}</p>
-                            </div>
-                          </div>
-                          <Badge variant="outline">Active</Badge>
-                        </div>
-                      ))}
+                <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-orange-100 text-sm font-medium">Average Score</p>
+                        <p className="text-3xl font-bold">{stats.averageScore || 0}%</p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-orange-200" />
                     </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600 dark:text-gray-400">No students enrolled yet</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Quick Actions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Button className="w-full justify-start" onClick={() => setActiveTab("students")}>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Invite New Student
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start" onClick={() => setActiveTab("exams")}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Exam
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      View Analytics
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Students Tab */}
-          <TabsContent value="students" className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Student Management</h3>
-                <p className="text-gray-600 dark:text-gray-400">Manage your institution's students</p>
+                  </CardContent>
+                </Card>
               </div>
-              <div className="flex gap-2">
+
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5" />
+                      Quick Actions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button className="h-12" onClick={() => setActiveTab("students")}>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Invite Student
+                      </Button>
+                      <Button variant="outline" className="h-12" onClick={() => setActiveTab("exams")}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Exam
+                      </Button>
+                      <Button variant="outline" className="h-12" onClick={() => setActiveTab("questions")}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Add Questions
+                      </Button>
+                      <Button variant="outline" className="h-12" onClick={() => setActiveTab("ai-tutor")}>
+                        <Brain className="h-4 w-4 mr-2" />
+                        AI Assistant
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Award className="h-5 w-5" />
+                      Recent Activity
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {institutionStudents.length > 0 ? (
+                      <div className="space-y-3">
+                        {institutionStudents.slice(0, 4).map((student: any, index: number) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-medium">
+                                  {student.firstName?.[0] || student.email?.[0]}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="font-medium text-sm">{student.firstName} {student.lastName}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">{student.email}</p>
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="text-xs">Active</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-600 dark:text-gray-400">No recent activity</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Students Tab */}
+            <TabsContent value="students" className="space-y-6">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Student Management</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Manage your institution's students</p>
+                </div>
                 <div className="flex gap-2">
                   <Input
                     placeholder="Student name"
@@ -297,203 +401,199 @@ export default function EnhancedInstitutionDashboard() {
                   </Button>
                 </div>
               </div>
-            </div>
 
-            <Card>
-              <CardContent className="p-6">
-                {studentsLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                  </div>
-                ) : institutionStudents.length > 0 ? (
-                  <div className="grid gap-4">
-                    {institutionStudents.map((student: any, index: number) => (
-                      <motion.div
-                        key={student.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                            <span className="text-white font-medium">
-                              {student.firstName?.[0] || student.email?.[0]}
-                            </span>
-                          </div>
-                          <div>
-                            <h3 className="font-medium">{student.firstName} {student.lastName}</h3>
-                            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                              <div className="flex items-center gap-1">
-                                <Mail className="h-3 w-3" />
-                                {student.email}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                Joined {new Date(student.createdAt).toLocaleDateString()}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="default">Active</Badge>
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No students enrolled</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      Start inviting students to your institution
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <UserManagement />
+            </TabsContent>
 
-          {/* Exams Tab */}
-          <TabsContent value="exams" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold">Exam Management</h3>
-                <p className="text-gray-600 dark:text-gray-400">Create and manage exams for your students</p>
-              </div>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create New Exam
-              </Button>
-            </div>
-
-            <Card>
-              <CardContent className="p-6">
-                {examsLoading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                  </div>
-                ) : institutionExams.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {institutionExams.map((exam: any, index: number) => (
-                      <motion.div
-                        key={exam.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <Card className="h-full hover:shadow-lg transition-shadow">
-                          <CardHeader>
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-lg">{exam.title}</CardTitle>
-                              <Badge variant={exam.isActive ? "default" : "secondary"}>
-                                {exam.isActive ? "Active" : "Draft"}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                              {exam.description}
-                            </p>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-2 text-sm">
-                                <Clock className="h-4 w-4" />
-                                <span>{exam.duration} minutes</span>
-                              </div>
-                              <div className="flex items-center gap-2 text-sm">
-                                <FileText className="h-4 w-4" />
-                                <span>{exam.totalQuestions} questions</span>
-                              </div>
-                              <div className="flex gap-2 pt-2">
-                                <Button size="sm" variant="outline" className="flex-1">
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View
-                                </Button>
-                                <Button size="sm" variant="outline" className="flex-1">
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Edit
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No exams created</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      Create your first exam to start testing your students
-                    </p>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Your First Exam
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <SettingsIcon className="h-5 w-5" />
-                  Institution Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="font-medium">General Settings</h3>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium">Institution Name</label>
-                          <Input defaultValue="My Institution" className="mt-1" />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Contact Email</label>
-                          <Input defaultValue={user?.email} className="mt-1" />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      <h3 className="font-medium">Exam Preferences</h3>
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium">Default Exam Duration (minutes)</label>
-                          <Input type="number" defaultValue="90" className="mt-1" />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Auto-grade Exams</label>
-                          <select className="w-full p-2 border rounded mt-1 dark:bg-gray-700 dark:border-gray-600">
-                            <option value="true">Enabled</option>
-                            <option value="false">Disabled</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="pt-4 border-t">
-                    <Button className="w-full">
-                      Save Settings
-                    </Button>
-                  </div>
+            {/* Exams Tab */}
+            <TabsContent value="exams" className="space-y-6">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Exam Management</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Create and manage exams for your students</p>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Search exams..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-48"
+                  />
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Dialog open={examDialog} onOpenChange={setExamDialog}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Exam
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Create New Exam</DialogTitle>
+                        <DialogDescription>Create a new exam for your students</DialogDescription>
+                      </DialogHeader>
+                      <ExamManager onExamCreated={() => setExamDialog(false)} />
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+
+              <Card>
+                <CardContent className="p-6">
+                  {examsLoading ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    </div>
+                  ) : filteredExams.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredExams.map((exam: any, index: number) => (
+                        <motion.div
+                          key={exam.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <Card className="h-full hover:shadow-lg transition-shadow">
+                            <CardHeader>
+                              <div className="flex justify-between items-start">
+                                <CardTitle className="text-lg">{exam.title}</CardTitle>
+                                <Badge variant={exam.isActive ? "default" : "secondary"}>
+                                  {exam.isActive ? "Active" : "Draft"}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                                {exam.description}
+                              </p>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-sm">
+                                  <Clock className="h-4 w-4" />
+                                  <span>{exam.duration} minutes</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-sm">
+                                  <FileText className="h-4 w-4" />
+                                  <span>{exam.totalQuestions} questions</span>
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                  <Button size="sm" variant="outline" className="flex-1">
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View
+                                  </Button>
+                                  <Button size="sm" variant="outline" className="flex-1">
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline"
+                                    onClick={() => toggleExamStatusMutation.mutate({ 
+                                      examId: exam.id, 
+                                      isActive: !exam.isActive 
+                                    })}
+                                  >
+                                    {exam.isActive ? <StopCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+                                  </Button>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <BookOpen className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No exams found</h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        {searchTerm ? "No exams match your search criteria" : "Create your first exam to start testing your students"}
+                      </p>
+                      <Button onClick={() => setExamDialog(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Your First Exam
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Questions Tab */}
+            <TabsContent value="questions" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Question Bank Management</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Manage questions for your exams</p>
+                </div>
+                <Link to="/create-questions">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Questions
+                  </Button>
+                </Link>
+              </div>
+              <QuestionManager />
+            </TabsContent>
+
+            {/* Subjects Tab */}
+            <TabsContent value="subjects" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Subject & Topic Management</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Organize your curriculum structure</p>
+                </div>
+              </div>
+              <CategoryTopicManager />
+            </TabsContent>
+
+            {/* Study Groups Tab */}
+            <TabsContent value="groups" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Study Groups Management</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Manage collaborative study groups for your students</p>
+                </div>
+              </div>
+              <StudyGroupsManager />
+            </TabsContent>
+
+            {/* AI Tutor Tab */}
+            <TabsContent value="ai-tutor" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">AI Teaching Assistant</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Get AI assistance for content creation and student support</p>
+                </div>
+              </div>
+              <Card>
+                <CardContent className="p-6">
+                  <EnhancedAITutor />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Settings Tab */}
+            <TabsContent value="settings" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Institution Settings</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Configure your institution preferences</p>
+                </div>
+              </div>
+              <ProfileManager />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
