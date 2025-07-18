@@ -437,6 +437,7 @@ function CreateExamForm({ subjects, onSubmit, isLoading, examToCopy }: any) {
   const [formData, setFormData] = useState({
     title: examToCopy?.title ? `${examToCopy.title} (Copy)` : '',
     description: examToCopy?.description || '',
+    type: examToCopy?.type || 'practice',
     duration: examToCopy?.duration || 60,
     totalQuestions: examToCopy?.totalQuestions || 20,
     subjects: examToCopy?.subjects || [],
@@ -501,7 +502,21 @@ function CreateExamForm({ subjects, onSubmit, isLoading, examToCopy }: any) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Label htmlFor="type">Exam Mode</Label>
+          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select mode" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="practice">Practice</SelectItem>
+              <SelectItem value="mock">Mock</SelectItem>
+              <SelectItem value="official">Official</SelectItem>
+              <SelectItem value="custom">Custom</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <div>
           <Label htmlFor="difficulty">Difficulty</Label>
           <Select value={formData.difficulty} onValueChange={(value) => setFormData({ ...formData, difficulty: value })}>
@@ -517,17 +532,16 @@ function CreateExamForm({ subjects, onSubmit, isLoading, examToCopy }: any) {
           </Select>
         </div>
         <div>
-          <Label htmlFor="examCategory">Exam Type</Label>
+          <Label htmlFor="examCategory">Exam Category</Label>
           <Select value={formData.examCategory} onValueChange={(value) => setFormData({ ...formData, examCategory: value })}>
             <SelectTrigger>
-              <SelectValue placeholder="Select exam type" />
+              <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="jamb">JAMB</SelectItem>
               <SelectItem value="waec">WAEC</SelectItem>
               <SelectItem value="neco">NECO</SelectItem>
               <SelectItem value="gce">GCE</SelectItem>
-              <SelectItem value="interview">Interview</SelectItem>
               <SelectItem value="custom">Custom</SelectItem>
             </SelectContent>
           </Select>

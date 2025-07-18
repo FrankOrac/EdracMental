@@ -120,7 +120,7 @@ export default function UserManagement() {
     },
   });
 
-  const filteredUsers = users?.filter((user: User) => {
+  const filteredUsers = (Array.isArray(users) ? users : []).filter((user: User) => {
     const fullName = user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim();
     const matchesSearch = fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (user.email || '').toLowerCase().includes(searchTerm.toLowerCase());

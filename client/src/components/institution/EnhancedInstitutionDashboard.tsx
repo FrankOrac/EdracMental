@@ -56,12 +56,12 @@ import { motion } from "framer-motion";
 // Import existing components
 import ExamManager from "@/components/admin/ExamManager";
 import QuestionManager from "@/components/admin/QuestionManager";
-import UserManagement from "@/components/admin/UserManagement";
 import CategoryTopicManager from "@/components/admin/CategoryTopicManager";
 import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
 import { StudyGroupsManager } from "@/components/student/StudyGroupsManager";
 import ProfileManager from "@/components/profile/ProfileManager";
 import MultiQuestionCreator from "@/components/admin/MultiQuestionCreator";
+
 
 export default function EnhancedInstitutionDashboard() {
   const { user } = useAuth();
@@ -402,7 +402,58 @@ export default function EnhancedInstitutionDashboard() {
                 </div>
               </div>
 
-              <UserManagement />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search students..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-64"
+                    />
+                  </div>
+                  <Badge variant="outline">
+                    {institutionStudents.length} Students
+                  </Badge>
+                </div>
+
+                {institutionStudents.length === 0 ? (
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-12">
+                      <Users className="h-12 w-12 text-gray-400 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">No students enrolled</h3>
+                      <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm">
+                        Start by inviting students to your institution using the invite form above.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="grid gap-4">
+                    {institutionStudents.map((student, index) => (
+                      <Card key={index} className="hover:shadow-md transition-shadow">
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                              <GraduationCap className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium">{student.name || student.email}</h3>
+                              <p className="text-sm text-gray-500">{student.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary">Student</Badge>
+                            <Button size="sm" variant="outline">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             {/* Exams Tab */}
@@ -541,7 +592,31 @@ export default function EnhancedInstitutionDashboard() {
                   </Button>
                 </Link>
               </div>
-              <QuestionManager />
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="text-center py-8">
+                      <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Question Bank</h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        You have {institutionQuestions.length} questions in your bank
+                      </p>
+                      <div className="flex gap-2 justify-center">
+                        <Link to="/create-questions">
+                          <Button>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Questions
+                          </Button>
+                        </Link>
+                        <Button variant="outline">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Bulk Upload
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Subjects Tab */}
@@ -552,7 +627,23 @@ export default function EnhancedInstitutionDashboard() {
                   <p className="text-gray-600 dark:text-gray-400">Organize your curriculum structure</p>
                 </div>
               </div>
-              <CategoryTopicManager />
+              <Card>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="text-center py-8">
+                      <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium mb-2">Subjects & Topics</h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        Manage your curriculum structure and academic subjects
+                      </p>
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Subject
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             {/* Study Groups Tab */}
