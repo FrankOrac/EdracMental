@@ -182,9 +182,9 @@ export default function AdminQuestionBank() {
 
   const filteredQuestions = questions.filter((question: any) => {
     return (
-      (!filters.subject || question.subjectId?.toString() === filters.subject) &&
-      (!filters.difficulty || question.difficulty === filters.difficulty) &&
-      (!filters.examType || question.examType === filters.examType) &&
+      (!filters.subject || filters.subject === "all" || question.subjectId?.toString() === filters.subject) &&
+      (!filters.difficulty || filters.difficulty === "all" || question.difficulty === filters.difficulty) &&
+      (!filters.examType || filters.examType === "all" || question.examType === filters.examType) &&
       (!filters.search || question.text.toLowerCase().includes(filters.search.toLowerCase()))
     );
   });
@@ -486,7 +486,7 @@ export default function AdminQuestionBank() {
                   <SelectValue placeholder="All subjects" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All subjects</SelectItem>
+                  <SelectItem value="all">All subjects</SelectItem>
                   {subjects.map((subject: any) => (
                     <SelectItem key={subject.id} value={subject.id.toString()}>
                       {subject.name}
@@ -502,7 +502,7 @@ export default function AdminQuestionBank() {
                   <SelectValue placeholder="All difficulties" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All difficulties</SelectItem>
+                  <SelectItem value="all">All difficulties</SelectItem>
                   <SelectItem value="easy">Easy</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="hard">Hard</SelectItem>
@@ -516,7 +516,7 @@ export default function AdminQuestionBank() {
                   <SelectValue placeholder="All exam types" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All exam types</SelectItem>
+                  <SelectItem value="all">All exam types</SelectItem>
                   <SelectItem value="jamb">JAMB</SelectItem>
                   <SelectItem value="waec">WAEC</SelectItem>
                   <SelectItem value="neco">NECO</SelectItem>

@@ -1250,7 +1250,7 @@ function EditQuestionForm({ question, subjects, topics, onSubmit, isLoading, onS
               <SelectValue placeholder="Select topic" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No specific topic</SelectItem>
+              <SelectItem value="none">No specific topic</SelectItem>
               {topics.filter((topic: any) => topic.subjectId === formData.subjectId).map((topic: any) => (
                 <SelectItem key={topic.id} value={topic.id.toString()}>
                   {topic.name}

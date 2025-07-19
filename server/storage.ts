@@ -1605,10 +1605,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLearningPackage(packageData: InsertLearningPackage & { createdBy: string }): Promise<LearningPackage> {
-    const id = `pkg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const [learningPackage] = await db
       .insert(learningPackages)
-      .values({ ...packageData, id })
+      .values({ ...packageData })
       .returning();
     return learningPackage;
   }
