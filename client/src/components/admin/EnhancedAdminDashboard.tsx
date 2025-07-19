@@ -140,7 +140,7 @@ export default function EnhancedAdminDashboard() {
           </motion.div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-1">
               <TabsTrigger 
                 value="overview" 
                 className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
@@ -167,7 +167,7 @@ export default function EnhancedAdminDashboard() {
                 className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
               >
                 <BookOpen className="h-4 w-4" />
-                Questions
+                Question Bank
               </TabsTrigger>
               <TabsTrigger 
                 value="packages" 
@@ -177,8 +177,15 @@ export default function EnhancedAdminDashboard() {
                 Packages
               </TabsTrigger>
               <TabsTrigger 
-                value="content" 
+                value="questions" 
                 className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
+              >
+                <BookOpen className="h-4 w-4" />
+                Question Bank
+              </TabsTrigger>
+              <TabsTrigger 
+                value="content" 
+                className="flex items-center gap-2 data-[state=active]:bg-purple-500 data-[state=active]:text-white"
               >
                 <Database className="h-4 w-4" />
                 Content
