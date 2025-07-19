@@ -2855,9 +2855,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Institution Packages Management
-  app.get('/api/institutions/packages', isAuthenticated, async (req: any, res) => {
+  app.get('/api/institutions/packages', requireAuth, async (req: any, res) => {
     try {
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       const packages = await storage.getInstitutionPackagesByInstitution(institutionId);
       res.json(packages);
     } catch (error) {
@@ -2866,9 +2866,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/institutions/packages', isAuthenticated, async (req: any, res) => {
+  app.post('/api/institutions/packages', requireAuth, async (req: any, res) => {
     try {
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       const packageData = { ...req.body, institutionId };
       const newPackage = await storage.createInstitutionPackage(packageData);
       res.json(newPackage);
@@ -2879,9 +2879,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Institution Settings Management
-  app.get('/api/institutions/settings', isAuthenticated, async (req: any, res) => {
+  app.get('/api/institutions/settings', requireAuth, async (req: any, res) => {
     try {
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       const settings = await storage.getInstitutionSettings(institutionId);
       if (!settings) {
         // Create default settings if none exist
@@ -2899,9 +2899,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/institutions/settings', isAuthenticated, async (req: any, res) => {
+  app.put('/api/institutions/settings', requireAuth, async (req: any, res) => {
     try {
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       const updatedSettings = await storage.updateInstitutionSettings(institutionId, req.body);
       res.json(updatedSettings);
     } catch (error) {
@@ -2911,9 +2911,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Student Performance Management
-  app.get('/api/institutions/performance', isAuthenticated, async (req: any, res) => {
+  app.get('/api/institutions/performance', requireAuth, async (req: any, res) => {
     try {
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       const performance = await storage.getInstitutionStudentPerformance(institutionId);
       res.json(performance);
     } catch (error) {
@@ -2923,9 +2923,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Student Groups Management
-  app.get('/api/institutions/groups', isAuthenticated, async (req: any, res) => {
+  app.get('/api/institutions/groups', requireAuth, async (req: any, res) => {
     try {
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       const groups = await storage.getInstitutionStudentGroups(institutionId);
       res.json(groups);
     } catch (error) {
@@ -2934,9 +2934,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/institutions/groups', isAuthenticated, async (req: any, res) => {
+  app.post('/api/institutions/groups', requireAuth, async (req: any, res) => {
     try {
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       const groupData = { ...req.body, institutionId };
       const newGroup = await storage.createInstitutionStudentGroup(groupData);
       res.json(newGroup);
@@ -2947,10 +2947,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Institution Payment Processing
-  app.post('/api/institutions/payments/create-intent', isAuthenticated, async (req: any, res) => {
+  app.post('/api/institutions/payments/create-intent', requireAuth, async (req: any, res) => {
     try {
       const { amount, packageId, paymentMethod } = req.body;
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       
       // For now, return a mock payment intent
       // In production, integrate with Stripe/Paystack
@@ -2974,10 +2974,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/institutions/payments/offline', isAuthenticated, async (req: any, res) => {
+  app.post('/api/institutions/payments/offline', requireAuth, async (req: any, res) => {
     try {
       const { amount, packageId, paymentReference, invoiceNumber } = req.body;
-      const institutionId = req.user.claims.sub;
+      const institutionId = req.session.user?.id || req.user?.claims?.sub;
       
       // Create pending package record for offline payment
       const packageData = {

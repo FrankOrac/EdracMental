@@ -1013,10 +1013,176 @@ export default function EnhancedInstitutionDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-semibold">Institution Settings</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Configure your institution preferences</p>
+                  <p className="text-gray-600 dark:text-gray-400">Configure your institution preferences and content settings</p>
                 </div>
               </div>
-              <ProfileManager />
+              
+              {settingsLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Content Management Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BookOpen className="h-5 w-5" />
+                        Content Management
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Disable Default Content</p>
+                          <p className="text-sm text-gray-600">Hide admin-created subjects and questions</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          {settings?.disableDefaultContent ? 'Enabled' : 'Disabled'}
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Custom Content Only</p>
+                          <p className="text-sm text-gray-600">Show only institution-created content</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Configure
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Student Registration</p>
+                          <p className="text-sm text-gray-600">Allow students to self-register</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Manage
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Institution Profile */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Building className="h-5 w-5" />
+                        Institution Profile
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium">Institution Name</label>
+                        <Input defaultValue={user?.firstName + " " + user?.lastName} />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Contact Email</label>
+                        <Input defaultValue={user?.email} />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Phone Number</label>
+                        <Input placeholder="Institution phone number" />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Address</label>
+                        <Input placeholder="Institution address" />
+                      </div>
+                      
+                      <Button className="w-full">
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Update Profile
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Exam Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="h-5 w-5" />
+                        Exam Configuration
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium">Default Exam Duration (minutes)</label>
+                        <Input type="number" defaultValue="90" />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium">Questions per Exam</label>
+                        <Input type="number" defaultValue="40" />
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Auto-Submit</p>
+                          <p className="text-sm text-gray-600">Submit exams automatically when time expires</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Enabled
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Show Results</p>
+                          <p className="text-sm text-gray-600">Show results immediately after exam</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Enabled
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Notification Settings */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Mail className="h-5 w-5" />
+                        Notifications
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Email Notifications</p>
+                          <p className="text-sm text-gray-600">Send email updates to students</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Configure
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Exam Reminders</p>
+                          <p className="text-sm text-gray-600">Remind students about upcoming exams</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Enabled
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">Performance Reports</p>
+                          <p className="text-sm text-gray-600">Send weekly performance summaries</p>
+                        </div>
+                        <Button variant="outline" size="sm">
+                          Disabled
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
