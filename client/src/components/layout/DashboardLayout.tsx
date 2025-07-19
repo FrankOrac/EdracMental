@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation, Link } from "wouter";
-import { useTheme } from "@/components/ThemeProvider";
+import { useTheme } from "@/components/system/ThemeProvider";
 import { 
   Menu, 
   Home, 
@@ -52,7 +52,6 @@ const getSidebarItems = (userRole: string) => {
       { icon: FileText, label: "Question Bank", path: "/create-questions" },
       { icon: Users, label: "Student Management", path: "/students" },
       { icon: BarChart3, label: "Analytics", path: "/analytics" },
-      { icon: Settings, label: "Institution Settings", path: "/settings" },
     ];
   }
 

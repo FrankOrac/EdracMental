@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useTheme } from "@/components/ThemeProvider";
+import { useTheme } from "@/components/system/ThemeProvider";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import {

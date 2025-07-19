@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "wouter";
-import { useTheme } from "@/components/ThemeProvider";
+import { useTheme } from "@/components/system/ThemeProvider";
 import { 
   GraduationCap, 
   Building, 

@@ -58,7 +58,7 @@ import { StudyGroupsManager } from "./StudyGroupsManager";
 import { AIStudyMatchmaker } from "./AIStudyMatchmaker";
 import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
 import CBTExamInterface from "./CBTExamInterface";
-import { useTheme } from "@/components/ThemeProvider";
+import { useTheme } from "@/components/system/ThemeProvider";
 
 export default function EnhancedStudentDashboard() {
   const { user } = useAuth();
