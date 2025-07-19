@@ -38,6 +38,10 @@ export const users = pgTable("users", {
   subscriptionPlan: varchar("subscription_plan", { enum: ["free", "premium", "institution"] }).notNull().default("free"),
   subscriptionExpiry: timestamp("subscription_expiry"),
   institutionId: varchar("institution_id"),
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  disabledReason: text("disabled_reason"),
+  disabledBy: varchar("disabled_by"),
+  disabledAt: timestamp("disabled_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -53,6 +57,10 @@ export const institutions = pgTable("institutions", {
   subscriptionExpiry: timestamp("subscription_expiry"),
   ownerId: varchar("owner_id").notNull(),
   settings: jsonb("settings"),
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  disabledReason: text("disabled_reason"),
+  disabledBy: varchar("disabled_by"),
+  disabledAt: timestamp("disabled_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

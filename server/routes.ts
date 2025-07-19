@@ -1601,32 +1601,156 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes for users management
   app.get('/api/users', requireAuth, async (req: any, res) => {
     try {
-      const currentUserId = req.session.user.id;
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
       const currentUser = await storage.getUser(currentUserId);
       
       if (currentUser?.role !== "admin") {
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      // Return mock users for now - in production this would fetch from database
-      const mockUsers = [
-        { id: "admin-001", email: "admin@edrac.com", firstName: "System", lastName: "Administrator", role: "admin", subscriptionPlan: "premium", createdAt: "2024-01-15" },
-        { id: "student-001", email: "student@edrac.com", firstName: "Test", lastName: "Student", role: "student", subscriptionPlan: "free", createdAt: "2024-02-20" },
-        { id: "institution-001", email: "institution@edrac.com", firstName: "Institution", lastName: "Manager", role: "institution", subscriptionPlan: "premium", createdAt: "2024-01-30" },
-        { id: "student-002", email: "jane.student@edrac.com", firstName: "Jane", lastName: "Doe", role: "student", subscriptionPlan: "premium", createdAt: "2024-03-10" },
-        { id: "student-003", email: "michael.test@edrac.com", firstName: "Michael", lastName: "Johnson", role: "student", subscriptionPlan: "free", createdAt: "2024-03-15" },
-      ];
-      
-      res.json(mockUsers);
+      const users = await storage.getAllUsers();
+      res.json(users);
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
     }
   });
 
+  // Admin user status management
+  app.patch('/api/users/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const adminId = req.session.user?.id || req.user?.claims?.sub;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const { id } = req.params;
+      const { enabled, reason } = req.body;
+      
+      const updatedUser = await storage.enableDisableUser(id, enabled, reason, adminId);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      res.status(500).json({ message: 'Failed to update user status' });
+    }
+  });
+
+  // Admin institutions management
+  app.get('/api/institutions', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.user?.id || req.user?.claims?.sub;
+      const user = await storage.getUser(userId);
+      
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const institutions = await storage.getAllInstitutions();
+      res.json(institutions);
+    } catch (error) {
+      console.error('Error fetching institutions:', error);
+      res.status(500).json({ message: 'Failed to fetch institutions' });
+    }
+  });
+
+  app.patch('/api/institutions/:id/status', requireAuth, async (req: any, res) => {
+    try {
+      const adminId = req.session.user?.id || req.user?.claims?.sub;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const { id } = req.params;
+      const { enabled, reason } = req.body;
+      
+      const updatedInstitution = await storage.enableDisableInstitution(id, enabled, reason, adminId);
+      res.json(updatedInstitution);
+    } catch (error) {
+      console.error('Error updating institution status:', error);
+      res.status(500).json({ message: 'Failed to update institution status' });
+    }
+  });
+
+  // Admin learning packages management
+  app.get('/api/admin/packages', requireAuth, async (req: any, res) => {
+    try {
+      const adminId = req.session.user?.id || req.user?.claims?.sub;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const packages = await storage.getAllLearningPackages();
+      res.json(packages);
+    } catch (error) {
+      console.error('Error fetching packages:', error);
+      res.status(500).json({ message: 'Failed to fetch packages' });
+    }
+  });
+
+  app.post('/api/admin/packages', requireAuth, async (req: any, res) => {
+    try {
+      const adminId = req.session.user?.id || req.user?.claims?.sub;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const packageData = req.body;
+      const newPackage = await storage.createLearningPackage({ ...packageData, createdBy: adminId });
+      res.status(201).json(newPackage);
+    } catch (error) {
+      console.error('Error creating package:', error);
+      res.status(500).json({ message: 'Failed to create package' });
+    }
+  });
+
+  app.patch('/api/admin/packages/:id', requireAuth, async (req: any, res) => {
+    try {
+      const adminId = req.session.user?.id || req.user?.claims?.sub;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const { id } = req.params;
+      const packageData = req.body;
+      const updatedPackage = await storage.updateLearningPackage(id, packageData);
+      res.json(updatedPackage);
+    } catch (error) {
+      console.error('Error updating package:', error);
+      res.status(500).json({ message: 'Failed to update package' });
+    }
+  });
+
+  app.delete('/api/admin/packages/:id', requireAuth, async (req: any, res) => {
+    try {
+      const adminId = req.session.user?.id || req.user?.claims?.sub;
+      const admin = await storage.getUser(adminId);
+      
+      if (admin?.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+      }
+
+      const { id } = req.params;
+      await storage.deleteLearningPackage(id);
+      res.json({ message: 'Package deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting package:', error);
+      res.status(500).json({ message: 'Failed to delete package' });
+    }
+  });
+
   app.post('/api/users', requireAuth, async (req: any, res) => {
     try {
-      const currentUserId = req.session.user.id;
+      const currentUserId = req.session.user?.id || req.user?.claims?.sub;
       const currentUser = await storage.getUser(currentUserId);
       
       if (currentUser?.role !== "admin") {
@@ -2999,6 +3123,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error processing offline payment:', error);
       res.status(500).json({ message: 'Failed to process offline payment' });
+    }
+  });
+
+  // Admin learning package routes
+  app.get('/api/admin/packages', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id;
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const packages = await storage.getAllLearningPackages();
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+      res.status(500).json({ error: "Failed to fetch packages" });
+    }
+  });
+
+  app.post('/api/admin/packages', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id;
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const packageData = req.body;
+      const newPackage = await storage.createLearningPackage({
+        ...packageData,
+        createdBy: userId
+      });
+      res.json(newPackage);
+    } catch (error) {
+      console.error("Error creating package:", error);
+      res.status(500).json({ error: "Failed to create package" });
+    }
+  });
+
+  app.put('/api/admin/packages/:id', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id;
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const { id } = req.params;
+      const updateData = req.body;
+      const updatedPackage = await storage.updateLearningPackage(id, updateData);
+      res.json(updatedPackage);
+    } catch (error) {
+      console.error("Error updating package:", error);
+      res.status(500).json({ error: "Failed to update package" });
+    }
+  });
+
+  app.delete('/api/admin/packages/:id', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session?.user?.id;
+      const user = await storage.getUser(userId);
+      if (user?.role !== 'admin') {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+      
+      const { id } = req.params;
+      await storage.deleteLearningPackage(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting package:", error);
+      res.status(500).json({ error: "Failed to delete package" });
     }
   });
 

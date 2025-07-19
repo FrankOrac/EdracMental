@@ -80,7 +80,13 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
   getUsersByInstitution(institutionId: string): Promise<User[]>;
+  enableDisableUser(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<User>;
+  
+  // Institution admin operations
+  getAllInstitutions(): Promise<Institution[]>;
+  enableDisableInstitution(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<Institution>;
   
   // Institution operations
   createInstitution(institution: InsertInstitution & { ownerId: string }): Promise<Institution>;
@@ -282,6 +288,16 @@ export interface IStorage {
       details: any;
     }>;
   }>;
+
+  // Admin-specific operations
+  getAllUsers(): Promise<User[]>;
+  getAllInstitutions(): Promise<Institution[]>;
+  enableDisableUser(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<User>;
+  enableDisableInstitution(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<Institution>;
+  getAllLearningPackages(): Promise<LearningPackage[]>;
+  createLearningPackage(packageData: InsertLearningPackage & { createdBy: string }): Promise<LearningPackage>;
+  updateLearningPackage(id: string, data: Partial<InsertLearningPackage>): Promise<LearningPackage>;
+  deleteLearningPackage(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -306,12 +322,31 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
   async getUsersByInstitution(institutionId: string): Promise<User[]> {
     return await db
       .select()
       .from(users)
       .where(eq(users.institutionId, institutionId))
       .orderBy(desc(users.createdAt));
+  }
+
+  async enableDisableUser(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        isEnabled: enabled,
+        disabledReason: enabled ? null : reason,
+        disabledBy: enabled ? null : adminId,
+        disabledAt: enabled ? null : new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
   
   // Institution operations
@@ -329,8 +364,27 @@ export class DatabaseStorage implements IStorage {
     return institution;
   }
   
+  async getAllInstitutions(): Promise<Institution[]> {
+    return await db.select().from(institutions).orderBy(desc(institutions.createdAt));
+  }
+
   async getInstitutionsByOwner(ownerId: string): Promise<Institution[]> {
     return await db.select().from(institutions).where(eq(institutions.ownerId, ownerId));
+  }
+
+  async enableDisableInstitution(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<Institution> {
+    const [institution] = await db
+      .update(institutions)
+      .set({
+        isEnabled: enabled,
+        disabledReason: enabled ? null : reason,
+        disabledBy: enabled ? null : adminId,
+        disabledAt: enabled ? null : new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(institutions.id, id))
+      .returning();
+    return institution;
   }
   
   async updateInstitution(id: string, data: Partial<InsertInstitution>): Promise<Institution> {
@@ -1543,6 +1597,66 @@ export class DatabaseStorage implements IStorage {
         details: ra.details,
       })),
     };
+  }
+
+  // Admin learning package methods
+  async getAllLearningPackages(): Promise<LearningPackage[]> {
+    return await db.select().from(learningPackages).orderBy(desc(learningPackages.createdAt));
+  }
+
+  async createLearningPackage(packageData: InsertLearningPackage & { createdBy: string }): Promise<LearningPackage> {
+    const id = `pkg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const [learningPackage] = await db
+      .insert(learningPackages)
+      .values({ ...packageData, id })
+      .returning();
+    return learningPackage;
+  }
+
+  async updateLearningPackage(id: string, data: Partial<InsertLearningPackage>): Promise<LearningPackage> {
+    const [learningPackage] = await db
+      .update(learningPackages)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(learningPackages.id, id))
+      .returning();
+    return learningPackage;
+  }
+
+  async deleteLearningPackage(id: string): Promise<void> {
+    await db.update(learningPackages).set({ isActive: false }).where(eq(learningPackages.id, id));
+  }
+
+  // Admin user management methods  
+  async enableDisableUser(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        isActive: enabled,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async enableDisableInstitution(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<Institution> {
+    const [institution] = await db
+      .update(institutions)
+      .set({ 
+        isActive: enabled,
+        updatedAt: new Date()
+      })
+      .where(eq(institutions.id, id))
+      .returning();
+    return institution;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getAllInstitutions(): Promise<Institution[]> {
+    return await db.select().from(institutions).orderBy(desc(institutions.createdAt));
   }
 }
 

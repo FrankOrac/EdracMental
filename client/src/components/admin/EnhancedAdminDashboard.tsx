@@ -10,6 +10,8 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import UserManagement from "./UserManagement";
 import CategoryTopicManager from "./CategoryTopicManager";
+import AdminQuestionBank from "./AdminQuestionBank";
+import AdminPackageManager from "./AdminPackageManager";
 import { 
   BarChart3, 
   Users, 
@@ -138,20 +140,20 @@ export default function EnhancedAdminDashboard() {
           </motion.div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-1">
+            <TabsList className="grid w-full grid-cols-8 bg-white dark:bg-slate-800 shadow-lg rounded-lg p-1">
               <TabsTrigger 
                 value="overview" 
                 className="flex items-center gap-2 data-[state=active]:bg-blue-500 data-[state=active]:text-white"
               >
                 <BarChart3 className="h-4 w-4" />
-                System Overview
+                Overview
               </TabsTrigger>
               <TabsTrigger 
                 value="users" 
                 className="flex items-center gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white"
               >
                 <Users className="h-4 w-4" />
-                User Management
+                Users
               </TabsTrigger>
               <TabsTrigger 
                 value="institutions" 
@@ -161,25 +163,39 @@ export default function EnhancedAdminDashboard() {
                 Institutions
               </TabsTrigger>
               <TabsTrigger 
+                value="questions" 
+                className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
+              >
+                <BookOpen className="h-4 w-4" />
+                Questions
+              </TabsTrigger>
+              <TabsTrigger 
+                value="packages" 
+                className="flex items-center gap-2 data-[state=active]:bg-cyan-500 data-[state=active]:text-white"
+              >
+                <Crown className="h-4 w-4" />
+                Packages
+              </TabsTrigger>
+              <TabsTrigger 
                 value="content" 
                 className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
               >
-                <BookOpen className="h-4 w-4" />
-                Content Control
+                <Database className="h-4 w-4" />
+                Content
               </TabsTrigger>
               <TabsTrigger 
                 value="system" 
                 className="flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white"
               >
-                <Database className="h-4 w-4" />
-                System Health
+                <Activity className="h-4 w-4" />
+                System
               </TabsTrigger>
               <TabsTrigger 
                 value="settings" 
                 className="flex items-center gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
               >
                 <SettingsIcon className="h-4 w-4" />
-                Global Settings
+                Settings
               </TabsTrigger>
             </TabsList>
 
@@ -364,6 +380,16 @@ export default function EnhancedAdminDashboard() {
             {/* User Management Tab */}
             <TabsContent value="users" className="space-y-6">
               <UserManagement />
+            </TabsContent>
+
+            {/* Questions Tab */}
+            <TabsContent value="questions" className="space-y-6">
+              <AdminQuestionBank />
+            </TabsContent>
+
+            {/* Packages Tab */}
+            <TabsContent value="packages" className="space-y-6">
+              <AdminPackageManager />
             </TabsContent>
 
             {/* Institutions Tab */}
