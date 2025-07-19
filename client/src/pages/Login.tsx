@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -17,7 +16,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await apiRequest('POST', '/api/auth/login', { email, password });
+      const response = await apiRequest('POST', '/api/auth/demo-login', { email });
       
       if (response.ok) {
         const data = await response.json();
@@ -69,17 +68,7 @@ export default function Login() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+
             <Button 
               type="submit" 
               className="w-full"
@@ -89,16 +78,46 @@ export default function Login() {
             </Button>
           </form>
           
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Demo accounts:
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-              Student: demo@student.com (password: demo123)
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500">
-              Admin: admin@edrac.com (password: admin123)
-            </p>
+          <div className="mt-6">
+            <div className="text-center mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Quick Demo Login:
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEmail("student@edrac.com")}
+                className="text-xs"
+              >
+                Student Demo
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEmail("jane.student@edrac.com")}
+                className="text-xs"
+              >
+                Premium Student
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEmail("institution@edrac.com")}
+                className="text-xs"
+              >
+                Institution
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEmail("admin@edrac.com")}
+                className="text-xs"
+              >
+                Admin
+              </Button>
+            </div>
           </div>
           
           <div className="mt-4 text-center">
