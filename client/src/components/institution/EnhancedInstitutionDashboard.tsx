@@ -59,7 +59,7 @@ import QuestionManager from "@/components/admin/QuestionManager";
 import CategoryTopicManager from "@/components/admin/CategoryTopicManager";
 import EnhancedAITutor from "@/components/ai/EnhancedAITutor";
 import { StudyGroupsManager } from "@/components/student/StudyGroupsManager";
-import ProfileManager from "@/components/profile/ProfileManager";
+
 import MultiQuestionCreator from "@/components/admin/MultiQuestionCreator";
 
 
