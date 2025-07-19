@@ -2854,5 +2854,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Institution Packages Management
+  app.get('/api/institutions/packages', isAuthenticated, async (req: any, res) => {
+    try {
+      const institutionId = req.user.claims.sub;
+      const packages = await storage.getInstitutionPackagesByInstitution(institutionId);
+      res.json(packages);
+    } catch (error) {
+      console.error('Error fetching institution packages:', error);
+      res.status(500).json({ message: 'Failed to fetch packages' });
+    }
+  });
+
+  app.post('/api/institutions/packages', isAuthenticated, async (req: any, res) => {
+    try {
+      const institutionId = req.user.claims.sub;
+      const packageData = { ...req.body, institutionId };
+      const newPackage = await storage.createInstitutionPackage(packageData);
+      res.json(newPackage);
+    } catch (error) {
+      console.error('Error creating institution package:', error);
+      res.status(500).json({ message: 'Failed to create package' });
+    }
+  });
+
+  // Institution Settings Management
+  app.get('/api/institutions/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const institutionId = req.user.claims.sub;
+      const settings = await storage.getInstitutionSettings(institutionId);
+      if (!settings) {
+        // Create default settings if none exist
+        const defaultSettings = await storage.createInstitutionSettings({
+          institutionId,
+          disableDefaultContent: false,
+          isActive: true,
+        });
+        return res.json(defaultSettings);
+      }
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching institution settings:', error);
+      res.status(500).json({ message: 'Failed to fetch settings' });
+    }
+  });
+
+  app.put('/api/institutions/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const institutionId = req.user.claims.sub;
+      const updatedSettings = await storage.updateInstitutionSettings(institutionId, req.body);
+      res.json(updatedSettings);
+    } catch (error) {
+      console.error('Error updating institution settings:', error);
+      res.status(500).json({ message: 'Failed to update settings' });
+    }
+  });
+
+  // Student Performance Management
+  app.get('/api/institutions/performance', isAuthenticated, async (req: any, res) => {
+    try {
+      const institutionId = req.user.claims.sub;
+      const performance = await storage.getInstitutionStudentPerformance(institutionId);
+      res.json(performance);
+    } catch (error) {
+      console.error('Error fetching student performance:', error);
+      res.status(500).json({ message: 'Failed to fetch performance data' });
+    }
+  });
+
+  // Student Groups Management
+  app.get('/api/institutions/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const institutionId = req.user.claims.sub;
+      const groups = await storage.getInstitutionStudentGroups(institutionId);
+      res.json(groups);
+    } catch (error) {
+      console.error('Error fetching student groups:', error);
+      res.status(500).json({ message: 'Failed to fetch groups' });
+    }
+  });
+
+  app.post('/api/institutions/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const institutionId = req.user.claims.sub;
+      const groupData = { ...req.body, institutionId };
+      const newGroup = await storage.createInstitutionStudentGroup(groupData);
+      res.json(newGroup);
+    } catch (error) {
+      console.error('Error creating student group:', error);
+      res.status(500).json({ message: 'Failed to create group' });
+    }
+  });
+
+  // Institution Payment Processing
+  app.post('/api/institutions/payments/create-intent', isAuthenticated, async (req: any, res) => {
+    try {
+      const { amount, packageId, paymentMethod } = req.body;
+      const institutionId = req.user.claims.sub;
+      
+      // For now, return a mock payment intent
+      // In production, integrate with Stripe/Paystack
+      const paymentIntent = {
+        id: `pi_${Date.now()}`,
+        clientSecret: `pi_${Date.now()}_secret_${Math.random().toString(36).substr(2, 9)}`,
+        amount: amount * 100, // Convert to cents
+        currency: 'ngn',
+        status: 'requires_payment_method',
+        metadata: {
+          institutionId,
+          packageId,
+          paymentMethod
+        }
+      };
+      
+      res.json(paymentIntent);
+    } catch (error) {
+      console.error('Error creating payment intent:', error);
+      res.status(500).json({ message: 'Failed to create payment intent' });
+    }
+  });
+
+  app.post('/api/institutions/payments/offline', isAuthenticated, async (req: any, res) => {
+    try {
+      const { amount, packageId, paymentReference, invoiceNumber } = req.body;
+      const institutionId = req.user.claims.sub;
+      
+      // Create pending package record for offline payment
+      const packageData = {
+        institutionId,
+        packageType: 'custom' as const,
+        studentCapacity: req.body.studentCapacity || 100,
+        duration: req.body.duration || 12,
+        price: amount.toString(),
+        currency: 'NGN',
+        features: req.body.features || ['basic_access'],
+        paymentMethod: 'offline' as const,
+        paymentReference,
+        invoiceNumber,
+        status: 'pending' as const,
+      };
+      
+      const newPackage = await storage.createInstitutionPackage(packageData);
+      res.json(newPackage);
+    } catch (error) {
+      console.error('Error processing offline payment:', error);
+      res.status(500).json({ message: 'Failed to process offline payment' });
+    }
+  });
+
   return httpServer;
 }

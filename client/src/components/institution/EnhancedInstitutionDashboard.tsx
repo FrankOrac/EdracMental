@@ -100,6 +100,27 @@ export default function EnhancedInstitutionDashboard() {
     retry: false,
   });
 
+  // New institution-specific queries
+  const { data: packages, isLoading: packagesLoading } = useQuery({
+    queryKey: ["/api/institutions/packages"],
+    retry: false,
+  });
+
+  const { data: settings, isLoading: settingsLoading } = useQuery({
+    queryKey: ["/api/institutions/settings"],
+    retry: false,
+  });
+
+  const { data: performance, isLoading: performanceLoading } = useQuery({
+    queryKey: ["/api/institutions/performance"],
+    retry: false,
+  });
+
+  const { data: groups, isLoading: groupsLoading } = useQuery({
+    queryKey: ["/api/institutions/groups"],
+    retry: false,
+  });
+
   // Mutations
   const inviteStudentMutation = useMutation({
     mutationFn: async (studentData: any) => {
@@ -215,7 +236,7 @@ export default function EnhancedInstitutionDashboard() {
           </motion.div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8">
+            <TabsList className="grid w-full grid-cols-10">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Overview
@@ -224,6 +245,22 @@ export default function EnhancedInstitutionDashboard() {
                 <Users className="h-4 w-4" />
                 Students
               </TabsTrigger>
+              <TabsTrigger value="performance" className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Performance
+              </TabsTrigger>
+              <TabsTrigger value="groups" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Groups
+              </TabsTrigger>
+              <TabsTrigger value="packages" className="flex items-center gap-2">
+                <Award className="h-4 w-4" />
+                Packages
+              </TabsTrigger>
+              <TabsTrigger value="payments" className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                Payments
+              </TabsTrigger>
               <TabsTrigger value="exams" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
                 Exams
@@ -231,14 +268,6 @@ export default function EnhancedInstitutionDashboard() {
               <TabsTrigger value="questions" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Questions
-              </TabsTrigger>
-              <TabsTrigger value="subjects" className="flex items-center gap-2">
-                <Brain className="h-4 w-4" />
-                Subjects
-              </TabsTrigger>
-              <TabsTrigger value="groups" className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Study Groups
               </TabsTrigger>
               <TabsTrigger value="ai-tutor" className="flex items-center gap-2">
                 <Zap className="h-4 w-4" />
@@ -646,15 +675,322 @@ export default function EnhancedInstitutionDashboard() {
               </Card>
             </TabsContent>
 
-            {/* Study Groups Tab */}
+            {/* Student Performance Tab */}
+            <TabsContent value="performance" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Student Performance Analytics</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Track and analyze student progress and scores</p>
+                </div>
+              </div>
+              
+              {performanceLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Performance Overview</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {performance && performance.length > 0 ? (
+                        <div className="space-y-4">
+                          {performance.slice(0, 5).map((perf: any) => (
+                            <div key={perf.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                              <div>
+                                <p className="font-medium">Student {perf.userId}</p>
+                                <p className="text-sm text-gray-600">Subject {perf.subjectId}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold">{Math.round(perf.averageScore)}%</p>
+                                <p className="text-sm text-gray-600">{perf.totalExams} exams</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-8">No performance data available yet</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Subject Performance</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {performance && performance.length > 0 ? (
+                        <div className="space-y-3">
+                          {subjects?.slice(0, 5).map((subject: any) => {
+                            const subjectPerf = performance.filter((p: any) => p.subjectId === subject.id);
+                            const avgScore = subjectPerf.length > 0 
+                              ? subjectPerf.reduce((sum: number, p: any) => sum + p.averageScore, 0) / subjectPerf.length
+                              : 0;
+                            
+                            return (
+                              <div key={subject.id} className="space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-sm font-medium">{subject.name}</span>
+                                  <span className="text-sm">{Math.round(avgScore)}%</span>
+                                </div>
+                                <Progress value={avgScore} className="h-2" />
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-center py-8">No subject data available</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Student Groups Tab */}
             <TabsContent value="groups" className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold">Study Groups Management</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Manage collaborative study groups for your students</p>
+                  <h3 className="text-xl font-semibold">Student Groups Management</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Create and manage student groups for better organization</p>
+                </div>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Group
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Student Group</DialogTitle>
+                      <DialogDescription>Organize students into groups for better management</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <Input placeholder="Group name (e.g., Grade 10A)" />
+                      <Input placeholder="Description (optional)" />
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Class Level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="jss1">JSS 1</SelectItem>
+                          <SelectItem value="jss2">JSS 2</SelectItem>
+                          <SelectItem value="jss3">JSS 3</SelectItem>
+                          <SelectItem value="ss1">SS 1</SelectItem>
+                          <SelectItem value="ss2">SS 2</SelectItem>
+                          <SelectItem value="ss3">SS 3</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button className="w-full">Create Group</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              {groupsLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {groups && groups.length > 0 ? (
+                    groups.map((group: any) => (
+                      <Card key={group.id}>
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            {group.name}
+                            <Badge variant="outline">{group.classLevel}</Badge>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <p className="text-sm text-gray-600">{group.description}</p>
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              <span className="text-sm">{group.studentIds?.length || 0} students</span>
+                            </div>
+                            <div className="flex gap-2 mt-4">
+                              <Button size="sm" variant="outline">
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                              <Button size="sm" variant="outline">
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <Card className="col-span-full">
+                      <CardContent className="text-center py-12">
+                        <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No student groups yet</h3>
+                        <p className="text-gray-600 mb-4">Create your first student group to organize your students</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Packages Tab */}
+            <TabsContent value="packages" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Institution Packages</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Manage your subscription packages and student access</p>
                 </div>
               </div>
-              <StudyGroupsManager />
+              
+              {packagesLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {packages && packages.length > 0 ? (
+                    packages.map((pkg: any) => (
+                      <Card key={pkg.id} className="relative">
+                        <CardHeader>
+                          <CardTitle className="flex items-center justify-between">
+                            {pkg.packageType.charAt(0).toUpperCase() + pkg.packageType.slice(1)} Package
+                            <Badge variant={pkg.status === 'active' ? 'default' : 'secondary'}>
+                              {pkg.status}
+                            </Badge>
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-3">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Student Capacity:</span>
+                              <span className="font-medium">{pkg.studentCapacity}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Duration:</span>
+                              <span className="font-medium">{pkg.duration} months</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Price:</span>
+                              <span className="font-medium">{pkg.currency} {pkg.price}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-gray-600">Payment Method:</span>
+                              <span className="font-medium">{pkg.paymentMethod}</span>
+                            </div>
+                            {pkg.expiryDate && (
+                              <div className="flex justify-between">
+                                <span className="text-sm text-gray-600">Expires:</span>
+                                <span className="font-medium">
+                                  {new Date(pkg.expiryDate).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                            <div className="pt-3">
+                              <Button variant="outline" className="w-full">
+                                View Details
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                    <Card className="col-span-full">
+                      <CardContent className="text-center py-12">
+                        <Award className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-semibold mb-2">No packages found</h3>
+                        <p className="text-gray-600 mb-4">Contact support to set up your institution package</p>
+                        <Button onClick={() => setActiveTab("payments")}>
+                          <Star className="h-4 w-4 mr-2" />
+                          View Payment Options
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Payments Tab */}
+            <TabsContent value="payments" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Payment Management</h3>
+                  <p className="text-gray-600 dark:text-gray-400">Handle payments and billing for your institution</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Online Payment Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      Online Payment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-gray-600">Pay securely using Paystack or Stripe</p>
+                      <div className="space-y-3">
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select package type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="basic">Basic Package - ₦50,000/year</SelectItem>
+                            <SelectItem value="premium">Premium Package - ₦100,000/year</SelectItem>
+                            <SelectItem value="enterprise">Enterprise Package - ₦200,000/year</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input type="number" placeholder="Number of students" />
+                        <Button className="w-full">
+                          <CheckCircle2 className="h-4 w-4 mr-2" />
+                          Pay Online
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Offline Payment Card */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      Offline Payment
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <p className="text-gray-600">Bank transfer or cash payment</p>
+                      <div className="space-y-3">
+                        <Input placeholder="Payment reference" />
+                        <Input placeholder="Invoice number" />
+                        <Input type="number" placeholder="Amount paid" />
+                        <Button className="w-full" variant="outline">
+                          <Upload className="h-4 w-4 mr-2" />
+                          Submit Offline Payment
+                        </Button>
+                      </div>
+                      <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          <strong>Bank Details:</strong><br />
+                          Account Name: Edrac Education Ltd<br />
+                          Account Number: 1234567890<br />
+                          Bank: First Bank Nigeria
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             {/* AI Tutor Tab */}

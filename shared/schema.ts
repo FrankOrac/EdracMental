@@ -287,6 +287,86 @@ export const monthlyReviews = pgTable("monthly_reviews", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Institution packages for bulk student access
+export const institutionPackages = pgTable("institution_packages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  institutionId: varchar("institution_id").notNull(),
+  packageType: varchar("package_type", { enum: ["basic", "premium", "enterprise", "custom"] }).notNull(),
+  studentCapacity: integer("student_capacity").notNull(), // Number of students covered
+  duration: integer("duration").notNull(), // Package duration in months
+  price: decimal("price", { precision: 12, scale: 2 }).notNull(),
+  currency: varchar("currency").notNull().default("NGN"),
+  features: jsonb("features").notNull(), // Array of included features
+  subjectAccess: jsonb("subject_access"), // Array of subject IDs (null = all subjects)
+  examAccess: jsonb("exam_access"), // Array of exam types (null = all exams)
+  status: varchar("status", { enum: ["active", "expired", "suspended", "pending"] }).notNull().default("pending"),
+  purchaseDate: timestamp("purchase_date"),
+  expiryDate: timestamp("expiry_date"),
+  paymentMethod: varchar("payment_method", { enum: ["paystack", "bank_transfer", "offline"] }).notNull(),
+  paymentReference: varchar("payment_reference"),
+  invoiceNumber: varchar("invoice_number"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Institution content customization settings
+export const institutionSettings = pgTable("institution_settings", {
+  id: serial("id").primaryKey(),
+  institutionId: varchar("institution_id").notNull().unique(),
+  disableDefaultContent: boolean("disable_default_content").notNull().default(false),
+  disabledSubjects: jsonb("disabled_subjects"), // Array of subject IDs to disable
+  disabledExams: jsonb("disabled_exams"), // Array of exam IDs to disable
+  disabledQuestions: jsonb("disabled_questions"), // Array of question IDs to disable
+  customBranding: jsonb("custom_branding"), // Logo, colors, name
+  examSettings: jsonb("exam_settings"), // Default exam configuration
+  studentSettings: jsonb("student_settings"), // Student access controls
+  reportingSettings: jsonb("reporting_settings"), // Analytics and reporting preferences
+  notificationSettings: jsonb("notification_settings"), // Email and notification preferences
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Student performance analytics for institutions
+export const studentPerformance = pgTable("student_performance", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  institutionId: varchar("institution_id").notNull(),
+  subjectId: integer("subject_id").notNull(),
+  totalExams: integer("total_exams").notNull().default(0),
+  totalScore: decimal("total_score", { precision: 8, scale: 2 }).notNull().default("0.00"),
+  averageScore: decimal("average_score", { precision: 5, scale: 2 }).notNull().default("0.00"),
+  highestScore: decimal("highest_score", { precision: 5, scale: 2 }).notNull().default("0.00"),
+  lowestScore: decimal("lowest_score", { precision: 5, scale: 2 }).notNull().default("0.00"),
+  totalStudyTime: integer("total_study_time").notNull().default(0), // in minutes
+  lastActivity: timestamp("last_activity"),
+  improvement: decimal("improvement", { precision: 5, scale: 2 }).notNull().default("0.00"), // % improvement
+  weakTopics: jsonb("weak_topics"), // Array of topic IDs with low scores
+  strongTopics: jsonb("strong_topics"), // Array of topic IDs with high scores
+  recommendedActions: jsonb("recommended_actions"), // AI-generated recommendations
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Student groups within institutions
+export const institutionStudentGroups = pgTable("institution_student_groups", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  institutionId: varchar("institution_id").notNull(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  classLevel: varchar("class_level"), // JSS1, SS2, etc.
+  academicYear: varchar("academic_year"),
+  subjects: jsonb("subjects"), // Array of subject IDs
+  teacherId: varchar("teacher_id"), // Institution user managing this group
+  studentIds: jsonb("student_ids").notNull(), // Array of student user IDs
+  examAccess: jsonb("exam_access"), // Array of allowed exam IDs
+  settings: jsonb("settings"), // Group-specific settings
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // User subject preferences
 export const userSubjects = pgTable("user_subjects", {
   id: serial("id").primaryKey(),
@@ -325,6 +405,9 @@ export const institutionsRelations = relations(institutions, ({ one, many }) => 
   }),
   members: many(users),
   exams: many(exams),
+  packages: many(institutionPackages),
+  settings: one(institutionSettings),
+  studentGroups: many(institutionStudentGroups),
 }));
 
 export const subjectsRelations = relations(subjects, ({ many }) => ({
@@ -483,6 +566,47 @@ export const userSubjectsRelations = relations(userSubjects, ({ one }) => ({
   subject: one(subjects, {
     fields: [userSubjects.subjectId],
     references: [subjects.id],
+  }),
+}));
+
+// New relations for institution tables
+export const institutionPackagesRelations = relations(institutionPackages, ({ one }) => ({
+  institution: one(institutions, {
+    fields: [institutionPackages.institutionId],
+    references: [institutions.id],
+  }),
+}));
+
+export const institutionSettingsRelations = relations(institutionSettings, ({ one }) => ({
+  institution: one(institutions, {
+    fields: [institutionSettings.institutionId],
+    references: [institutions.id],
+  }),
+}));
+
+export const studentPerformanceRelations = relations(studentPerformance, ({ one }) => ({
+  user: one(users, {
+    fields: [studentPerformance.userId],
+    references: [users.id],
+  }),
+  institution: one(institutions, {
+    fields: [studentPerformance.institutionId],
+    references: [institutions.id],
+  }),
+  subject: one(subjects, {
+    fields: [studentPerformance.subjectId],
+    references: [subjects.id],
+  }),
+}));
+
+export const institutionStudentGroupsRelations = relations(institutionStudentGroups, ({ one }) => ({
+  institution: one(institutions, {
+    fields: [institutionStudentGroups.institutionId],
+    references: [institutions.id],
+  }),
+  teacher: one(users, {
+    fields: [institutionStudentGroups.teacherId],
+    references: [users.id],
   }),
 }));
 
@@ -652,6 +776,70 @@ export type InsertUserPackage = z.infer<typeof insertUserPackageSchema>;
 export type InsertAiTutorSession = z.infer<typeof insertAiTutorSessionSchema>;
 export type InsertLearningHistory = z.infer<typeof insertLearningHistorySchema>;
 export type InsertUserSubject = z.infer<typeof insertUserSubjectSchema>;
+
+// Institution-specific schemas
+export const insertInstitutionPackageSchema = createInsertSchema(institutionPackages).pick({
+  packageType: true,
+  studentCapacity: true,
+  duration: true,
+  price: true,
+  currency: true,
+  features: true,
+  subjectAccess: true,
+  examAccess: true,
+  paymentMethod: true,
+  paymentReference: true,
+  invoiceNumber: true,
+});
+
+export const insertInstitutionSettingsSchema = createInsertSchema(institutionSettings).pick({
+  disableDefaultContent: true,
+  disabledSubjects: true,
+  disabledExams: true,
+  disabledQuestions: true,
+  customBranding: true,
+  examSettings: true,
+  studentSettings: true,
+  reportingSettings: true,
+  notificationSettings: true,
+});
+
+export const insertStudentPerformanceSchema = createInsertSchema(studentPerformance).pick({
+  subjectId: true,
+  totalExams: true,
+  totalScore: true,
+  averageScore: true,
+  highestScore: true,
+  lowestScore: true,
+  totalStudyTime: true,
+  lastActivity: true,
+  improvement: true,
+  weakTopics: true,
+  strongTopics: true,
+  recommendedActions: true,
+});
+
+export const insertInstitutionStudentGroupSchema = createInsertSchema(institutionStudentGroups).pick({
+  name: true,
+  description: true,
+  classLevel: true,
+  academicYear: true,
+  subjects: true,
+  teacherId: true,
+  studentIds: true,
+  examAccess: true,
+  settings: true,
+});
+
+// Institution-specific types
+export type InstitutionPackage = typeof institutionPackages.$inferSelect;
+export type InsertInstitutionPackage = z.infer<typeof insertInstitutionPackageSchema>;
+export type InstitutionSettings = typeof institutionSettings.$inferSelect;
+export type InsertInstitutionSettings = z.infer<typeof insertInstitutionSettingsSchema>;
+export type StudentPerformance = typeof studentPerformance.$inferSelect;
+export type InsertStudentPerformance = z.infer<typeof insertStudentPerformanceSchema>;
+export type InstitutionStudentGroup = typeof institutionStudentGroups.$inferSelect;
+export type InsertInstitutionStudentGroup = z.infer<typeof insertInstitutionStudentGroupSchema>;
 
 // Study Groups and Collaboration Tables
 export const studyGroups = pgTable("study_groups", {

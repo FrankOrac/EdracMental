@@ -22,6 +22,10 @@ import {
   studySessions,
   studySessionParticipants,
   aiMatchmaking,
+  institutionPackages,
+  institutionSettings,
+  studentPerformance,
+  institutionStudentGroups,
   type User,
   type UpsertUser,
   type Institution,
@@ -60,6 +64,14 @@ import {
   type InsertStudyGroup,
   type InsertUserStudyPreferences,
   type InsertStudySession,
+  type InstitutionPackage,
+  type InsertInstitutionPackage,
+  type InstitutionSettings,
+  type InsertInstitutionSettings,
+  type StudentPerformance,
+  type InsertStudentPerformance,
+  type InstitutionStudentGroup,
+  type InsertInstitutionStudentGroup,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, count, avg, sum, inArray } from "drizzle-orm";
@@ -222,6 +234,54 @@ export interface IStorage {
   createMatchmaking(userId: string, criteria: any): Promise<AiMatchmaking>;
   getMatchmakingSuggestions(userId: string): Promise<StudyGroup[]>;
   updateMatchmaking(userId: string, criteria: any): Promise<AiMatchmaking>;
+  
+  // Institution package operations
+  createInstitutionPackage(packageData: InsertInstitutionPackage & { institutionId: string }): Promise<InstitutionPackage>;
+  getInstitutionPackage(id: string): Promise<InstitutionPackage | undefined>;
+  getInstitutionPackagesByInstitution(institutionId: string): Promise<InstitutionPackage[]>;
+  updateInstitutionPackage(id: string, data: Partial<InsertInstitutionPackage>): Promise<InstitutionPackage>;
+  deleteInstitutionPackage(id: string): Promise<void>;
+  
+  // Institution settings operations
+  createInstitutionSettings(settingsData: InsertInstitutionSettings & { institutionId: string }): Promise<InstitutionSettings>;
+  getInstitutionSettings(institutionId: string): Promise<InstitutionSettings | undefined>;
+  updateInstitutionSettings(institutionId: string, data: Partial<InsertInstitutionSettings>): Promise<InstitutionSettings>;
+  
+  // Student performance operations
+  createStudentPerformance(performanceData: InsertStudentPerformance & { userId: string; institutionId: string }): Promise<StudentPerformance>;
+  getStudentPerformance(userId: string, institutionId: string, subjectId?: number): Promise<StudentPerformance[]>;
+  getInstitutionStudentPerformance(institutionId: string): Promise<StudentPerformance[]>;
+  updateStudentPerformance(id: number, data: Partial<InsertStudentPerformance>): Promise<StudentPerformance>;
+  
+  // Institution student group operations
+  createInstitutionStudentGroup(groupData: InsertInstitutionStudentGroup & { institutionId: string }): Promise<InstitutionStudentGroup>;
+  getInstitutionStudentGroup(id: string): Promise<InstitutionStudentGroup | undefined>;
+  getInstitutionStudentGroups(institutionId: string): Promise<InstitutionStudentGroup[]>;
+  updateInstitutionStudentGroup(id: string, data: Partial<InsertInstitutionStudentGroup>): Promise<InstitutionStudentGroup>;
+  deleteInstitutionStudentGroup(id: string): Promise<void>;
+  addStudentToGroup(groupId: string, studentId: string): Promise<InstitutionStudentGroup>;
+  removeStudentFromGroup(groupId: string, studentId: string): Promise<InstitutionStudentGroup>;
+  
+  // Institution analytics
+  getInstitutionAnalytics(institutionId: string): Promise<{
+    totalStudents: number;
+    activeStudents: number;
+    totalExams: number;
+    averageScore: number;
+    totalStudyHours: number;
+    subjectPerformance: Array<{
+      subjectId: number;
+      subjectName: string;
+      averageScore: number;
+      totalStudents: number;
+    }>;
+    recentActivity: Array<{
+      studentName: string;
+      action: string;
+      timestamp: Date;
+      details: any;
+    }>;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1205,6 +1265,284 @@ export class DatabaseStorage implements IStorage {
       .where(eq(aiMatchmaking.userId, userId))
       .returning();
     return matchmakingResult;
+  }
+  // Institution Package operations
+  async createInstitutionPackage(packageData: InsertInstitutionPackage & { institutionId: string }): Promise<InstitutionPackage> {
+    const id = `pkg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const [packageResult] = await db
+      .insert(institutionPackages)
+      .values({ ...packageData, id })
+      .returning();
+    return packageResult;
+  }
+
+  async getInstitutionPackage(id: string): Promise<InstitutionPackage | undefined> {
+    const [packageResult] = await db
+      .select()
+      .from(institutionPackages)
+      .where(eq(institutionPackages.id, id));
+    return packageResult;
+  }
+
+  async getInstitutionPackagesByInstitution(institutionId: string): Promise<InstitutionPackage[]> {
+    return await db
+      .select()
+      .from(institutionPackages)
+      .where(eq(institutionPackages.institutionId, institutionId))
+      .orderBy(desc(institutionPackages.createdAt));
+  }
+
+  async updateInstitutionPackage(id: string, data: Partial<InsertInstitutionPackage>): Promise<InstitutionPackage> {
+    const [packageResult] = await db
+      .update(institutionPackages)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(institutionPackages.id, id))
+      .returning();
+    return packageResult;
+  }
+
+  async deleteInstitutionPackage(id: string): Promise<void> {
+    await db
+      .delete(institutionPackages)
+      .where(eq(institutionPackages.id, id));
+  }
+
+  // Institution Settings operations
+  async createInstitutionSettings(settingsData: InsertInstitutionSettings & { institutionId: string }): Promise<InstitutionSettings> {
+    const [settingsResult] = await db
+      .insert(institutionSettings)
+      .values(settingsData)
+      .returning();
+    return settingsResult;
+  }
+
+  async getInstitutionSettings(institutionId: string): Promise<InstitutionSettings | undefined> {
+    const [settingsResult] = await db
+      .select()
+      .from(institutionSettings)
+      .where(eq(institutionSettings.institutionId, institutionId));
+    return settingsResult;
+  }
+
+  async updateInstitutionSettings(institutionId: string, data: Partial<InsertInstitutionSettings>): Promise<InstitutionSettings> {
+    const [settingsResult] = await db
+      .update(institutionSettings)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(institutionSettings.institutionId, institutionId))
+      .returning();
+    return settingsResult;
+  }
+
+  // Student Performance operations
+  async createStudentPerformance(performanceData: InsertStudentPerformance & { userId: string; institutionId: string }): Promise<StudentPerformance> {
+    const [performanceResult] = await db
+      .insert(studentPerformance)
+      .values(performanceData)
+      .returning();
+    return performanceResult;
+  }
+
+  async getStudentPerformance(userId: string, institutionId: string, subjectId?: number): Promise<StudentPerformance[]> {
+    let query = db
+      .select()
+      .from(studentPerformance)
+      .where(and(
+        eq(studentPerformance.userId, userId),
+        eq(studentPerformance.institutionId, institutionId)
+      ));
+    
+    if (subjectId) {
+      query = query.where(eq(studentPerformance.subjectId, subjectId));
+    }
+    
+    return await query.orderBy(desc(studentPerformance.updatedAt));
+  }
+
+  async getInstitutionStudentPerformance(institutionId: string): Promise<StudentPerformance[]> {
+    return await db
+      .select()
+      .from(studentPerformance)
+      .where(eq(studentPerformance.institutionId, institutionId))
+      .orderBy(desc(studentPerformance.averageScore));
+  }
+
+  async updateStudentPerformance(id: number, data: Partial<InsertStudentPerformance>): Promise<StudentPerformance> {
+    const [performanceResult] = await db
+      .update(studentPerformance)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(studentPerformance.id, id))
+      .returning();
+    return performanceResult;
+  }
+
+  // Institution Student Group operations
+  async createInstitutionStudentGroup(groupData: InsertInstitutionStudentGroup & { institutionId: string }): Promise<InstitutionStudentGroup> {
+    const id = `grp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const [groupResult] = await db
+      .insert(institutionStudentGroups)
+      .values({ ...groupData, id })
+      .returning();
+    return groupResult;
+  }
+
+  async getInstitutionStudentGroup(id: string): Promise<InstitutionStudentGroup | undefined> {
+    const [groupResult] = await db
+      .select()
+      .from(institutionStudentGroups)
+      .where(eq(institutionStudentGroups.id, id));
+    return groupResult;
+  }
+
+  async getInstitutionStudentGroups(institutionId: string): Promise<InstitutionStudentGroup[]> {
+    return await db
+      .select()
+      .from(institutionStudentGroups)
+      .where(eq(institutionStudentGroups.institutionId, institutionId))
+      .orderBy(desc(institutionStudentGroups.createdAt));
+  }
+
+  async updateInstitutionStudentGroup(id: string, data: Partial<InsertInstitutionStudentGroup>): Promise<InstitutionStudentGroup> {
+    const [groupResult] = await db
+      .update(institutionStudentGroups)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(institutionStudentGroups.id, id))
+      .returning();
+    return groupResult;
+  }
+
+  async deleteInstitutionStudentGroup(id: string): Promise<void> {
+    await db
+      .update(institutionStudentGroups)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(institutionStudentGroups.id, id));
+  }
+
+  async addStudentToGroup(groupId: string, studentId: string): Promise<InstitutionStudentGroup> {
+    const group = await this.getInstitutionStudentGroup(groupId);
+    if (!group) throw new Error('Group not found');
+    
+    const currentStudentIds = group.studentIds as string[] || [];
+    if (!currentStudentIds.includes(studentId)) {
+      currentStudentIds.push(studentId);
+      return await this.updateInstitutionStudentGroup(groupId, { studentIds: currentStudentIds });
+    }
+    return group;
+  }
+
+  async removeStudentFromGroup(groupId: string, studentId: string): Promise<InstitutionStudentGroup> {
+    const group = await this.getInstitutionStudentGroup(groupId);
+    if (!group) throw new Error('Group not found');
+    
+    const currentStudentIds = group.studentIds as string[] || [];
+    const updatedStudentIds = currentStudentIds.filter(id => id !== studentId);
+    return await this.updateInstitutionStudentGroup(groupId, { studentIds: updatedStudentIds });
+  }
+
+  // Institution Analytics
+  async getInstitutionAnalytics(institutionId: string): Promise<{
+    totalStudents: number;
+    activeStudents: number;
+    totalExams: number;
+    averageScore: number;
+    totalStudyHours: number;
+    subjectPerformance: Array<{
+      subjectId: number;
+      subjectName: string;
+      averageScore: number;
+      totalStudents: number;
+    }>;
+    recentActivity: Array<{
+      studentName: string;
+      action: string;
+      timestamp: Date;
+      details: any;
+    }>;
+  }> {
+    // Get total students
+    const totalStudentsResult = await db
+      .select({ count: count() })
+      .from(users)
+      .where(eq(users.institutionId, institutionId));
+    
+    // Get active students (who have exam sessions in last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const activeStudentsResult = await db
+      .select({ count: count() })
+      .from(users)
+      .innerJoin(examSessions, eq(users.id, examSessions.userId))
+      .where(and(
+        eq(users.institutionId, institutionId),
+        sql`${examSessions.createdAt} >= ${thirtyDaysAgo}`
+      ));
+    
+    // Get total exams for institution
+    const totalExamsResult = await db
+      .select({ count: count() })
+      .from(exams)
+      .where(eq(exams.institutionId, institutionId));
+    
+    // Get average score
+    const averageScoreResult = await db
+      .select({ avgScore: avg(examSessions.percentage) })
+      .from(examSessions)
+      .innerJoin(users, eq(examSessions.userId, users.id))
+      .where(eq(users.institutionId, institutionId));
+    
+    // Get total study hours from learning history
+    const studyHoursResult = await db
+      .select({ totalMinutes: sum(learningHistory.timeSpent) })
+      .from(learningHistory)
+      .innerJoin(users, eq(learningHistory.userId, users.id))
+      .where(eq(users.institutionId, institutionId));
+    
+    // Get subject performance
+    const subjectPerformanceResult = await db
+      .select({
+        subjectId: studentPerformance.subjectId,
+        subjectName: subjects.name,
+        averageScore: avg(studentPerformance.averageScore),
+        totalStudents: count(),
+      })
+      .from(studentPerformance)
+      .innerJoin(subjects, eq(studentPerformance.subjectId, subjects.id))
+      .where(eq(studentPerformance.institutionId, institutionId))
+      .groupBy(studentPerformance.subjectId, subjects.name);
+    
+    // Get recent activity (last 10 exam sessions)
+    const recentActivityResult = await db
+      .select({
+        studentName: sql`CONCAT(${users.firstName}, ' ', ${users.lastName})`,
+        action: sql`'completed_exam'`,
+        timestamp: examSessions.createdAt,
+        details: sql`JSON_BUILD_OBJECT('examId', ${examSessions.examId}, 'score', ${examSessions.percentage})`,
+      })
+      .from(examSessions)
+      .innerJoin(users, eq(examSessions.userId, users.id))
+      .where(eq(users.institutionId, institutionId))
+      .orderBy(desc(examSessions.createdAt))
+      .limit(10);
+    
+    return {
+      totalStudents: totalStudentsResult[0]?.count || 0,
+      activeStudents: activeStudentsResult[0]?.count || 0,
+      totalExams: totalExamsResult[0]?.count || 0,
+      averageScore: Number(averageScoreResult[0]?.avgScore || 0),
+      totalStudyHours: Math.round((Number(studyHoursResult[0]?.totalMinutes || 0)) / 60),
+      subjectPerformance: subjectPerformanceResult.map(sp => ({
+        subjectId: sp.subjectId,
+        subjectName: sp.subjectName,
+        averageScore: Number(sp.averageScore || 0),
+        totalStudents: sp.totalStudents,
+      })),
+      recentActivity: recentActivityResult.map(ra => ({
+        studentName: ra.studentName as string,
+        action: ra.action as string,
+        timestamp: ra.timestamp,
+        details: ra.details,
+      })),
+    };
   }
 }
 
