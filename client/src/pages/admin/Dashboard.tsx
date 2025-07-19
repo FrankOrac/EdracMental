@@ -17,7 +17,7 @@ import {
 
 // Import all the enhanced components
 import EnhancedDashboard from "@/components/admin/EnhancedDashboard";
-import QuestionBankManager from "@/components/admin/QuestionBankManager";
+import AdminQuestionBank from "@/components/admin/AdminQuestionBank";
 import ApiConfigSettings from "@/components/admin/ApiConfigSettings";
 import LiveChatSystem from "@/components/admin/LiveChatSystem";
 import AiTutorEnhanced from "@/components/ai/AiTutorEnhanced";
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="questions" className="space-y-6">
-            <QuestionBankManager />
+            <AdminQuestionBank />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">

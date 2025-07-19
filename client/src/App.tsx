@@ -22,7 +22,7 @@ import Analytics from "@/components/system/Analytics";
 import AdminUsers from "@/pages/admin/Users";
 import AdminInstitutions from "@/pages/admin/Institutions";
 import AdminSystem from "@/pages/admin/System";
-import QuestionManager from "@/components/admin/QuestionManager";
+import AdminQuestionBank from "@/components/admin/AdminQuestionBank";
 import ExamManager from "@/components/admin/ExamManager";
 import ExamShare from "@/components/system/ExamShare";
 import LiveChat from "@/components/system/LiveChat";
@@ -77,7 +77,7 @@ function Router() {
               <Route path="/settings" component={AdminSettings} />
               <Route path="/analytics" component={Analytics} />
               <Route path="/admin/users" component={AdminUsers} />
-              <Route path="/admin/questions" component={QuestionManager} />
+              <Route path="/admin/questions" component={AdminQuestionBank} />
               <Route path="/admin/question-validator" component={QuestionValidator} />
               <Route path="/admin/institutions" component={AdminInstitutions} />
               <Route path="/admin/system" component={AdminSystem} />
