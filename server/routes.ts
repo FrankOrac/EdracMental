@@ -1899,6 +1899,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Institution management endpoints
+  app.get('/api/institutions', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const institutions = await storage.getAllInstitutions();
+      res.json(institutions);
+    } catch (error) {
+      console.error("Error fetching institutions:", error);
+      res.status(500).json({ message: "Failed to fetch institutions" });
+    }
+  });
+
+  app.post('/api/institutions', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const institutionData = insertInstitutionSchema.parse(req.body);
+      const institution = await storage.createInstitution(institutionData);
+      res.status(201).json(institution);
+    } catch (error) {
+      console.error("Error creating institution:", error);
+      res.status(500).json({ message: "Failed to create institution" });
+    }
+  });
+
+  app.patch('/api/institutions/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const institutionId = req.params.id;
+      const { isActive } = req.body;
+      
+      const updatedInstitution = await storage.updateInstitution(institutionId, { isActive });
+      res.json(updatedInstitution);
+    } catch (error) {
+      console.error("Error updating institution:", error);
+      res.status(500).json({ message: "Failed to update institution" });
+    }
+  });
+
+  app.patch('/api/users/:id', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const userId = req.params.id;
+      const { isActive } = req.body;
+      
+      const updatedUser = await storage.updateUser(userId, { isActive });
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
   // Admin settings routes
   app.put('/api/admin/settings', requireAuth, async (req: any, res) => {
     try {
@@ -3160,6 +3236,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating package:", error);
       res.status(500).json({ error: "Failed to create package" });
+    }
+  });
+
+  // Admin user creation endpoint
+  app.post('/api/users', requireAuth, async (req: any, res) => {
+    try {
+      const currentUserId = req.session?.user?.id || req.user?.claims?.sub;
+      const currentUser = await storage.getUser(currentUserId);
+      
+      if (currentUser?.role !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const userData = insertUserSchema.parse(req.body);
+      const newUser = await storage.upsertUser(userData);
+      res.status(201).json(newUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create user" });
     }
   });
 

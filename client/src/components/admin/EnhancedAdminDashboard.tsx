@@ -12,6 +12,8 @@ import UserManagement from "./UserManagement";
 import CategoryTopicManager from "./CategoryTopicManager";
 import AdminQuestionBank from "./AdminQuestionBank";
 import AdminPackageManager from "./AdminPackageManager";
+import { InstitutionDialog } from "./InstitutionDialog";
+import { UserDialog } from "./UserDialog";
 import { 
   BarChart3, 
   Users, 
@@ -175,13 +177,6 @@ export default function EnhancedAdminDashboard() {
               >
                 <Crown className="h-4 w-4" />
                 Packages
-              </TabsTrigger>
-              <TabsTrigger 
-                value="questions" 
-                className="flex items-center gap-2 data-[state=active]:bg-indigo-500 data-[state=active]:text-white"
-              >
-                <BookOpen className="h-4 w-4" />
-                Question Bank
               </TabsTrigger>
               <TabsTrigger 
                 value="content" 
@@ -403,9 +398,12 @@ export default function EnhancedAdminDashboard() {
             <TabsContent value="institutions" className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
-                    Institution Management
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Building className="h-5 w-5" />
+                      Institution Management
+                    </div>
+                    <InstitutionDialog mode="create" />
                   </CardTitle>
                   <p className="text-gray-600 dark:text-gray-400">
                     Manage all institutions and their access to the platform
@@ -442,6 +440,10 @@ export default function EnhancedAdminDashboard() {
                             >
                               {institution.isActive ? "Suspend" : "Activate"}
                             </Button>
+                            <InstitutionDialog 
+                              mode="edit" 
+                              institution={institution} 
+                            />
                             <Button size="sm" variant="outline">
                               <Eye className="h-4 w-4 mr-2" />
                               View Details

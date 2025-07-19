@@ -83,6 +83,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   getUsersByInstitution(institutionId: string): Promise<User[]>;
   enableDisableUser(id: string, enabled: boolean, reason?: string, adminId?: string): Promise<User>;
+  updateUser(id: string, data: Partial<UpsertUser>): Promise<User>;
   
   // Institution admin operations
   getAllInstitutions(): Promise<Institution[]>;
@@ -344,6 +345,24 @@ export class DatabaseStorage implements IStorage {
         disabledAt: enabled ? null : new Date(),
         updatedAt: new Date(),
       })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: string, data: Partial<UpsertUser>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: string, data: Partial<UpsertUser>): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ ...data, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
     return user;

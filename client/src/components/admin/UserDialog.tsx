@@ -1,181 +1,258 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Plus, Edit } from "lucide-react";
+import { UserPlus } from "lucide-react";
+
+const userSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Valid email is required"),
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  role: z.enum(["student", "institution", "admin"]),
+  phone: z.string().optional(),
+  institutionId: z.string().optional(),
+});
+
+type UserFormData = z.infer<typeof userSchema>;
 
 interface UserDialogProps {
   user?: any;
-  trigger?: React.ReactNode;
-  mode?: "add" | "edit";
+  mode: "create" | "edit";
+  institutions?: any[];
 }
 
-export function UserDialog({ user, trigger, mode = "add" }: UserDialogProps) {
+export function UserDialog({ user, mode, institutions = [] }: UserDialogProps) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: user?.firstName || "",
-    lastName: user?.lastName || "",
-    email: user?.email || "",
-    role: user?.role || "student",
-    subscriptionPlan: user?.subscriptionPlan || "free",
-    password: "",
-  });
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  const form = useForm<UserFormData>({
+    resolver: zodResolver(userSchema),
+    defaultValues: {
+      name: user?.name || "",
+      email: user?.email || "",
+      username: user?.username || "",
+      role: user?.role || "student",
+      phone: user?.phone || "",
+      institutionId: user?.institutionId || "",
+    },
+  });
+
   const mutation = useMutation({
-    mutationFn: async (data: any) => {
-      const url = mode === "edit" ? `/api/users/${user.id}` : "/api/users";
-      const method = mode === "edit" ? "PATCH" : "POST";
-      return apiRequest(url, { method, body: JSON.stringify(data) });
+    mutationFn: async (data: UserFormData) => {
+      if (mode === "create") {
+        return apiRequest("POST", "/api/users", data);
+      } else {
+        return apiRequest("PATCH", `/api/users/${user.id}`, data);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      setOpen(false);
       toast({
-        title: mode === "edit" ? "User Updated" : "User Created",
-        description: `${formData.firstName} ${formData.lastName} has been ${mode === "edit" ? "updated" : "created"} successfully.`,
+        title: `User ${mode === "create" ? "created" : "updated"} successfully`,
       });
+      setOpen(false);
+      form.reset();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
-        title: "Error",
-        description: `Failed to ${mode === "edit" ? "update" : "create"} user. Please try again.`,
+        title: `Failed to ${mode} user`,
+        description: error.message || "An error occurred",
         variant: "destructive",
       });
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const submitData = { ...formData };
-    if (mode === "edit" && !submitData.password) {
-      delete submitData.password;
-    }
-    mutation.mutate(submitData);
+  const onSubmit = (data: UserFormData) => {
+    mutation.mutate(data);
   };
-
-  const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const defaultTrigger = (
-    <Button variant={mode === "edit" ? "ghost" : "default"} size={mode === "edit" ? "sm" : "default"}>
-      {mode === "edit" ? <Edit className="h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-      {mode === "edit" ? "" : "Add User"}
-    </Button>
-  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || defaultTrigger}
+        {mode === "create" ? (
+          <Button>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add User
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm">
+            Edit
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {mode === "edit" ? "Edit User" : "Add New User"}
+            {mode === "create" ? "Add New User" : "Edit User"}
           </DialogTitle>
           <DialogDescription>
-            {mode === "edit" ? "Update user information and permissions" : "Create a new user account"}
+            {mode === "create"
+              ? "Create a new user account in the system."
+              : "Update the user information."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
-              <Input
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => handleChange("firstName", e.target.value)}
-                placeholder="John"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
-              <Input
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => handleChange("lastName", e.target.value)}
-                placeholder="Doe"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleChange("email", e.target.value)}
-              placeholder="john.doe@example.com"
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={formData.role} onValueChange={(value) => handleChange("role", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="institution">Institution</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="subscriptionPlan">Subscription Plan</Label>
-              <Select value={formData.subscriptionPlan} onValueChange={(value) => handleChange("subscriptionPlan", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="basic">Basic</SelectItem>
-                  <SelectItem value="premium">Premium</SelectItem>
-                  <SelectItem value="enterprise">Enterprise</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password">
-              {mode === "edit" ? "Password (leave blank to keep current)" : "Password"}
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => handleChange("password", e.target.value)}
-              placeholder="Enter password"
-              required={mode === "add"}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="john@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Saving..." : mode === "edit" ? "Update" : "Create"}
-            </Button>
-          </div>
-        </form>
+            <FormField
+              control={form.control}
+              name="username"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input placeholder="johndoe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select user role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="student">Student</SelectItem>
+                      <SelectItem value="institution">Institution</SelectItem>
+                      <SelectItem value="admin">Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+234 123 456 7890" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {institutions?.length > 0 && (
+              <FormField
+                control={form.control}
+                name="institutionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Institution (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select institution" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">No Institution</SelectItem>
+                        {institutions.map((institution) => (
+                          <SelectItem key={institution.id} value={institution.id}>
+                            {institution.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <div className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending
+                  ? mode === "create"
+                    ? "Creating..."
+                    : "Updating..."
+                  : mode === "create"
+                  ? "Create User"
+                  : "Update User"}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
