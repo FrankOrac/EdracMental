@@ -91,7 +91,6 @@ function Router() {
               <Route path="/create-questions" component={CreateQuestions} />
               <Route path="/students" component={AdminUsers} />
               <Route path="/analytics" component={Analytics} />
-              <Route path="/settings" component={AdminSettings} />
             </>
           )}
           
