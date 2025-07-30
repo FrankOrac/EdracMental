@@ -13,8 +13,8 @@ import SignupPage from "@/components/auth/SignupPage";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Home from "@/pages/Home";
-import Exam from "@/pages/Exam";
-import Practice from "@/pages/Practice";
+import ProductionExam from "@/pages/ProductionExam";
+import ProductionPractice from "@/pages/ProductionPractice";
 import AdminSettings from "@/pages/admin/Settings";
 import AdminSubjects from "@/pages/admin/Subjects";
 import AdminExams from "@/pages/admin/Exams";
@@ -66,8 +66,8 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/home" component={Home} />
-          <Route path="/exam/:examId?" component={Exam} />
-          <Route path="/practice/:subjectId?" component={Practice} />
+          <Route path="/exam/:examId?" component={ProductionExam} />
+          <Route path="/practice/:subjectId?" component={ProductionPractice} />
           <Route path="/profile" component={Profile} />
           <Route path="/tutor" component={StudentAITutor} />
           

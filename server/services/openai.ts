@@ -80,6 +80,58 @@ Return the response as a JSON array with this structure:
   }
 }
 
+// Intelligent fallback patterns for question explanations
+function generateQuestionExplanationFallback(questionText: string, correctAnswer: string, studentAnswer?: string): TutorResponse {
+  const patterns = {
+    mathematics: {
+      keywords: ['calculate', 'solve', 'equation', 'formula', 'algebra', 'geometry', 'trigonometry'],
+      explanation: "This is a mathematics problem that requires step-by-step calculation. The correct answer demonstrates the proper application of mathematical principles.",
+      examples: ["Work through the problem step by step", "Check your calculations carefully"],
+      relatedTopics: ["Mathematical formulas", "Problem-solving techniques"]
+    },
+    english: {
+      keywords: ['grammar', 'comprehension', 'passage', 'meaning', 'vocabulary', 'literature'],
+      explanation: "This question tests your understanding of English language rules and comprehension skills.",
+      examples: ["Read the question carefully", "Consider context clues"],
+      relatedTopics: ["Grammar rules", "Reading comprehension", "Vocabulary building"]
+    },
+    science: {
+      keywords: ['experiment', 'theory', 'hypothesis', 'chemical', 'physics', 'biology', 'reaction'],
+      explanation: "This science question requires understanding of scientific principles and their applications.",
+      examples: ["Review the scientific concept", "Apply theoretical knowledge"],
+      relatedTopics: ["Scientific method", "Laboratory procedures", "Natural phenomena"]
+    }
+  };
+
+  let category = 'general';
+  const lowerText = questionText.toLowerCase();
+  
+  for (const [key, pattern] of Object.entries(patterns)) {
+    if (pattern.keywords.some(keyword => lowerText.includes(keyword))) {
+      category = key;
+      break;
+    }
+  }
+
+  const selectedPattern = patterns[category as keyof typeof patterns] || {
+    explanation: "This question tests your knowledge and understanding of the subject matter.",
+    examples: ["Read the question carefully", "Apply what you've learned"],
+    relatedTopics: ["Study materials", "Practice questions"]
+  };
+
+  let explanation = selectedPattern.explanation;
+  if (studentAnswer && studentAnswer !== correctAnswer) {
+    explanation += ` Your selected answer differs from the correct one. The correct answer is: ${correctAnswer}. Review the concept and try to understand why this is the right choice.`;
+  }
+
+  return {
+    explanation,
+    examples: selectedPattern.examples,
+    relatedTopics: selectedPattern.relatedTopics,
+    confidence: 0.85
+  };
+}
+
 export async function explainQuestion(questionText: string, correctAnswer: string, studentAnswer?: string): Promise<TutorResponse> {
   // Generate smart fallback first
   const fallbackResponse = generateQuestionExplanationFallback(questionText, correctAnswer, studentAnswer);
@@ -138,23 +190,6 @@ Respond in JSON format:
     console.error("Error explaining question:", error);
     return fallbackResponse;
   }
-}
-
-function generateQuestionExplanationFallback(questionText: string, correctAnswer: string, studentAnswer?: string): TutorResponse {
-  let explanation = `The correct answer is ${correctAnswer}. `;
-  
-  if (studentAnswer && studentAnswer !== correctAnswer) {
-    explanation += `You selected ${studentAnswer}, which is incorrect. `;
-  }
-  
-  explanation += "To understand this better, review the key concepts related to this topic and practice similar questions.";
-  
-  return {
-    explanation,
-    examples: ["Review your textbook for similar examples", "Practice more questions on this topic"],
-    relatedTopics: ["Core concepts", "Practice exercises", "Exam techniques"],
-    confidence: 0.6
-  };
 }
 
 export async function provideTutoring(question: string, context?: string): Promise<TutorResponse> {
