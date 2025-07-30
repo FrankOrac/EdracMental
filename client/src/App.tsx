@@ -32,6 +32,12 @@ import Profile from "@/pages/system/Profile";
 import CreateQuestions from "@/pages/institution/CreateQuestions";
 import EdracPreloader from "@/components/system/EdracPreloader";
 import StudentAITutor from "@/components/ai/StudentAITutor";
+import StudentAchievements from "@/components/student/StudentAchievements";
+import StudentHelp from "@/components/student/StudentHelp";
+import StudentSettings from "@/components/student/StudentSettings";
+import StudentResults from "@/components/student/StudentResults";
+import StudentSchedule from "@/components/student/StudentSchedule";
+import StudentStudyGroups from "@/components/student/StudentStudyGroups";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -98,7 +104,12 @@ function Router() {
           {/* Student-only routes */}
           {user?.role === 'student' && (
             <>
-              <Route path="/exams" component={ExamManager} />
+              <Route path="/achievements" component={StudentAchievements} />
+              <Route path="/help" component={StudentHelp} />
+              <Route path="/settings" component={StudentSettings} />
+              <Route path="/results" component={StudentResults} />
+              <Route path="/schedule" component={StudentSchedule} />
+              <Route path="/study-groups" component={StudentStudyGroups} />
               <Route path="/subjects" component={AdminSubjects} />
               <Route path="/progress" component={Analytics} />
               <Route path="/tutor" component={StudentAITutor} />
