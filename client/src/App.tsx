@@ -38,6 +38,11 @@ import StudentSettings from "@/components/student/StudentSettings";
 import StudentResults from "@/components/student/StudentResults";
 import StudentSchedule from "@/components/student/StudentSchedule";
 import StudentStudyGroups from "@/components/student/StudentStudyGroups";
+import StudentSubjects from "@/components/student/StudentSubjects";
+import StudentProgress from "@/components/student/StudentProgress";
+import StudentExams from "@/components/student/StudentExams";
+import StudentTutor from "@/components/student/StudentTutor";
+import StudentProfile from "@/components/student/StudentProfile";
 
 function Router() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -101,7 +106,7 @@ function Router() {
             </>
           )}
           
-          {/* Student-only routes */}
+          {/* Student-only routes - all using consistent StudentDashboardLayout */}
           {user?.role === 'student' && (
             <>
               <Route path="/achievements" component={StudentAchievements} />
@@ -110,9 +115,12 @@ function Router() {
               <Route path="/results" component={StudentResults} />
               <Route path="/schedule" component={StudentSchedule} />
               <Route path="/study-groups" component={StudentStudyGroups} />
-              <Route path="/subjects" component={AdminSubjects} />
-              <Route path="/progress" component={Analytics} />
-              <Route path="/tutor" component={StudentAITutor} />
+              <Route path="/exams" component={StudentExams} />
+              <Route path="/subjects" component={StudentSubjects} />
+              <Route path="/progress" component={StudentProgress} />
+              <Route path="/tutor" component={StudentTutor} />
+              <Route path="/practice" component={ProductionPractice} />
+              <Route path="/profile" component={StudentProfile} />
             </>
           )}
         </>
