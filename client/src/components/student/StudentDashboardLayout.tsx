@@ -32,8 +32,8 @@ import {
 
 const getStudentSidebarItems = () => [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: BookOpen, label: "Available Exams", path: "/exams" },
-  { icon: PlayCircle, label: "Practice Tests", path: "/practice" },
+  { icon: BookOpen, label: "View Exams", path: "/exams" },
+  { icon: PlayCircle, label: "Practice Mode", path: "/practice" },
   { icon: Brain, label: "Study Materials", path: "/subjects" },
   { icon: BarChart3, label: "My Progress", path: "/progress" },
   { icon: Trophy, label: "Achievements", path: "/achievements" },

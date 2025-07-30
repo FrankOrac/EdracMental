@@ -86,22 +86,40 @@ function generateTutoringFallback(query: string, context?: string): TutorRespons
   
   const subjectPatterns = {
     mathematics: {
-      keywords: ['math', 'calculate', 'equation', 'formula', 'solve', 'algebra', 'geometry'],
-      response: "Mathematics requires practice and understanding of fundamental concepts. Break down complex problems into smaller steps and practice regularly.",
-      examples: ["Practice daily calculations", "Master basic formulas first", "Work through examples step by step"],
-      topics: ["Basic arithmetic", "Algebraic concepts", "Problem-solving strategies"]
+      keywords: ['math', 'calculate', 'equation', 'formula', 'solve', 'algebra', 'geometry', 'trigonometry', 'calculus', 'statistics'],
+      response: "Mathematics requires practice and understanding of fundamental concepts. Break down complex problems into smaller steps and practice regularly. Focus on understanding the 'why' behind each step.",
+      examples: ["Practice daily calculations", "Master basic formulas first", "Work through examples step by step", "Use visual aids like graphs and diagrams"],
+      topics: ["Basic arithmetic", "Algebraic concepts", "Problem-solving strategies", "Mathematical reasoning"]
     },
     english: {
-      keywords: ['english', 'grammar', 'writing', 'comprehension', 'vocabulary', 'essay'],
-      response: "English language skills improve with consistent reading and practice. Focus on grammar rules and expand your vocabulary through regular reading.",
-      examples: ["Read diverse materials daily", "Practice writing exercises", "Learn new vocabulary weekly"],
-      topics: ["Grammar fundamentals", "Reading comprehension", "Essay writing techniques"]
+      keywords: ['english', 'grammar', 'writing', 'comprehension', 'vocabulary', 'essay', 'literature', 'passage', 'meaning'],
+      response: "English language skills improve with consistent reading and practice. Focus on grammar rules, expand your vocabulary through regular reading, and practice comprehension techniques.",
+      examples: ["Read diverse materials daily", "Practice writing exercises", "Learn new vocabulary weekly", "Analyze passages for deeper meaning", "Practice summary writing"],
+      topics: ["Grammar fundamentals", "Reading comprehension", "Essay writing techniques", "Literature analysis", "Vocabulary building"]
     },
     science: {
-      keywords: ['science', 'physics', 'chemistry', 'biology', 'experiment', 'theory'],
-      response: "Science subjects require understanding of concepts and their practical applications. Connect theoretical knowledge with real-world examples.",
-      examples: ["Understand the 'why' behind concepts", "Practice with past questions", "Relate theory to everyday life"],
-      topics: ["Scientific method", "Laboratory techniques", "Natural phenomena"]
+      keywords: ['science', 'physics', 'chemistry', 'biology', 'experiment', 'theory', 'hypothesis', 'reaction', 'cell', 'atom', 'energy'],
+      response: "Science subjects require understanding of concepts and their practical applications. Connect theoretical knowledge with real-world examples and always focus on the reasoning behind scientific principles.",
+      examples: ["Understand the 'why' behind concepts", "Practice with past questions", "Relate theory to everyday life", "Conduct virtual experiments", "Draw diagrams to visualize concepts"],
+      topics: ["Scientific method", "Laboratory techniques", "Natural phenomena", "Scientific reasoning"]
+    },
+    jamb: {
+      keywords: ['jamb', 'utme', 'university', 'admission', 'joint admissions'],
+      response: "JAMB preparation requires consistent practice with past questions and understanding exam patterns. Focus on speed and accuracy while covering all subjects thoroughly.",
+      examples: ["Practice with past JAMB questions", "Time yourself during practice", "Focus on weak subjects", "Review JAMB syllabus regularly"],
+      topics: ["JAMB exam strategies", "Time management", "Subject combinations", "University requirements"]
+    },
+    waec: {
+      keywords: ['waec', 'west african', 'senior secondary', 'certificate'],
+      response: "WAEC preparation involves mastering the curriculum and practicing exam techniques. Focus on understanding concepts deeply rather than memorization.",
+      examples: ["Study WAEC past questions", "Practice essay writing", "Master practical skills", "Review marking schemes"],
+      topics: ["WAEC exam format", "Essay techniques", "Practical examinations", "Grading systems"]
+    },
+    general: {
+      keywords: ['study', 'learn', 'help', 'explain', 'understand', 'question'],
+      response: "Effective learning requires consistent practice, understanding concepts deeply, and connecting new knowledge to what you already know. Always ask 'why' and 'how' questions.",
+      examples: ["Create a study schedule", "Use active learning techniques", "Teach others what you learn", "Take regular breaks"],
+      topics: ["Study techniques", "Learning strategies", "Memory improvement", "Exam preparation"]
     }
   };
 

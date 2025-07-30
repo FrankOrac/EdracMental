@@ -77,11 +77,12 @@ export default function CleanStudentDashboard() {
                    user?.subscriptionPlan === 'basic' || 
                    user?.email === 'jane.student@edrac.com';
 
-  // Fetch data
+  // Fetch available subjects - students can only view content created by admin/institutions
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery<Subject[]>({
     queryKey: ['/api/subjects'],
   });
 
+  // Fetch available exams - students can only view public exams created by admin/institutions
   const { data: exams = [], isLoading: examsLoading } = useQuery<Exam[]>({
     queryKey: ['/api/exams'],
   });
@@ -174,10 +175,13 @@ export default function CleanStudentDashboard() {
             </Button>
           </div>
           
-          <ProductionCBTInterface 
-            examId={activeExamId} 
-            practiceMode={examMode === 'practice'} 
-          />
+          <div className="bg-white dark:bg-gray-800 rounded-lg border p-4">
+            <ProductionCBTInterface 
+              examId={activeExamId} 
+              practiceMode={examMode === 'practice'}
+              onComplete={() => setActiveExamId(null)}
+            />
+          </div>
         </div>
       </StudentDashboardLayout>
     );
