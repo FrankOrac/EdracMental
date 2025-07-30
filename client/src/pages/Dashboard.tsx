@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import ProductionStudentDashboard from "@/components/student/ProductionStudentDashboard";
+import CleanStudentDashboard from "@/components/student/CleanStudentDashboard";
 import EnhancedInstitutionDashboard from "@/components/institution/EnhancedInstitutionDashboard";
 import EnhancedAdminDashboard from "@/components/admin/EnhancedAdminDashboard";
 
@@ -18,12 +18,12 @@ export default function Dashboard() {
   // Route users to appropriate dashboards based on their role
   switch (user.role) {
     case 'student':
-      return <ProductionStudentDashboard />;
+      return <CleanStudentDashboard />;
     case 'institution':
       return <EnhancedInstitutionDashboard />;
     case 'admin':
       return <EnhancedAdminDashboard />;
     default:
-      return <ProductionStudentDashboard />; // Default to student dashboard
+      return <CleanStudentDashboard />; // Default to student dashboard
   }
 }

@@ -13,6 +13,7 @@ import SignupPage from "@/components/auth/SignupPage";
 import Login from "@/pages/Login";
 import Dashboard from "@/pages/Dashboard";
 import Home from "@/pages/Home";
+import CleanStudentDashboard from "@/components/student/CleanStudentDashboard";
 import ProductionExam from "@/pages/ProductionExam";
 import ProductionPractice from "@/pages/ProductionPractice";
 import AdminSettings from "@/pages/admin/Settings";
@@ -63,8 +64,8 @@ function Router() {
         </>
       ) : (
         <>
-          <Route path="/" component={Dashboard} />
-          <Route path="/dashboard" component={Dashboard} />
+          <Route path="/" component={user?.role === 'student' ? CleanStudentDashboard : Dashboard} />
+          <Route path="/dashboard" component={user?.role === 'student' ? CleanStudentDashboard : Dashboard} />
           <Route path="/home" component={Home} />
           <Route path="/exam/:examId?" component={ProductionExam} />
           <Route path="/practice/:subjectId?" component={ProductionPractice} />

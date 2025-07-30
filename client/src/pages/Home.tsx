@@ -1,7 +1,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import EnhancedInstitutionDashboard from "@/components/institution/EnhancedInstitutionDashboard";
-import EnhancedStudentDashboard from "@/components/student/EnhancedStudentDashboard";
+import CleanStudentDashboard from "@/components/student/CleanStudentDashboard";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
 export default function Home() {
@@ -27,5 +27,5 @@ export default function Home() {
   }
   
   // Default to student dashboard
-  return <EnhancedStudentDashboard />;
+  return <CleanStudentDashboard />;
 }

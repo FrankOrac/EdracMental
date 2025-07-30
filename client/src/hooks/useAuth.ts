@@ -1,10 +1,28 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
+interface User {
+  id: string;
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  profileImageUrl?: string | null;
+  role: "student" | "institution" | "admin";
+  subscriptionPlan: "free" | "premium" | "institution";
+  subscriptionExpiry?: string | null;
+  institutionId?: string | null;
+  isEnabled: boolean;
+  disabledReason?: string | null;
+  disabledBy?: string | null;
+  disabledAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export function useAuth() {
   const queryClient = useQueryClient();
   
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/auth/user"],
     retry: false,
     refetchOnWindowFocus: false,
@@ -33,7 +51,7 @@ export function useAuth() {
   };
 
   return {
-    user,
+    user: user || null,
     isLoading,
     isAuthenticated: !!user,
     logout,
