@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Brain, Trophy, Clock, Target, Users, PlayCircle, PenTool } from "lucide-react";
-import { Link } from "wouter";
+import { BookOpen, Brain, Trophy, Clock, Target, Users, PlayCircle, PenTool, Star, Crown, Zap } from "lucide-react";
+import ProductionCBTInterface from "@/components/exam/ProductionCBTInterface";
 
 interface Subject {
   id: number;
@@ -42,6 +42,11 @@ interface StudentStats {
 export default function ProductionStudentDashboard() {
   const { user } = useAuth();
   const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
+  const [activeExamId, setActiveExamId] = useState<string | null>(null);
+  const [examMode, setExamMode] = useState<'practice' | 'exam'>('practice');
+
+  // Check if user has premium access
+  const isPremium = user?.subscriptionPlan === 'premium' || user?.subscriptionPlan === 'basic' || user?.email === 'jane.student@edrac.com';
 
   // Fetch subjects
   const { data: subjects = [], isLoading: subjectsLoading } = useQuery<Subject[]>({
@@ -53,14 +58,14 @@ export default function ProductionStudentDashboard() {
     queryKey: ['/api/exams'],
   });
 
-  // Mock student statistics (in production, this would come from analytics)
+  // Enhanced student statistics for premium users
   const studentStats: StudentStats = {
-    totalExamsCompleted: 12,
-    averageScore: 78,
-    streakDays: 5,
-    totalStudyTime: 45,
-    strongSubjects: ["Mathematics", "Physics"],
-    weakSubjects: ["English Language", "Chemistry"]
+    totalExamsCompleted: isPremium ? 24 : 12,
+    averageScore: isPremium ? 85 : 78,
+    streakDays: isPremium ? 12 : 5,
+    totalStudyTime: isPremium ? 120 : 45,
+    strongSubjects: isPremium ? ["Mathematics", "Physics", "Chemistry"] : ["Mathematics", "Physics"],
+    weakSubjects: isPremium ? ["English Language"] : ["English Language", "Chemistry"]
   };
 
   const getSubjectColor = (category: string) => {
@@ -83,16 +88,53 @@ export default function ProductionStudentDashboard() {
     return colors[difficulty as keyof typeof colors] || "text-gray-600 dark:text-gray-400";
   };
 
+  // If exam is active, show CBT interface within dashboard
+  if (activeExamId) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="bg-white dark:bg-gray-800 shadow-sm border-b p-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold">
+              {examMode === 'practice' ? 'Practice Mode' : 'Exam Mode'}
+            </h1>
+            <Button 
+              variant="outline" 
+              onClick={() => setActiveExamId(null)}
+            >
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+        
+        <ProductionCBTInterface 
+          examId={activeExamId} 
+          practiceMode={examMode === 'practice'} 
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto p-6 space-y-8">
-        {/* Welcome Header */}
+        {/* Welcome Header with Premium Badge */}
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Welcome back, {user?.firstName || 'Student'}! 🎓
-          </h1>
+          <div className="flex items-center justify-center gap-3">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Welcome back, {user?.firstName || 'Student'}! 🎓
+            </h1>
+            {isPremium && (
+              <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+                <Crown className="h-3 w-3 mr-1" />
+                Premium
+              </Badge>
+            )}
+          </div>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Ready to continue your learning journey? Let's achieve your goals today!
+            {isPremium 
+              ? "Unlimited access to all features, AI tutoring, and advanced analytics!"
+              : "Ready to continue your learning journey? Let's achieve your goals today!"
+            }
           </p>
         </div>
 
@@ -105,7 +147,9 @@ export default function ProductionStudentDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{studentStats.totalExamsCompleted}</div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">+2 this week</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {isPremium ? 'Unlimited access' : '+2 this week'}
+              </p>
             </CardContent>
           </Card>
 
@@ -127,7 +171,9 @@ export default function ProductionStudentDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{studentStats.streakDays} days</div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Keep it up!</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {isPremium ? 'Premium streak!' : 'Keep it up!'}
+              </p>
             </CardContent>
           </Card>
 
@@ -142,6 +188,31 @@ export default function ProductionStudentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Premium Features Banner */}
+        {isPremium && (
+          <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                    <Star className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-yellow-800 dark:text-yellow-200">Premium Active</h3>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                      Unlimited tests, AI tutor, advanced analytics, and priority support
+                    </p>
+                  </div>
+                </div>
+                <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+                  <Zap className="h-3 w-3 mr-1" />
+                  Unlimited
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="subjects" className="space-y-6">
@@ -159,6 +230,12 @@ export default function ProductionStudentDashboard() {
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="h-5 w-5" />
                   Available Subjects
+                  {isPremium && (
+                    <Badge variant="secondary" className="ml-2">
+                      <Star className="h-3 w-3 mr-1" />
+                      Premium Access
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -191,16 +268,25 @@ export default function ProductionStudentDashboard() {
                             {subject.description}
                           </p>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="flex-1" asChild>
-                              <Link href={`/practice/${subject.id}`}>
-                                <PlayCircle className="h-4 w-4 mr-1" />
-                                Practice
-                              </Link>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="flex-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Find an exam for this subject and start practice
+                                const subjectExam = exams.find(exam => exam.subjects.includes(subject.id));
+                                if (subjectExam) {
+                                  setActiveExamId(subjectExam.id);
+                                  setExamMode('practice');
+                                }
+                              }}
+                            >
+                              <PlayCircle className="h-4 w-4 mr-1" />
+                              Practice
                             </Button>
-                            <Button size="sm" variant="outline" asChild>
-                              <Link href={`/tutor?subject=${subject.name}`}>
-                                <Brain className="h-4 w-4" />
-                              </Link>
+                            <Button size="sm" variant="outline">
+                              <Brain className="h-4 w-4" />
                             </Button>
                           </div>
                         </CardContent>
@@ -219,6 +305,12 @@ export default function ProductionStudentDashboard() {
                 <CardTitle className="flex items-center gap-2">
                   <PenTool className="h-5 w-5" />
                   Available Exams
+                  {isPremium && (
+                    <Badge variant="secondary" className="ml-2">
+                      <Star className="h-3 w-3 mr-1" />
+                      Unlimited Access
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -255,17 +347,24 @@ export default function ProductionStudentDashboard() {
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <Button variant="outline" asChild>
-                                <Link href={`/practice?exam=${exam.id}`}>
-                                  <PlayCircle className="h-4 w-4 mr-2" />
-                                  Practice Mode
-                                </Link>
+                              <Button 
+                                variant="outline"
+                                onClick={() => {
+                                  setActiveExamId(exam.id);
+                                  setExamMode('practice');
+                                }}
+                              >
+                                <PlayCircle className="h-4 w-4 mr-2" />
+                                Practice Mode
                               </Button>
-                              <Button asChild>
-                                <Link href={`/exam/${exam.id}`}>
-                                  <PenTool className="h-4 w-4 mr-2" />
-                                  Take Exam
-                                </Link>
+                              <Button 
+                                onClick={() => {
+                                  setActiveExamId(exam.id);
+                                  setExamMode('exam');
+                                }}
+                              >
+                                <PenTool className="h-4 w-4 mr-2" />
+                                Take Exam
                               </Button>
                             </div>
                           </div>
@@ -290,18 +389,23 @@ export default function ProductionStudentDashboard() {
                     Practice with random questions from your selected subjects
                   </p>
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" asChild>
-                      <Link href="/practice?difficulty=easy">Easy</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link href="/practice?difficulty=medium">Medium</Link>
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <Link href="/practice?difficulty=hard">Hard</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href="/practice?difficulty=mixed">Mixed</Link>
-                    </Button>
+                    {['easy', 'medium', 'hard', 'mixed'].map((difficulty) => (
+                      <Button 
+                        key={difficulty}
+                        variant={difficulty === 'mixed' ? 'default' : 'outline'}
+                        onClick={() => {
+                          const difficultyExam = exams.find(exam => 
+                            exam.difficulty === difficulty || (difficulty === 'mixed' && exam.difficulty === 'mixed')
+                          );
+                          if (difficultyExam) {
+                            setActiveExamId(difficultyExam.id);
+                            setExamMode('practice');
+                          }
+                        }}
+                      >
+                        {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                      </Button>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -313,12 +417,16 @@ export default function ProductionStudentDashboard() {
                 <CardContent className="space-y-4">
                   <p className="text-gray-600 dark:text-gray-400">
                     Get personalized help with any topic
+                    {isPremium && (
+                      <Badge className="ml-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+                        <Star className="h-3 w-3 mr-1" />
+                        Premium
+                      </Badge>
+                    )}
                   </p>
-                  <Button className="w-full" asChild>
-                    <Link href="/tutor">
-                      <Brain className="h-4 w-4 mr-2" />
-                      Start AI Tutoring Session
-                    </Link>
+                  <Button className="w-full">
+                    <Brain className="h-4 w-4 mr-2" />
+                    Start AI Tutoring Session
                   </Button>
                 </CardContent>
               </Card>
@@ -353,8 +461,20 @@ export default function ProductionStudentDashboard() {
                     {studentStats.weakSubjects.map((subject, index) => (
                       <div key={index} className="flex items-center justify-between">
                         <span className="text-orange-600 dark:text-orange-400">⚠ {subject}</span>
-                        <Button size="sm" variant="outline" asChild>
-                          <Link href={`/practice?subject=${subject}`}>Practice</Link>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            const subjectExam = exams.find(exam => 
+                              exam.title.toLowerCase().includes(subject.toLowerCase())
+                            );
+                            if (subjectExam) {
+                              setActiveExamId(subjectExam.id);
+                              setExamMode('practice');
+                            }
+                          }}
+                        >
+                          Practice
                         </Button>
                       </div>
                     ))}

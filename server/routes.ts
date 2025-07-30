@@ -383,7 +383,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const examData = exam[0];
-      const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const sessionId = crypto.randomUUID();
       
       // Create exam session
       const session = await storage.createExamSession({
