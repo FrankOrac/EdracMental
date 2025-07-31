@@ -80,8 +80,6 @@ function Router() {
           <Route path="/home" component={Home} />
           <Route path="/exam/:examId?" component={ProductionExam} />
           <Route path="/practice/:subjectId?" component={ProductionPractice} />
-          <Route path="/profile" component={Profile} />
-          <Route path="/tutor" component={StudentAITutor} />
           
           {/* Admin-only routes */}
           {user?.role === 'admin' && (
