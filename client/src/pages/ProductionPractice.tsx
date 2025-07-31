@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Clock, Target, PlayCircle } from "lucide-react";
 import { useState } from "react";
+import StudentDashboardLayout from "@/components/student/StudentDashboardLayout";
 
 interface Exam {
   id: string;
@@ -74,18 +75,11 @@ export default function ProductionPractice() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto p-6 space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Practice Mode 🎯
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
-            Choose a practice exam to improve your skills. No time pressure, get instant explanations!
-          </p>
-        </div>
-
+    <StudentDashboardLayout 
+      title="Practice Mode" 
+      subtitle="Choose a practice exam to improve your skills. No time pressure, get instant explanations!"
+    >
+      <div className="space-y-8">
         {/* Practice Exams */}
         <div className="space-y-6">
           <Card>
@@ -216,6 +210,6 @@ export default function ProductionPractice() {
           </Card>
         </div>
       </div>
-    </div>
+    </StudentDashboardLayout>
   );
 }
