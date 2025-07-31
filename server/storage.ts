@@ -358,15 +358,6 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
-
-  async updateUser(id: string, data: Partial<UpsertUser>): Promise<User> {
-    const [user] = await db
-      .update(users)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
-  }
   
   // Institution operations
   async createInstitution(institutionData: InsertInstitution & { ownerId: string }): Promise<Institution> {

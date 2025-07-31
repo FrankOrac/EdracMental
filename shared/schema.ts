@@ -134,11 +134,14 @@ export const examSessions = pgTable("exam_sessions", {
   status: varchar("status", { enum: ["not_started", "in_progress", "completed", "abandoned"] }).notNull().default("not_started"),
   startTime: timestamp("start_time"),
   endTime: timestamp("end_time"),
-  remainingTime: integer("remaining_time"), // in seconds
+  timeRemaining: integer("time_remaining"), // in seconds
   currentQuestionIndex: integer("current_question_index").notNull().default(0),
   answers: jsonb("answers"), // { questionId: answer }
   score: decimal("score", { precision: 5, scale: 2 }),
   percentage: decimal("percentage", { precision: 5, scale: 2 }),
+  timeSpent: integer("time_spent"), // in seconds
+  isCompleted: boolean("is_completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
   flaggedQuestions: jsonb("flagged_questions"), // Array of question IDs
   antiCheatData: jsonb("anti_cheat_data"), // Tab switches, focus loss, etc.
   feedback: text("feedback"),

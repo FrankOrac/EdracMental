@@ -251,13 +251,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { subjectId } = req.query;
       
-      let query = db.select().from(topics);
+      let allTopics;
       
       if (subjectId) {
-        query = query.where(eq(topics.subjectId, parseInt(subjectId as string)));
+        allTopics = await db.select().from(topics)
+          .where(eq(topics.subjectId, parseInt(subjectId as string)))
+          .orderBy(topics.name);
+      } else {
+        allTopics = await db.select().from(topics).orderBy(topics.name);
       }
-      
-      const allTopics = await query.orderBy(topics.name);
       res.json(allTopics);
     } catch (error) {
       console.error("Error fetching topics:", error);
@@ -271,21 +273,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = req.session?.user;
       const { subjectId, topicId, difficulty, limit = 50 } = req.query;
       
-      let query = db
-        .select({
-          id: questions.id,
-          text: questions.text,
-          options: questions.options,
-          correctAnswer: questions.correctAnswer,
-          explanation: questions.explanation,
-          difficulty: questions.difficulty,
-          subjectId: questions.subjectId,
-          topicId: questions.topicId,
-          examType: questions.examType,
-          points: questions.points
-        })
-        .from(questions);
-      
       const conditions = [];
       
       if (subjectId) {
@@ -297,16 +284,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       if (difficulty) {
-        conditions.push(eq(questions.difficulty, difficulty as string));
+        conditions.push(eq(questions.difficulty, difficulty as "easy" | "medium" | "hard"));
       }
       
+      let result;
       if (conditions.length > 0) {
-        query = query.where(and(...conditions));
+        result = await db
+          .select({
+            id: questions.id,
+            text: questions.text,
+            options: questions.options,
+            correctAnswer: questions.correctAnswer,
+            explanation: questions.explanation,
+            difficulty: questions.difficulty,
+            subjectId: questions.subjectId,
+            topicId: questions.topicId,
+            examType: questions.examType,
+            points: questions.points
+          })
+          .from(questions)
+          .where(and(...conditions))
+          .orderBy(questions.id)
+          .limit(parseInt(limit as string)); 
+      } else {
+        result = await db
+          .select({
+            id: questions.id,
+            text: questions.text,
+            options: questions.options,
+            correctAnswer: questions.correctAnswer,
+            explanation: questions.explanation,
+            difficulty: questions.difficulty,
+            subjectId: questions.subjectId,
+            topicId: questions.topicId,
+            examType: questions.examType,
+            points: questions.points
+          })
+          .from(questions)
+          .orderBy(questions.id)
+          .limit(parseInt(limit as string));
       }
-      
-      const result = await query
-        .orderBy(questions.id)
-        .limit(parseInt(limit as string));
       
       res.json(result);
     } catch (error) {
@@ -373,7 +390,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get questions based on exam subjects
       const examQuestions = await storage.getRandomQuestions({
-        subjectIds: examData.subjects,
+        subjectIds: Array.isArray(examData.subjects) ? examData.subjects : [],
         difficulty: examData.difficulty === 'mixed' ? undefined : examData.difficulty,
         examType: examData.examCategory,
         limit: examData.totalQuestions
@@ -403,18 +420,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create exam session
       const session = await storage.createExamSession({
-
         examId,
         userId,
         startTime: new Date(),
-        timeRemaining: examData.duration * 60, // Convert minutes to seconds
         answers: {},
         isCompleted: false
       });
       
       res.json({
         sessionId: session.id,
-        timeRemaining: session.timeRemaining,
+        timeRemaining: examData.duration * 60, // Convert minutes to seconds
         examDuration: examData.duration
       });
     } catch (error) {
@@ -463,10 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update session
       await storage.updateExamSession(sessionId, {
         answers: answers as Record<string, string>,
-        score,
-        timeSpent,
-        isCompleted: true,
-        completedAt: new Date()
+        isCompleted: true
       });
       
       res.json({
@@ -497,9 +509,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error explaining question:", error);
       
       // Smart fallback explanation based on question content
-      const lowerText = (questionText || '').toLowerCase();
+      const lowerText = (req.body.questionText || '').toLowerCase();
       let fallbackExplanation = {
-        explanation: `The correct answer is: ${correctAnswer}. `,
+        explanation: `The correct answer is: ${req.body.correctAnswer}. `,
         examples: ["Review the question carefully", "Consider all given information"],
         relatedTopics: ["Study materials", "Practice questions"],
         confidence: 0.7
@@ -519,8 +531,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         fallbackExplanation.relatedTopics = ["Scientific principles", "Laboratory procedures", "Theory application"];
       }
 
-      if (studentAnswer && studentAnswer !== correctAnswer) {
-        fallbackExplanation.explanation += ` You selected ${studentAnswer}, but the correct answer is ${correctAnswer}. Review the concept and understand why this option is correct.`;
+      if (req.body.studentAnswer && req.body.studentAnswer !== req.body.correctAnswer) {
+        fallbackExplanation.explanation += ` You selected ${req.body.studentAnswer}, but the correct answer is ${req.body.correctAnswer}. Review the concept and understand why this option is correct.`;
       }
 
       res.json(fallbackExplanation);
