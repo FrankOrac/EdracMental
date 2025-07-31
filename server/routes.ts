@@ -5,6 +5,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { db } from "./db";
 import { users, questions, topics, subjects, exams, examSessions } from "@shared/schema";
 import { eq, and, desc, sql, count, avg, sum, inArray } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 // Custom middleware for session-based auth
 const requireAuth = (req: any, res: any, next: any) => {
@@ -398,11 +399,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const examData = exam[0];
-      const sessionId = crypto.randomUUID();
+      const sessionId = randomUUID();
       
       // Create exam session
       const session = await storage.createExamSession({
-        id: sessionId,
+
         examId,
         userId,
         startTime: new Date(),
@@ -460,10 +461,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const score = Math.round((correctAnswers / totalQuestions) * 100);
       
       // Update session
-      await storage.completeExamSession(sessionId, {
+      await storage.updateExamSession(sessionId, {
         answers: answers as Record<string, string>,
         score,
         timeSpent,
+        isCompleted: true,
         completedAt: new Date()
       });
       
@@ -495,7 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error explaining question:", error);
       
       // Smart fallback explanation based on question content
-      const lowerText = questionText.toLowerCase();
+      const lowerText = (questionText || '').toLowerCase();
       let fallbackExplanation = {
         explanation: `The correct answer is: ${correctAnswer}. `,
         examples: ["Review the question carefully", "Consider all given information"],
@@ -541,7 +543,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error providing tutoring:", error);
       
       // Enhanced intelligent fallback when OpenAI fails
-      const lowerQuery = (query || question || '').toLowerCase();
+      const lowerQuery = (req.body.query || req.body.question || '').toLowerCase();
       let fallbackResponse = {
         explanation: "I'm here to help with your studies! While my advanced AI is temporarily unavailable, I can still provide guidance.",
         examples: ["Break down complex problems into smaller steps", "Review your study materials", "Practice with similar questions"],
