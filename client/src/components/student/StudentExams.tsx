@@ -233,8 +233,8 @@ export default function StudentExams() {
                     <Badge className={getDifficultyColor(exam.difficulty)}>
                       {exam.difficulty}
                     </Badge>
-                    <Badge className={getExamTypeColor(exam.examType)}>
-                      {exam.examType.toUpperCase()}
+                    <Badge className={getExamTypeColor(exam.examType || 'general')}>
+                      {(exam.examType || 'general').toUpperCase()}
                     </Badge>
                   </div>
                 </CardHeader>
