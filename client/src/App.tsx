@@ -91,6 +91,7 @@ function Router() {
               <Route path="/admin/question-validator" component={QuestionValidator} />
               <Route path="/admin/institutions" component={AdminInstitutions} />
               <Route path="/admin/system" component={AdminSystem} />
+              <Route path="/profile" component={Profile} />
             </>
           )}
           
@@ -101,6 +102,7 @@ function Router() {
               <Route path="/create-questions" component={CreateQuestions} />
               <Route path="/students" component={AdminUsers} />
               <Route path="/analytics" component={Analytics} />
+              <Route path="/profile" component={Profile} />
             </>
           )}
           
