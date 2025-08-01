@@ -486,7 +486,7 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center relative overflow-hidden">
+      <section className="pt-16 pb-12 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center relative overflow-hidden">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 left-4 sm:left-10 w-24 h-24 sm:w-32 sm:h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
@@ -494,16 +494,16 @@ export default function Landing() {
           <div className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-green-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "4s" }}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center relative z-10">
-          <div className="text-center lg:text-left order-1 lg:order-1">
-            <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-6">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
+          <div className="text-center lg:text-left space-y-8">
+            <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full">
               <Sparkles className="h-4 w-4 text-blue-500 mr-2" />
               <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 AI-Powered Learning for Africa
               </span>
             </div>
             
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-tight">
               Redefining How{" "}
               <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 Africa Learns
@@ -511,14 +511,15 @@ export default function Landing() {
               and Succeeds
             </h1>
             
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              Whether you're preparing for <strong>JAMB, WAEC, NECO, GCE, Post-UTME</strong>, or you're a <strong>university student</strong> 
-              or <strong>self-learner</strong> diving into tech, health, or other fields, Edrac provides comprehensive AI tutoring and exam preparation. 
-              Get intelligent explanations, personalized guidance, and authentic exam practice. Additionally, upload <strong>your own materials</strong> 
-              - class notes, ebooks, lecturer slides - and our AI transforms them into interactive lessons with <strong>voice interaction</strong> and <strong>smart proctoring</strong>.
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-4xl mx-auto lg:mx-0">
+              Preparing for <strong>JAMB, WAEC, NECO, GCE, or Post-UTME</strong>? Or perhaps you're a <strong>university student</strong> 
+              or <strong>self-learner</strong> exploring fields like tech, health, and more? Edrac provides comprehensive AI-powered tutoring 
+              and exam preparation tailored to your needs. Benefit from intelligent explanations, personalized guidance, and authentic exam practice. 
+              You can also upload your own materials—<strong>class notes, ebooks, or lecturer slides</strong>—and our AI will transform them 
+              into interactive lessons with <strong>voice interaction</strong> and <strong>smart proctoring</strong>.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               {user ? (
                 <Link href="/dashboard">
                   <Button3D variant="primary" size="lg">
@@ -540,9 +541,10 @@ export default function Landing() {
               </Button3D>
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {achievements.map((achievement, index) => (
-                <div key={index} className="text-center p-4 bg-white/50 dark:bg-white/10 rounded-xl backdrop-blur-sm">
+                <div key={index} className="text-center p-4 bg-white/50 dark:bg-white/10 rounded-xl backdrop-blur-sm hover:bg-white/60 dark:hover:bg-white/20 transition-all duration-300">
                   <achievement.icon className="h-8 w-8 mx-auto mb-2 text-blue-500" />
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">{achievement.number}</div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">{achievement.title}</div>
@@ -550,30 +552,31 @@ export default function Landing() {
               ))}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Secondary & Tertiary Education</span>
+            {/* Key Features Checklist */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+              <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                <span className="text-gray-700 dark:text-gray-300">Secondary & Tertiary Education</span>
               </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Learn from Your Materials</span>
+              <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                <span className="text-gray-700 dark:text-gray-300">Learn from Your Materials</span>
               </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Voice Interaction AI</span>
+              <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                <span className="text-gray-700 dark:text-gray-300">Voice Interaction AI</span>
               </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Tech, Health & All Fields</span>
+              <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                <span className="text-gray-700 dark:text-gray-300">Tech, Health & All Fields</span>
               </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Smart Proctoring</span>
+              <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                <span className="text-gray-700 dark:text-gray-300">Smart Proctoring</span>
               </div>
-              <div className="flex items-center">
-                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>University Student Support</span>
+              <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                <span className="text-gray-700 dark:text-gray-300">University Student Support</span>
               </div>
             </div>
           </div>
