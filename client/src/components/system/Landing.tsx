@@ -494,7 +494,7 @@ export default function Landing() {
           <div className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-green-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "4s" }}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10 mb-16">
           {/* Left Side - Text Content */}
           <div className="text-center lg:text-left">
             <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-4">
@@ -520,7 +520,7 @@ export default function Landing() {
               into interactive lessons with <strong>voice interaction</strong> and <strong>smart proctoring</strong>.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
               {user ? (
                 <Link href="/dashboard">
                   <Button3D variant="primary" size="lg">
@@ -544,7 +544,7 @@ export default function Landing() {
           </div>
 
           {/* Right Side - Interactive Image/Demo */}
-          <div className="relative order-2 lg:order-2">
+          <div className="relative">
             {/* Interactive App Sections Slider */}
             <div className="relative group">
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
@@ -617,43 +617,43 @@ export default function Landing() {
         </div>
 
         {/* Bottom Section - Key Metrics and Features */}
-        <div className="max-w-7xl mx-auto mt-12 space-y-8 relative z-10">
+        <div className="max-w-7xl mx-auto space-y-8 relative z-10">
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {achievements.map((achievement, index) => (
-              <div key={index} className="text-center p-4 bg-white/50 dark:bg-white/10 rounded-lg backdrop-blur-sm hover:bg-white/60 dark:hover:bg-white/20 transition-all duration-300">
-                <achievement.icon className="h-6 w-6 mx-auto mb-2 text-blue-500" />
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{achievement.number}</div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">{achievement.title}</div>
+              <div key={index} className="text-center p-6 bg-white/50 dark:bg-white/10 rounded-xl backdrop-blur-sm hover:bg-white/60 dark:hover:bg-white/20 transition-all duration-300">
+                <achievement.icon className="h-8 w-8 mx-auto mb-3 text-blue-500" />
+                <div className="text-3xl font-bold text-gray-900 dark:text-white">{achievement.number}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{achievement.title}</div>
               </div>
             ))}
           </div>
 
           {/* Key Features Checklist */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Secondary & Tertiary Education</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Secondary & Tertiary Education</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Learn from Your Materials</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Learn from Your Materials</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Voice Interaction AI</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Voice Interaction AI</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Tech, Health & All Fields</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Tech, Health & All Fields</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Smart Proctoring</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Smart Proctoring</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">University Student Support</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">University Student Support</span>
             </div>
           </div>
         </div>
