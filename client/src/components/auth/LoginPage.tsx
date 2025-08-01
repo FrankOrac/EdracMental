@@ -415,25 +415,6 @@ export default function LoginPage() {
                   <Button
                     onClick={() => {
                       toast({
-                        title: "Redirecting to Replit",
-                        description: "You'll be redirected to Replit's secure login page",
-                        variant: "default",
-                      });
-                      setTimeout(() => {
-                        window.location.href = "/api/login";
-                      }, 1000);
-                    }}
-                    variant="outline"
-                    size="lg"
-                    className="w-full"
-                  >
-                    <LogIn className="mr-2 h-5 w-5" />
-                    Continue with Replit
-                  </Button>
-
-                  <Button
-                    onClick={() => {
-                      toast({
                         title: "Redirecting to Google",
                         description: "You'll be redirected to Google's secure login page",
                         variant: "default",

@@ -16,7 +16,10 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await apiRequest('POST', '/api/auth/demo-login', { email });
+      const response = await apiRequest('/api/auth/demo-login', {
+        method: 'POST',
+        body: JSON.stringify({ email })
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -123,10 +126,10 @@ export default function Login() {
           <div className="mt-4 text-center">
             <Button
               variant="outline"
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => window.location.href = '/api/auth/google'}
               className="w-full"
             >
-              Sign in with Replit
+              Sign in with Google
             </Button>
           </div>
         </CardContent>

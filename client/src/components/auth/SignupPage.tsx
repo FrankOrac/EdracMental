@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "wouter";
 import { useTheme } from "@/components/system/ThemeProvider";
 import { 
-  GraduationCap, 
   Building, 
   User, 
   Mail, 
@@ -23,9 +22,7 @@ export default function SignupPage() {
   const [activeTab, setActiveTab] = useState("student");
   const { theme, toggleTheme } = useTheme();
 
-  const handleReplitSignup = () => {
-    window.location.href = "/api/login";
-  };
+
 
   const handleGoogleSignup = () => {
     window.location.href = "/api/auth/google";
@@ -59,7 +56,7 @@ export default function SignupPage() {
         <CardHeader className="text-center pb-4">
           <div className="flex items-center justify-center mb-4">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <GraduationCap className="h-6 w-6 text-white" />
+              <User className="h-6 w-6 text-white" />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -95,14 +92,6 @@ export default function SignupPage() {
 
               {/* Sign up options */}
               <div className="space-y-3">
-                <Button
-                  onClick={handleReplitSignup}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                >
-                  <GraduationCap className="mr-2 h-4 w-4" />
-                  Sign up with Replit
-                </Button>
-
                 <Button
                   variant="outline"
                   onClick={handleGoogleSignup}
@@ -172,14 +161,6 @@ export default function SignupPage() {
 
               {/* Sign up options */}
               <div className="space-y-3">
-                <Button
-                  onClick={handleReplitSignup}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                >
-                  <Building className="mr-2 h-4 w-4" />
-                  Sign up with Replit
-                </Button>
-
                 <Button
                   variant="outline"
                   onClick={handleGoogleSignup}
