@@ -57,10 +57,10 @@ export default function Landing() {
   const features = [
     {
       icon: Brain,
-      title: "24/7 AI Tutor",
-      description: "GPT-4 powered tutoring with instant explanations, personalized learning paths, and intelligent fallback responses. Works online and offline with smart content caching.",
+      title: "AI That Learns from YOUR Materials",
+      description: "Upload your class notes, unpublished ebooks, lecturer slides, or any learning material. Our AI transforms them into simple, easy-to-understand lessons with voice interaction, making complex concepts clear and accessible.",
       gradient: "from-blue-500 to-purple-600",
-      stats: "GPT-4 Powered Intelligence"
+      stats: "Personalized Intelligence"
     },
     {
       icon: Shield,
@@ -99,10 +99,10 @@ export default function Landing() {
     },
     {
       icon: GraduationCap,
-      title: "Complete African Curriculum",
-      description: "Comprehensive coverage of all African examinations: JAMB, WAEC, NECO, GCE, Post-UTME, institutional interview exams, and complete learning platform for all subjects with updated question banks.",
+      title: "Complete Learning Ecosystem",
+      description: "From secondary school exams (JAMB, WAEC, NECO, GCE, Post-UTME) to university studies and professional development in tech, health, and all fields. Learn from your own materials with personalized AI support.",
       gradient: "from-blue-500 to-green-500",
-      stats: "Pan-African Excellence"
+      stats: "All Educational Levels"
     },
     {
       icon: Award,
@@ -146,12 +146,12 @@ export default function Landing() {
       price: "$0",
       period: "Forever free",
       features: [
-        "10 practice questions daily",
-        "Basic African exam question banks",
+        "Basic material uploads (notes, slides)",
+        "Limited AI tutoring sessions",
+        "Secondary school exam practice",
         "Performance tracking",
         "Community support",
-        "Mobile app access",
-        "Basic learning platform access"
+        "Mobile app access"
       ],
       buttonText: "Get Started Free",
       popular: false
@@ -161,14 +161,14 @@ export default function Landing() {
       price: "$6",
       period: "per month",
       features: [
-        "Unlimited practice tests for all African exams",
-        "Complete question bank (JAMB, WAEC, NECO, GCE)",
-        "24/7 AI tutor with GPT-4",
-        "Interview exam preparation",
-        "Complete learning platform access",
-        "Advanced analytics & insights",
+        "Unlimited material uploads & AI processing",
+        "Voice interaction with AI tutor",
+        "All exam levels (secondary to university)",
+        "Tech, health & professional field support",
+        "Advanced AI from your own materials",
+        "Smart proctoring for all assessments",
+        "Real-time insights & analytics",
         "Study groups & collaboration",
-        "Offline mode capability",
         "Priority support",
         "Ad-free experience"
       ],
@@ -182,13 +182,13 @@ export default function Landing() {
       features: [
         "Everything in Premium",
         "Up to 500 students",
-        "Custom exam builder for all African exams",
-        "Interview exam creation tools",
-        "Advanced proctoring tools",
-        "Institution analytics dashboard",
+        "Custom curriculum upload system",
+        "Institutional material management",
+        "Advanced proctoring & monitoring",
+        "Comprehensive analytics dashboard",
         "White-label branding options",
-        "Bulk student management",
-        "Complete learning management system",
+        "Bulk student & content management",
+        "API access for integration",
         "Dedicated customer success manager"
       ],
       buttonText: "Start Free Trial",
@@ -497,22 +497,23 @@ export default function Landing() {
             <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-6">
               <Sparkles className="h-4 w-4 text-blue-500 mr-2" />
               <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                Africa's First Comprehensive AI-Powered CBT Platform
+                AI-Powered Learning for Africa
               </span>
             </div>
             
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              Transform{" "}
+              Redefining How{" "}
               <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                African Education
+                Africa Learns
               </span>{" "}
-              with AI Intelligence
+              and Succeeds
             </h1>
             
             <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              Africa's most comprehensive AI-powered learning platform with <strong>GPT-4 tutoring</strong>, <strong>advanced proctoring</strong>, and <strong>collaborative learning</strong>. 
-              Master all African examinations including <strong>JAMB, WAEC, NECO, GCE, Post-UTME</strong>, institutional <strong>interview exams</strong>, 
-              and access a complete <strong>learning platform for all subjects</strong> - powered by cutting-edge artificial intelligence.
+              Whether you're preparing for <strong>JAMB, WAEC, NECO, GCE, Post-UTME</strong>, or you're a <strong>university student</strong> 
+              or <strong>self-learner</strong> diving into tech, health, or other fields, Edrac is built to support your journey. 
+              Our AI learns from <strong>your own materials</strong> - class notes, unpublished ebooks, lecturer slides - 
+              turning them into simple, easy-to-understand lessons with <strong>voice interaction</strong> and <strong>smart proctoring</strong>.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
@@ -550,27 +551,27 @@ export default function Landing() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>All African Exams</span>
+                <span>Secondary & Tertiary Education</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>GPT-4 AI Tutoring</span>
+                <span>Learn from Your Materials</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Interview Exam Prep</span>
+                <span>Voice Interaction AI</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Complete Learning Platform</span>
+                <span>Tech, Health & All Fields</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Advanced Proctoring</span>
+                <span>Smart Proctoring</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>50,000+ Questions</span>
+                <span>University Student Support</span>
               </div>
             </div>
           </div>
