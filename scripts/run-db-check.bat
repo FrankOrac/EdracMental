@@ -1,0 +1,3 @@
+@echo off
+echo Checking database connection...
+tsx scripts/db-check.ts

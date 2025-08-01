@@ -1,0 +1,3 @@
+@echo off
+echo Cleaning codebase...
+tsx scripts/clean-codebase.ts

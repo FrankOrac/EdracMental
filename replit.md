@@ -2,6 +2,11 @@
 
 Edrac is Africa's first comprehensive AI-powered Computer-Based Testing (CBT) and smart learning platform, specifically designed for Nigerian students and educational institutions. It combines GPT-4 intelligence with authentic exam simulation to provide personalized learning, advanced proctoring, collaborative study groups, and complete institutional management. The platform covers all major Nigerian examinations (JAMB, WAEC, NECO, GCE, Post-UTME) and serves students, schools, training centers, and corporate bodies across Nigeria and West Africa with scalable, mobile-first technology.
 
+## Recent Changes
+- **Windows Deployment System** (August 2025): Created comprehensive Windows deployment scripts with automated setup, database seeding, and demo account creation
+- **Hero Section Optimization** (August 2025): Fixed layout issues to achieve clean two-column design with metrics/features properly positioned below
+- **Demo Data Infrastructure** (August 2025): Implemented complete seeding system with demo accounts, sample questions, and institutional setup
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -82,3 +87,31 @@ Preferred communication style: Simple, everyday language.
 - **Tailwind CSS**: For utility-first styling
 - **Lucide Icons**: For iconography
 - **Date-fns**: For date manipulation
+
+## Windows Deployment
+
+### Deployment Scripts
+- **windows-setup.bat**: Automated installation and configuration script
+- **windows-start.bat**: Application launcher with database verification
+- **run-db-check.bat**: Database connection and schema verification
+- **run-seed.bat**: Demo data seeding with sample accounts
+- **run-clean.bat**: Safe codebase cleanup utility
+
+### Demo Accounts
+- **Admin**: admin@edrac.com (password: admin) - Full system administration
+- **Institution**: institution@edrac.com (password: institution) - School management
+- **Student**: student@edrac.com (password: student) - Learning interface
+
+### Sample Data
+- 8 subjects (Mathematics, English, Physics, Chemistry, Biology, Computer Science, Literature, Geography)
+- 12+ topics across different subjects with difficulty levels
+- Sample multiple-choice questions with detailed explanations
+- Practice and mock exams with proctoring settings
+- Demo institution with complete configuration
+
+### Prerequisites
+- Windows 10/11 (64-bit recommended)
+- Node.js 18+ 
+- PostgreSQL 12+
+- 4GB RAM minimum (8GB recommended)
+- 2GB free disk space

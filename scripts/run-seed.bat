@@ -1,0 +1,3 @@
+@echo off
+echo Seeding demo data...
+tsx scripts/seed-demo.ts
