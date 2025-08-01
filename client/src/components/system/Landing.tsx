@@ -143,7 +143,7 @@ export default function Landing() {
   const pricingPlans = [
     {
       name: "Free",
-      price: "₦0",
+      price: "$0",
       period: "Forever free",
       features: [
         "10 practice questions daily",
@@ -158,7 +158,7 @@ export default function Landing() {
     },
     {
       name: "Premium",
-      price: "₦2,500",
+      price: "$6",
       period: "per month",
       features: [
         "Unlimited practice tests for all African exams",
@@ -177,7 +177,7 @@ export default function Landing() {
     },
     {
       name: "Institution",
-      price: "₦150,000",
+      price: "$360",
       period: "per year",
       features: [
         "Everything in Premium",
