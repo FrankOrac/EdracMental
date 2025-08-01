@@ -1,6 +1,6 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import ProductionCBTInterface from "@/components/exam/ProductionCBTInterface";
+import EnhancedProductionCBTInterface from "@/components/exam/EnhancedProductionCBTInterface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,12 +38,12 @@ export default function ProductionPractice() {
 
   // If exam ID provided via URL, start practice immediately
   if (examFromUrl && !selectedExamId) {
-    return <ProductionCBTInterface examId={examFromUrl} practiceMode={true} />;
+    return <EnhancedProductionCBTInterface examId={examFromUrl} practiceMode={true} onComplete={() => setSelectedExamId(null)} />;
   }
 
   // If exam selected, start practice
   if (selectedExamId) {
-    return <ProductionCBTInterface examId={selectedExamId} practiceMode={true} />;
+    return <EnhancedProductionCBTInterface examId={selectedExamId} practiceMode={true} onComplete={() => setSelectedExamId(null)} />;
   }
 
   // Filter exams based on criteria

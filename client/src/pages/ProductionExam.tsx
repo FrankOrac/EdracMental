@@ -1,5 +1,5 @@
 import { useParams } from "wouter";
-import ProductionCBTInterface from "@/components/exam/ProductionCBTInterface";
+import EnhancedProductionCBTInterface from "@/components/exam/EnhancedProductionCBTInterface";
 
 export default function ProductionExam() {
   const params = useParams();
@@ -16,5 +16,5 @@ export default function ProductionExam() {
     );
   }
 
-  return <ProductionCBTInterface examId={examId} practiceMode={false} />;
+  return <EnhancedProductionCBTInterface examId={examId} practiceMode={false} onComplete={() => window.history.back()} />;
 }

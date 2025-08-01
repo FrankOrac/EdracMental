@@ -442,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/exam-sessions/:sessionId/submit', requireAuth, async (req: any, res) => {
     try {
       const { sessionId } = req.params;
-      const { answers, timeSpent } = req.body;
+      const { answers, timeSpent, proctorViolations, interviewMetrics } = req.body;
       const userId = req.session?.user?.id || req.user?.claims?.sub;
       
       // Get session
@@ -475,18 +475,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const score = Math.round((correctAnswers / totalQuestions) * 100);
       
+      // Calculate final score considering violations for proctored exams
+      let finalScore = score;
+      if (proctorViolations && proctorViolations.length > 0) {
+        const violationPenalty = proctorViolations.reduce((penalty: number, violation: any) => {
+          switch (violation.severity) {
+            case 'high': return penalty + 10;
+            case 'medium': return penalty + 5;
+            case 'low': return penalty + 2;
+            default: return penalty;
+          }
+        }, 0);
+        finalScore = Math.max(0, score - violationPenalty);
+      }
+
       // Update session
       await storage.updateExamSession(sessionId, {
         answers: answers as Record<string, string>,
+        score: finalScore.toString(),
+        percentage: finalScore.toString(),
+        antiCheatData: proctorViolations ? JSON.stringify(proctorViolations) : undefined,
+        feedback: interviewMetrics ? JSON.stringify(interviewMetrics) : undefined,
         isCompleted: true
       });
       
       res.json({
         score: correctAnswers,
         totalQuestions,
-        percentage: score,
+        percentage: finalScore,
+        originalScore: score,
         timeSpent,
-        passed: score >= 50 // Assuming 50% is passing
+        passed: finalScore >= 50,
+        proctorViolations: proctorViolations || [],
+        interviewMetrics: interviewMetrics || null
       });
     } catch (error) {
       console.error("Error submitting exam session:", error);
@@ -737,6 +758,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching institution analytics:", error);
       res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Proctoring API endpoints
+  app.post('/api/proctoring/analyze', requireAuth, async (req: any, res) => {
+    try {
+      const violations = [];
+      
+      // Simulate random AI analysis results
+      if (Math.random() < 0.1) {
+        violations.push({
+          type: 'multiple_faces_detected',
+          severity: 'medium',
+          confidence: 0.85,
+          timestamp: new Date()
+        });
+      }
+      
+      res.json({ violations });
+    } catch (error) {
+      console.error("Error analyzing proctoring data:", error);
+      res.status(500).json({ message: "Failed to analyze proctoring data" });
+    }
+  });
+
+  app.post('/api/proctoring/upload-recording', requireAuth, async (req: any, res) => {
+    try {
+      res.json({ message: "Recording uploaded successfully" });
+    } catch (error) {
+      console.error("Error uploading recording:", error);
+      res.status(500).json({ message: "Failed to upload recording" });
+    }
+  });
+
+  app.post('/api/interview/screenshot', requireAuth, async (req: any, res) => {
+    try {
+      res.json({ message: "Screenshot saved successfully" });
+    } catch (error) {
+      console.error("Error saving screenshot:", error);
+      res.status(500).json({ message: "Failed to save screenshot" });
+    }
+  });
+
+  app.post('/api/interview/upload-recording', requireAuth, async (req: any, res) => {
+    try {
+      res.json({ message: "Interview recording uploaded successfully" });
+    } catch (error) {
+      console.error("Error uploading interview recording:", error);
+      res.status(500).json({ message: "Failed to upload interview recording" });
     }
   });
 

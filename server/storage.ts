@@ -583,6 +583,13 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return session;
   }
+
+  async getUsersByInstitution(institutionId: string): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .where(eq(users.institutionId, institutionId));
+  }
   
   async getUserActiveSession(userId: string): Promise<ExamSession | undefined> {
     const [session] = await db
