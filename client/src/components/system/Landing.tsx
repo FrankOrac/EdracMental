@@ -58,44 +58,58 @@ export default function Landing() {
     {
       icon: Brain,
       title: "24/7 AI Tutor",
-      description: "Advanced AI tutoring with instant explanations, typo detection, and intelligent fallback responses even offline.",
+      description: "GPT-4 powered tutoring with instant explanations, personalized learning paths, and intelligent fallback responses. Works online and offline with smart content caching.",
       gradient: "from-blue-500 to-purple-600",
-      stats: "Smart Fallback System"
+      stats: "GPT-4 Powered Intelligence"
     },
     {
       icon: Shield,
       title: "Advanced Proctoring",
-      description: "Comprehensive proctoring with tab monitoring, focus detection, webcam supervision, and violation reporting.",
+      description: "Enterprise-grade exam security with multi-modal monitoring, tab-switch detection, webcam supervision, audio analysis, and real-time violation reporting.",
       gradient: "from-green-500 to-purple-600",
-      stats: "Enterprise-Grade Security"
+      stats: "Multi-Modal Security"
     },
     {
       icon: Sparkles,
-      title: "AI Question Validation",
-      description: "Automated question validation with grammar checking, typo correction, and content optimization.",
+      title: "AI Question Generation",
+      description: "Automated question creation and validation with grammar checking, difficulty optimization, Nigerian curriculum alignment, and bulk import capabilities.",
       gradient: "from-purple-500 to-pink-600",
-      stats: "AI-Powered Validation"
+      stats: "Automated Content Creation"
     },
     {
       icon: Clock,
-      title: "Timed CBT Engine",
-      description: "Practice with realistic exam conditions including countdown timers, auto-submit, and question randomization.",
+      title: "Realistic CBT Engine",
+      description: "Authentic exam simulation with precise timers, auto-submit functionality, question randomization, and anti-cheating measures matching real JAMB/WAEC conditions.",
       gradient: "from-green-500 to-teal-600",
-      stats: "Real Exam Conditions"
+      stats: "Authentic Exam Experience"
     },
     {
       icon: TrendingUp,
-      title: "Smart Analytics",
-      description: "Track your progress with detailed performance insights, identify weak areas, and get improvement suggestions.",
+      title: "Advanced Analytics",
+      description: "Comprehensive performance tracking with subject-wise analysis, weakness identification, improvement recommendations, and predictive scoring models.",
       gradient: "from-orange-500 to-red-600",
-      stats: "Advanced Performance Tracking"
+      stats: "Predictive Analytics"
+    },
+    {
+      icon: Users,
+      title: "Study Groups & Collaboration",
+      description: "AI-powered student matching, real-time collaborative sessions, peer learning networks, and group performance tracking for enhanced learning outcomes.",
+      gradient: "from-pink-500 to-rose-600",
+      stats: "Collaborative Learning"
     },
     {
       icon: GraduationCap,
-      title: "Nigerian Curriculum",
-      description: "Complete coverage of JAMB, WAEC, NECO, GCE, and Post-UTME syllabus with up-to-date question banks.",
+      title: "Nigerian Curriculum Complete",
+      description: "Comprehensive coverage of JAMB, WAEC, NECO, GCE, and Post-UTME with updated question banks, local language support, and curriculum-aligned content.",
       gradient: "from-blue-500 to-green-500",
       stats: "100% Curriculum Coverage"
+    },
+    {
+      icon: Award,
+      title: "Institutional Management",
+      description: "Complete school administration with student management, custom exam creation, performance analytics, white-label branding, and bulk operations support.",
+      gradient: "from-indigo-500 to-blue-600",
+      stats: "Enterprise-Ready Platform"
     }
   ];
 
@@ -132,10 +146,11 @@ export default function Landing() {
       price: "₦0",
       period: "Forever free",
       features: [
-        "5 practice tests per month",
+        "10 practice questions daily",
         "Basic question bank access",
         "Performance tracking",
-        "Community support"
+        "Community support",
+        "Mobile app access"
       ],
       buttonText: "Get Started Free",
       popular: false
@@ -146,28 +161,32 @@ export default function Landing() {
       period: "per month",
       features: [
         "Unlimited practice tests",
-        "Complete question bank",
-        "24/7 AI tutor access",
-        "Advanced analytics",
+        "Complete question bank access",
+        "24/7 AI tutor with GPT-4",
+        "Advanced analytics & insights",
+        "Study groups & collaboration",
+        "Offline mode capability",
         "Priority support",
-        "No advertisements"
+        "Ad-free experience"
       ],
       buttonText: "Upgrade to Premium",
       popular: true
     },
     {
       name: "Institution",
-      price: "₦50,000",
-      period: "per month",
+      price: "₦150,000",
+      period: "per year",
       features: [
         "Everything in Premium",
-        "Unlimited students",
+        "Up to 500 students",
         "Custom exam builder",
-        "Institution dashboard",
-        "White-label options",
-        "Dedicated support"
+        "Advanced proctoring tools",
+        "Institution analytics dashboard",
+        "White-label branding options",
+        "Bulk student management",
+        "Dedicated customer success manager"
       ],
-      buttonText: "Contact Sales",
+      buttonText: "Start Free Trial",
       popular: false
     }
   ];

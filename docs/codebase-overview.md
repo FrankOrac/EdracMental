@@ -1,6 +1,6 @@
 # Edrac Codebase Overview
 
-This guide explains the complete codebase structure, logic flow, and how different parts work together.
+This comprehensive guide explains the complete codebase structure, advanced features, logic flow, and how different components integrate to deliver Africa's first AI-powered CBT and smart learning platform.
 
 ## 🏗 High-Level Architecture
 
@@ -34,24 +34,29 @@ client/src/
 │   │   ├── LoginPage.tsx            # Login interface
 │   │   └── SignupPage.tsx           # Registration interface
 │   │
-│   ├── exam/             # Exam-related components
-│   │   ├── CBTExamInterface.tsx     # Main exam taking interface
-│   │   ├── ExamTimer.tsx            # Countdown timer
-│   │   └── QuestionDisplay.tsx      # Individual question display
+│   ├── exam/             # Advanced exam and proctoring components
+│   │   ├── CBTExamInterface.tsx     # Main exam interface with anti-cheating measures
+│   │   ├── ExamTimer.tsx            # Precise countdown timer with auto-submit
+│   │   ├── QuestionDisplay.tsx      # Individual question display with randomization
+│   │   ├── AdvancedProctoring.tsx   # Multi-modal proctoring system
+│   │   └── ExamSecurity.tsx         # Tab-switch and focus monitoring
 │   │
 │   ├── institution/      # Institution management
 │   │   ├── EnhancedInstitutionDashboard.tsx # Institution dashboard
 │   │   ├── StudentManagement.tsx           # Student account management
 │   │   └── InstitutionSettings.tsx         # Institution preferences
 │   │
-│   ├── student/          # Student interface components
-│   │   ├── EnhancedStudentDashboard.tsx # Student main dashboard
-│   │   ├── StudyGroupsManager.tsx       # Study group features
-│   │   └── PerformanceTracker.tsx       # Progress tracking
+│   ├── student/          # Comprehensive student interface components
+│   │   ├── EnhancedStudentDashboard.tsx # Main dashboard with performance insights
+│   │   ├── StudyGroupsManager.tsx       # AI-powered study group matching and management
+│   │   ├── PerformanceTracker.tsx       # Advanced analytics with predictive scoring
+│   │   ├── CollaborativeSessions.tsx    # Real-time collaborative study sessions
+│   │   └── PersonalizedLearning.tsx     # Adaptive learning path recommendations
 │   │
-│   ├── ai/               # AI tutoring components
-│   │   ├── AiTutorEnhanced.tsx         # AI chat interface
-│   │   └── StudentAITutor.tsx          # Student-specific AI tutor
+│   ├── ai/               # AI tutoring and intelligence components
+│   │   ├── AiTutorEnhanced.tsx         # GPT-4 powered chat interface with fallbacks
+│   │   ├── StudentAITutor.tsx          # Student-specific AI tutor with personalization
+│   │   └── QuestionValidator.tsx       # AI-powered question validation and optimization
 │   │
 │   ├── layout/           # Layout and navigation
 │   │   ├── DashboardLayout.tsx         # Common dashboard wrapper
@@ -108,10 +113,13 @@ server/
 ├── db.ts                 # Database connection configuration
 ├── vite.ts               # Vite integration for development
 │
-└── services/             # Business logic services
-    ├── openai.ts         # OpenAI API integration
-    ├── aiTutor.ts        # AI tutoring logic
-    └── paystack.ts       # Payment processing
+└── services/             # Advanced business logic services
+    ├── enhanced-openai.ts    # GPT-4 integration with intelligent fallbacks
+    ├── aiTutor.ts            # Comprehensive AI tutoring with personalization
+    ├── paystack.ts           # Nigerian payment processing with Paystack
+    ├── proctoring.ts         # Multi-modal exam security and monitoring
+    ├── analytics.ts          # Advanced performance analytics and predictions
+    └── collaboration.ts      # Real-time study group and session management
 ```
 
 ### Shared Code (`shared/`)
