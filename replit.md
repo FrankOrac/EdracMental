@@ -3,6 +3,7 @@
 Edrac is Africa's first comprehensive AI-powered Computer-Based Testing (CBT) and smart learning platform, specifically designed for Nigerian students and educational institutions. It combines GPT-4 intelligence with authentic exam simulation to provide personalized learning, advanced proctoring, collaborative study groups, and complete institutional management. The platform covers all major Nigerian examinations (JAMB, WAEC, NECO, GCE, Post-UTME) and serves students, schools, training centers, and corporate bodies across Nigeria and West Africa with scalable, mobile-first technology.
 
 ## Recent Changes
+- **VS Code Development Setup** (August 2025): Created comprehensive VS Code deployment scripts with automated workspace configuration, debugging setup, and development environment
 - **Windows Deployment System** (August 2025): Created comprehensive Windows deployment scripts with automated setup, database seeding, and demo account creation
 - **Hero Section Optimization** (August 2025): Fixed layout issues to achieve clean two-column design with metrics/features properly positioned below
 - **Demo Data Infrastructure** (August 2025): Implemented complete seeding system with demo accounts, sample questions, and institutional setup
@@ -115,3 +116,26 @@ Preferred communication style: Simple, everyday language.
 - PostgreSQL 12+
 - 4GB RAM minimum (8GB recommended)
 - 2GB free disk space
+
+## VS Code Development Setup
+
+### Development Scripts
+- **vscode-setup.bat**: Automated VS Code workspace configuration and setup
+- **vscode-start.bat**: Launch VS Code with Edrac project and optimal settings
+- **VS Code Tasks**: Integrated tasks for starting server, database checks, and seeding
+- **Debug Configuration**: Full debugging support for backend with breakpoints
+
+### VS Code Features Configured
+- TypeScript IntelliSense with import preferences and auto-formatting
+- ESLint integration with code quality enforcement
+- Recommended extensions for React/TypeScript development
+- Integrated terminal with optimized workspace settings
+- Launch configurations for debugging server-side code
+- Tasks for database management, seeding, and cleanup operations
+
+### Development Workflow
+- Hot reload for instant code changes during development
+- Full debugging support with breakpoints and variable inspection
+- Integrated Git support with enhanced GitLens capabilities
+- Database management through PostgreSQL extension
+- Auto-formatting on save with Prettier integration
