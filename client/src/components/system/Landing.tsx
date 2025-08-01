@@ -616,12 +616,15 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Bottom Section - Key Metrics and Features */}
-        <div className="max-w-7xl mx-auto space-y-8 relative z-10">
+      </section>
+
+      {/* Metrics and Features Section - Outside Hero */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white/50 dark:bg-white/5">
+        <div className="max-w-7xl mx-auto space-y-12">
           {/* Key Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {achievements.map((achievement, index) => (
-              <div key={index} className="text-center p-6 bg-white/50 dark:bg-white/10 rounded-xl backdrop-blur-sm hover:bg-white/60 dark:hover:bg-white/20 transition-all duration-300">
+              <div key={index} className="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
                 <achievement.icon className="h-8 w-8 mx-auto mb-3 text-blue-500" />
                 <div className="text-3xl font-bold text-gray-900 dark:text-white">{achievement.number}</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">{achievement.title}</div>
@@ -631,27 +634,27 @@ export default function Landing() {
 
           {/* Key Features Checklist */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg px-4 py-3 shadow-md">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
               <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Secondary & Tertiary Education</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg px-4 py-3 shadow-md">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
               <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Learn from Your Materials</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg px-4 py-3 shadow-md">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
               <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Voice Interaction AI</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg px-4 py-3 shadow-md">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
               <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Tech, Health & All Fields</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg px-4 py-3 shadow-md">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
               <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Smart Proctoring</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
+            <div className="flex items-center bg-white dark:bg-gray-800 rounded-lg px-4 py-3 shadow-md">
               <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
               <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">University Student Support</span>
             </div>
