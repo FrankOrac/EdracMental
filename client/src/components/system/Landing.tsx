@@ -99,10 +99,10 @@ export default function Landing() {
     },
     {
       icon: GraduationCap,
-      title: "Nigerian Curriculum Complete",
-      description: "Comprehensive coverage of JAMB, WAEC, NECO, GCE, and Post-UTME with updated question banks, local language support, and curriculum-aligned content.",
+      title: "Complete African Curriculum",
+      description: "Comprehensive coverage of all African examinations: JAMB, WAEC, NECO, GCE, Post-UTME, institutional interview exams, and complete learning platform for all subjects with updated question banks.",
       gradient: "from-blue-500 to-green-500",
-      stats: "100% Curriculum Coverage"
+      stats: "Pan-African Excellence"
     },
     {
       icon: Award,
@@ -147,10 +147,11 @@ export default function Landing() {
       period: "Forever free",
       features: [
         "10 practice questions daily",
-        "Basic question bank access",
+        "Basic African exam question banks",
         "Performance tracking",
         "Community support",
-        "Mobile app access"
+        "Mobile app access",
+        "Basic learning platform access"
       ],
       buttonText: "Get Started Free",
       popular: false
@@ -160,9 +161,11 @@ export default function Landing() {
       price: "₦2,500",
       period: "per month",
       features: [
-        "Unlimited practice tests",
-        "Complete question bank access",
+        "Unlimited practice tests for all African exams",
+        "Complete question bank (JAMB, WAEC, NECO, GCE)",
         "24/7 AI tutor with GPT-4",
+        "Interview exam preparation",
+        "Complete learning platform access",
         "Advanced analytics & insights",
         "Study groups & collaboration",
         "Offline mode capability",
@@ -179,11 +182,13 @@ export default function Landing() {
       features: [
         "Everything in Premium",
         "Up to 500 students",
-        "Custom exam builder",
+        "Custom exam builder for all African exams",
+        "Interview exam creation tools",
         "Advanced proctoring tools",
         "Institution analytics dashboard",
         "White-label branding options",
         "Bulk student management",
+        "Complete learning management system",
         "Dedicated customer success manager"
       ],
       buttonText: "Start Free Trial",
@@ -492,22 +497,22 @@ export default function Landing() {
             <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-6">
               <Sparkles className="h-4 w-4 text-blue-500 mr-2" />
               <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                Nigeria's #1 CBT Platform
+                Africa's First Comprehensive AI-Powered CBT Platform
               </span>
             </div>
             
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              Master Your{" "}
+              Transform{" "}
               <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                Exams with AI
+                African Education
               </span>{" "}
-              Intelligence
+              with AI Intelligence
             </h1>
             
             <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-              Experience the future of learning with our <strong>24/7 AI Tutor</strong> and <strong>Advanced Proctoring System</strong>. 
-              Get instant explanations, real-time monitoring, and comprehensive exam preparation for 
-              JAMB, WAEC, NECO, and more - all powered by cutting-edge AI technology.
+              Africa's most comprehensive AI-powered learning platform with <strong>GPT-4 tutoring</strong>, <strong>advanced proctoring</strong>, and <strong>collaborative learning</strong>. 
+              Master all African examinations including <strong>JAMB, WAEC, NECO, GCE, Post-UTME</strong>, institutional <strong>interview exams</strong>, 
+              and access a complete <strong>learning platform for all subjects</strong> - powered by cutting-edge artificial intelligence.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
@@ -542,14 +547,26 @@ export default function Landing() {
               ))}
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-2 sm:space-y-0 sm:space-x-6 text-sm text-gray-500 dark:text-gray-400">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 lg:gap-4 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>Free Registration</span>
+                <span>All African Exams</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                <span>24/7 AI Support</span>
+                <span>GPT-4 AI Tutoring</span>
+              </div>
+              <div className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Interview Exam Prep</span>
+              </div>
+              <div className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Complete Learning Platform</span>
+              </div>
+              <div className="flex items-center">
+                <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                <span>Advanced Proctoring</span>
               </div>
               <div className="flex items-center">
                 <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
