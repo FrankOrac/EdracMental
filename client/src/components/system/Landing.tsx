@@ -494,17 +494,17 @@ export default function Landing() {
           <div className="absolute bottom-20 left-1/3 w-32 h-32 sm:w-40 sm:h-40 bg-green-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: "4s" }}></div>
         </div>
 
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center relative z-10">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center relative z-10">
           {/* Left Side - Text Content */}
           <div className="text-center lg:text-left">
-            <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-6">
-              <Sparkles className="h-4 w-4 text-blue-500 mr-2" />
-              <span className="text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+            <div className="inline-flex items-center px-3 py-1.5 bg-gradient-to-r from-blue-500/10 to-purple-600/10 rounded-full mb-4">
+              <Sparkles className="h-3 w-3 text-blue-500 mr-2" />
+              <span className="text-xs font-medium bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 AI-Powered Learning for Africa
               </span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-4">
               Redefining How{" "}
               <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 Africa Learns
@@ -512,7 +512,7 @@ export default function Landing() {
               and Succeeds
             </h1>
             
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl mx-auto lg:mx-0 mb-8">
+            <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-6">
               Preparing for <strong>JAMB, WAEC, NECO, GCE, or Post-UTME</strong>? Or perhaps you're a <strong>university student</strong> 
               or <strong>self-learner</strong> exploring fields like tech, health, and more? Edrac provides comprehensive AI-powered tutoring 
               and exam preparation tailored to your needs. Benefit from intelligent explanations, personalized guidance, and authentic exam practice. 
@@ -520,24 +520,24 @@ export default function Landing() {
               into interactive lessons with <strong>voice interaction</strong> and <strong>smart proctoring</strong>.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-6">
               {user ? (
                 <Link href="/dashboard">
                   <Button3D variant="primary" size="lg">
-                    <ArrowRight className="mr-2 h-5 w-5" />
+                    <ArrowRight className="mr-2 h-4 w-4" />
                     Go to Dashboard
                   </Button3D>
                 </Link>
               ) : (
                 <Link href="/signup">
                   <Button3D variant="primary" size="lg">
-                    <ArrowRight className="mr-2 h-5 w-5" />
+                    <ArrowRight className="mr-2 h-4 w-4" />
                     Start Learning Free
                   </Button3D>
                 </Link>
               )}
               <Button3D variant="outline" size="lg">
-                <Play className="mr-2 h-5 w-5" />
+                <Play className="mr-2 h-4 w-4" />
                 Watch Demo
               </Button3D>
             </div>
@@ -617,43 +617,43 @@ export default function Landing() {
         </div>
 
         {/* Bottom Section - Key Metrics and Features */}
-        <div className="max-w-7xl mx-auto mt-16 space-y-12 relative z-10">
+        <div className="max-w-7xl mx-auto mt-12 space-y-8 relative z-10">
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {achievements.map((achievement, index) => (
-              <div key={index} className="text-center p-6 bg-white/50 dark:bg-white/10 rounded-xl backdrop-blur-sm hover:bg-white/60 dark:hover:bg-white/20 transition-all duration-300">
-                <achievement.icon className="h-10 w-10 mx-auto mb-3 text-blue-500" />
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">{achievement.number}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{achievement.title}</div>
+              <div key={index} className="text-center p-4 bg-white/50 dark:bg-white/10 rounded-lg backdrop-blur-sm hover:bg-white/60 dark:hover:bg-white/20 transition-all duration-300">
+                <achievement.icon className="h-6 w-6 mx-auto mb-2 text-blue-500" />
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{achievement.number}</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">{achievement.title}</div>
               </div>
             ))}
           </div>
 
           {/* Key Features Checklist */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-700 dark:text-gray-300 font-medium">Secondary & Tertiary Education</span>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Secondary & Tertiary Education</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-700 dark:text-gray-300 font-medium">Learn from Your Materials</span>
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Learn from Your Materials</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-700 dark:text-gray-300 font-medium">Voice Interaction AI</span>
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Voice Interaction AI</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-700 dark:text-gray-300 font-medium">Tech, Health & All Fields</span>
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Tech, Health & All Fields</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-700 dark:text-gray-300 font-medium">Smart Proctoring</span>
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">Smart Proctoring</span>
             </div>
-            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <CheckCircle className="h-5 w-5 text-green-500 mr-3 flex-shrink-0" />
-              <span className="text-gray-700 dark:text-gray-300 font-medium">University Student Support</span>
+            <div className="flex items-center bg-white/30 dark:bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+              <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+              <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">University Student Support</span>
             </div>
           </div>
         </div>
