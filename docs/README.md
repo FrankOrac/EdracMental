@@ -45,7 +45,7 @@ This documentation folder contains comprehensive guides for understanding and de
 ## 🎯 Main Features
 
 ### Core Learning Platform
-- **AI-Powered Tutoring**: GPT-4 integration with 24/7 intelligent assistance and fallback responses
+- **AI-Powered Tutoring**: GPT-4 integration with 24/7 comprehensive explanations, intelligent assistance, and the ability to learn from your uploaded materials
 - **Realistic CBT Engine**: Authentic exam simulation with anti-cheating measures and precise timing
 - **Nigerian Curriculum**: Complete JAMB, WAEC, NECO, GCE, and Post-UTME coverage
 

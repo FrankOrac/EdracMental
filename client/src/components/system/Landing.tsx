@@ -57,10 +57,10 @@ export default function Landing() {
   const features = [
     {
       icon: Brain,
-      title: "AI That Learns from YOUR Materials",
-      description: "Upload your class notes, unpublished ebooks, lecturer slides, or any learning material. Our AI transforms them into simple, easy-to-understand lessons with voice interaction, making complex concepts clear and accessible.",
+      title: "Advanced AI Learning & Tutoring",
+      description: "Get 24/7 intelligent explanations, personalized learning paths, and comprehensive tutoring. Plus, upload your own materials - class notes, ebooks, lecturer slides - and our AI transforms them into interactive lessons with voice interaction.",
       gradient: "from-blue-500 to-purple-600",
-      stats: "Personalized Intelligence"
+      stats: "Comprehensive AI Intelligence"
     },
     {
       icon: Shield,
@@ -100,7 +100,7 @@ export default function Landing() {
     {
       icon: GraduationCap,
       title: "Complete Learning Ecosystem",
-      description: "From secondary school exams (JAMB, WAEC, NECO, GCE, Post-UTME) to university studies and professional development in tech, health, and all fields. Learn from your own materials with personalized AI support.",
+      description: "From secondary school exams (JAMB, WAEC, NECO, GCE, Post-UTME) to university studies and professional development in tech, health, and all fields. Get comprehensive AI tutoring plus the ability to learn from your own materials with personalized support.",
       gradient: "from-blue-500 to-green-500",
       stats: "All Educational Levels"
     },
@@ -146,9 +146,10 @@ export default function Landing() {
       price: "$0",
       period: "Forever free",
       features: [
+        "AI tutoring with explanations",
         "Basic material uploads (notes, slides)",
-        "Limited AI tutoring sessions",
-        "Secondary school exam practice",
+        "Limited practice sessions daily",
+        "Secondary school exam practice (JAMB, WAEC, NECO)",
         "Performance tracking",
         "Community support",
         "Mobile app access"
@@ -161,11 +162,12 @@ export default function Landing() {
       price: "$6",
       period: "per month",
       features: [
+        "24/7 AI tutoring & comprehensive explanations",
         "Unlimited material uploads & AI processing",
         "Voice interaction with AI tutor",
         "All exam levels (secondary to university)",
         "Tech, health & professional field support",
-        "Advanced AI from your own materials",
+        "Advanced AI tutoring + your own materials",
         "Smart proctoring for all assessments",
         "Real-time insights & analytics",
         "Study groups & collaboration",
@@ -511,9 +513,9 @@ export default function Landing() {
             
             <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
               Whether you're preparing for <strong>JAMB, WAEC, NECO, GCE, Post-UTME</strong>, or you're a <strong>university student</strong> 
-              or <strong>self-learner</strong> diving into tech, health, or other fields, Edrac is built to support your journey. 
-              Our AI learns from <strong>your own materials</strong> - class notes, unpublished ebooks, lecturer slides - 
-              turning them into simple, easy-to-understand lessons with <strong>voice interaction</strong> and <strong>smart proctoring</strong>.
+              or <strong>self-learner</strong> diving into tech, health, or other fields, Edrac provides comprehensive AI tutoring and exam preparation. 
+              Get intelligent explanations, personalized guidance, and authentic exam practice. Additionally, upload <strong>your own materials</strong> 
+              - class notes, ebooks, lecturer slides - and our AI transforms them into interactive lessons with <strong>voice interaction</strong> and <strong>smart proctoring</strong>.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-8">
@@ -815,7 +817,7 @@ export default function Landing() {
           <div className="text-center mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Experience Our Dashboard</h2>
             <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 mb-8">
-              Explore different user roles and see how Edrac adapts to your needs
+              Explore different user roles and see how Edrac adapts to meet your specific learning needs
             </p>
             
             {/* Role Selector */}
@@ -1025,7 +1027,7 @@ export default function Landing() {
               </div>
               <p className="text-gray-400 mb-6 max-w-md">
                 Empowering Nigerian students with AI-powered CBT platform for JAMB, WAEC, NECO, and more. 
-                Your success is our mission.
+                Get comprehensive tutoring plus the ability to learn from your own materials. Your success is our mission.
               </p>
               <div className="flex space-x-4">
                 <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer">

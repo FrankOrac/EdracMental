@@ -28,7 +28,7 @@
 **Core Value Proposition**: Africa's first comprehensive AI-driven CBT platform that transforms how students learn, practice, and excel in standardized examinations.
 
 ### Revolutionary Platform Features:
-1. **GPT-4 AI Tutoring** - 24/7 intelligent tutoring with personalized learning paths and offline capability
+1. **GPT-4 AI Tutoring** - 24/7 comprehensive explanations, intelligent tutoring with personalized learning paths, plus ability to learn from your own materials
 2. **Authentic CBT Engine** - Precise exam simulation matching real JAMB/WAEC conditions with advanced timing
 3. **AI Question Generation** - Automated content creation with curriculum alignment and bulk import capabilities
 4. **Multi-Modal Proctoring** - Enterprise-grade security with webcam, audio, and behavior analysis

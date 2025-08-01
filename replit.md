@@ -32,7 +32,8 @@ Preferred communication style: Simple, everyday language.
 ## Core Features
 
 ### AI-Powered Learning
-- **24/7 AI Tutoring**: GPT-4 integration providing instant explanations, personalized learning paths, intelligent fallback responses, and offline capability through smart content caching.
+- **24/7 AI Tutoring**: GPT-4 integration providing comprehensive explanations, instant tutoring, personalized learning paths, intelligent fallback responses, and offline capability through smart content caching.
+- **Custom Material Processing**: Upload your own materials (class notes, ebooks, lecturer slides) and our AI transforms them into interactive lessons with voice interaction.
 - **AI Question Generation**: Automated question creation with curriculum alignment, difficulty optimization, grammar validation, and bulk import from CSV/Excel.
 - **Intelligent Content Validation**: Real-time typo detection, content optimization, and curriculum compliance checking.
 
@@ -65,7 +66,7 @@ Preferred communication style: Simple, everyday language.
 # External Dependencies
 
 ## Core Services
-- **Database**: Neon PostgreSQL
+- **Database**: PostgreSQL
 - **AI**: OpenAI API
 - **Authentication**: Replit Auth
 - **Payments**: Paystack
